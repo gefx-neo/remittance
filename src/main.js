@@ -17,5 +17,5 @@ app.component("Loading", Loading);
 
 app.mount("#app");
 
-console.log(import.meta.env.VITE_ENV); // development, staging, or production
-console.log(import.meta.env.VITE_API_BASE_URL); // URL based on the environment
+// console.log(import.meta.env.VITE_ENV); // development, staging, or production
+// console.log(import.meta.env.VITE_API_BASE_URL); // URL based on the environment

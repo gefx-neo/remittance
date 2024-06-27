@@ -28,16 +28,15 @@ export const useAuthStore = defineStore("auth", {
           // Generate and store the device ID
           const deviceStore = useDeviceStore();
           await deviceStore.generateDeviceId();
-          console.log("deviceID", deviceStore.deviceId);
 
           // Set a cookie with the session and device information
           const sessionData = {
+            username: login, // Store the login value
             token: response.data.status,
             deviceId: deviceStore.deviceId,
             deviceName: deviceStore.deviceName,
           };
-          console.log("Session data to be stored in cookie:", sessionData);
-          cookieService.setComplexCookie("sessionData", sessionData, 1);
+          cookieService.setComplexCookie("sessionData", sessionData, 7);
         } else {
           this.user = false;
           this.error = response.data.message;
@@ -55,11 +54,11 @@ export const useAuthStore = defineStore("auth", {
       console.log("Removed sessionData cookie");
       router.push("/");
     },
-    checkCookie() {
+    refreshCookie() {
       if (this.user) {
         const sessionData = cookieService.getComplexCookie("sessionData");
         if (sessionData) {
-          cookieService.setComplexCookie("sessionData", sessionData, 1);
+          cookieService.setComplexCookie("sessionData", sessionData, 7);
           console.log("Refreshed sessionData cookie:", sessionData);
           this.cookieRefreshed = true; // Set the flag to true after refreshing
         }

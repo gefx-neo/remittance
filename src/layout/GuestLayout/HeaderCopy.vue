@@ -6,7 +6,19 @@
           <img src="@/assets/logo.jpg" />
         </RouterLink>
       </div>
-      <div class="menu">
+      <div class="hamburger" @click="store.toggleMenu">
+        <font-awesome-icon
+          v-if="!store.isMenuOpen"
+          :icon="['fas', 'bars']"
+          class="icon-open"
+        />
+        <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
+          <path
+            d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"
+          />
+        </svg>
+      </div>
+      <div class="menu" :class="{ open: store.isMenuOpen }">
         <div class="login-section">
           <RouterLink to="/register" class="register">Register</RouterLink>
           <RouterLink to="/login" class="btn-red login">Log in</RouterLink>
@@ -45,7 +57,6 @@ router.afterEach(() => {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  max-width: 1440px;
   height: 136px;
   position: fixed;
   top: 0;
@@ -62,6 +73,10 @@ router.afterEach(() => {
 
 .logo img {
   height: 40px;
+}
+
+.hamburger {
+  display: none;
 }
 
 .menu {
@@ -87,7 +102,7 @@ router.afterEach(() => {
   color: var(--slate-blue);
   font-weight: var(--semi-bold);
   padding: 4px 8px;
-  border-radius: 9999px;
+  border-radius: var(--border-circle);
 }
 
 .menu .register:hover {
@@ -96,20 +111,15 @@ router.afterEach(() => {
 
 .menu .login {
   padding: 4px 16px;
-  border-radius: 9999px;
+  border-radius: var(--border-circle);
 }
 
 /* TABLET */
 @media (max-width: 991px) {
-  .header-container {
-    height: 136px;
-    max-width: 936px;
-    margin: 0 auto;
-  }
-
   .header-area {
     width: 100%;
     max-width: 936px;
+    margin: 0 auto;
     padding: 0 var(--size-24);
   }
 
@@ -148,8 +158,60 @@ router.afterEach(() => {
     height: 30px;
   }
 
+  .hamburger {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: var(--size-40);
+    max-width: var(--size-40);
+    min-height: var(--size-40);
+    max-height: var(--size-40);
+    border-radius: var(--border-circle);
+    transition: transform 0.35s ease;
+  }
+
+  .hamburger svg {
+    min-width: var(--size-24);
+    max-width: var(--size-24);
+    min-height: var(--size-24);
+    max-height: var(--size-24);
+    color: var(--slate-blue);
+  }
+
   .menu {
-    padding: 0;
+    position: fixed;
+    top: 88px;
+    left: 0;
+    width: 100%;
+    min-height: 100%;
+    transform: translateX(-100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--size-4);
+    z-index: 1;
+    -webkit-transition: -webkit-transform 0.35s ease;
+    transition: -webkit-transform 0.35s ease;
+    transition: transform 0.35s ease;
+    transition: transform 0.35s ease, -webkit-transform 0.35s ease;
+    background: green;
+  }
+
+  .menu.open {
+    transform: translateX(0%);
+  }
+
+  .login-section {
+    margin-top: auto;
+    flex-direction: column;
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+    height: unset;
+    background-color: hsla(0, 0%, 100%, 0.8);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
   }
 }
 /* MOBILE */

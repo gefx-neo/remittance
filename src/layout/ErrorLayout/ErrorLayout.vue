@@ -1,9 +1,7 @@
 <template>
   <div class="page-layout">
     <Header />
-    <div class="main-container">
-      <RouterView />
-    </div>
+    <RouterView />
   </div>
 </template>
 

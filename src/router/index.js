@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
 import GuestLayout from "../layout/GuestLayout/GuestLayout.vue";
+import LoginLayout from "../layout/LoginLayout/LoginLayout.vue";
 import UserLayout from "../layout/UserLayout/UserLayout.vue";
+import ErrorLayout from "../layout/ErrorLayout/ErrorLayout.vue";
 import HomeView from "../views/HomeView.vue"; // Static import
 import { useAuthStore } from "../stores/authStore.js";
 
@@ -14,6 +16,12 @@ const routes = [
         name: "homeview",
         component: HomeView, // Static import
       },
+    ],
+  },
+  {
+    path: "/",
+    component: LoginLayout,
+    children: [
       {
         path: "login",
         name: "login",
@@ -37,9 +45,9 @@ const routes = [
         component: () => import("../views/User/Home.vue"), // Dynamic import
       },
       {
-        path: "recipent",
-        name: "recipent",
-        component: () => import("../views/User/Recipent.vue"),
+        path: "recipient",
+        name: "recipient",
+        component: () => import("../views/User/Recipients.vue"),
       },
       {
         path: "payment",
@@ -58,6 +66,17 @@ const routes = [
       },
     ],
   },
+  {
+    path: "/:catchAll(.*)",
+    component: ErrorLayout,
+    children: [
+      {
+        path: "/:catchAll(.*)",
+        name: "error",
+        component: () => import("../views/Error.vue"),
+      },
+    ],
+  },
 ];
 
 const router = createRouter({
@@ -69,8 +88,9 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
 
+  // Call refresh cookie function
   if (!authStore.cookieRefreshed) {
-    authStore.checkCookie();
+    authStore.refreshCookie();
   }
 
   if (to.matched.some((record) => record.meta.requiresAuth)) {
@@ -81,17 +101,15 @@ router.beforeEach((to, from, next) => {
       next();
     }
   } else {
-    // Allow access to help pages without authentication
-    if (to.name === "help") {
-      next();
+    // If the route does not require authentication and the user is logged in
+    // Disables logged in users to access login/register page
+    if (
+      authStore.user &&
+      (to.name === "homeview" || to.name === "login" || to.name === "register")
+    ) {
+      next({ name: "home" });
     } else {
-      // If the route does not require authentication and the user is logged in
-      // Disables logged in users to access login/register page
-      if (authStore.user && to.name !== "home") {
-        next({ name: "home" });
-      } else {
-        next();
-      }
+      next();
     }
   }
 });

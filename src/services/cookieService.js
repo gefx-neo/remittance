@@ -1,3 +1,7 @@
+import CryptoJS from "crypto-js";
+
+const secretKey = import.meta.env.VITE_APP_SECRET_KEY;
+
 export default {
   setCookie(name, value, days) {
     let expires = "";
@@ -7,7 +11,6 @@ export default {
       expires = "; expires=" + date.toUTCString();
     }
     document.cookie = name + "=" + (value || "") + expires + "; path=/";
-    // console.log(`Cookie set: ${name}, Expires: ${expires}`); // Log the cookie expiration time
   },
 
   getCookie(name) {
@@ -27,17 +30,28 @@ export default {
 
   setComplexCookie(name, valueObj, days) {
     const value = JSON.stringify(valueObj);
-    this.setCookie(name, value, days);
-    // Log the cookie value and expiration date
+    const encryptedValue = CryptoJS.AES.encrypt(value, secretKey).toString();
+    this.setCookie(name, encryptedValue, days);
     const date = new Date();
     date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+    // Value: ${value},
     console.log(
-      `Complex cookie set: ${name}, Value: ${value}, Expires: ${date.toUTCString()}`
+      `Cookie set: ${name}
+
+Encrypted value: ${encryptedValue}, 
+
+Expires: ${date.toUTCString()}`
     );
   },
 
   getComplexCookie(name) {
     const value = this.getCookie(name);
-    return value ? JSON.parse(value) : null;
+    if (value) {
+      const bytes = CryptoJS.AES.decrypt(value, secretKey);
+      const decryptedValue = bytes.toString(CryptoJS.enc.Utf8);
+      // console.log("Decrypted Value", decryptedValue);
+      return JSON.parse(decryptedValue);
+    }
+    return null;
   },
 };

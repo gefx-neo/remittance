@@ -13,6 +13,7 @@ import {
   faSignInAlt,
   faRegistered,
   faSignOutAlt,
+  faDollarSign,
 } from "@fortawesome/free-solid-svg-icons";
 
 // Adding only the necessary icons to the library
@@ -27,7 +28,8 @@ library.add(
   faUserPlus,
   faSignInAlt,
   faRegistered,
-  faSignOutAlt
+  faSignOutAlt,
+  faDollarSign
 );
 
 export { FontAwesomeIcon }; // Export as a named export

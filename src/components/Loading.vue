@@ -45,7 +45,7 @@ const isLoading = computed(() => store.isLoading);
   width: 1em;
   height: 1em;
   margin: 0 0.25em;
-  border-radius: 50%;
+  border-radius: var(--border-circle);
   background-color: var(--crimson-red);
   animation: wave 1.5s infinite ease-in-out;
   transition: background-color 0.3s ease;

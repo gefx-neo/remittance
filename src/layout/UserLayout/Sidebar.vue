@@ -6,7 +6,7 @@
       </RouterLink>
     </div>
 
-    <div class="close-button" @click="store.closeSidebar">
+    <div class="btn-close" @click="store.closeSidebar">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
         <path
           d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"
@@ -43,25 +43,22 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
 import { useRouter, RouterLink } from "vue-router";
-import { useAuthStore } from "../../stores/authStore.js";
 import { useStore } from "@/stores/useStore";
 
-const authStore = useAuthStore();
 const store = useStore();
 const router = useRouter();
 
 const desktopRoutes = [
   { to: "/home", icon: ["fas", "home"], label: "Home" },
-  { to: "/recipent", icon: ["fas", "user"], label: "Recipents" },
+  { to: "/recipient", icon: ["fas", "user"], label: "Recipient" },
   { to: "/payment", icon: ["fas", "money-bill"], label: "Payments" },
   { to: "/help", icon: ["fas", "question-circle"], label: "Help" },
 ];
 
 const mobileRoutes = [
   { to: "/home", icon: ["fas", "home"], label: "Home" },
-  { to: "/recipent", icon: ["fas", "user"], label: "Recipents" },
+  { to: "/recipient", icon: ["fas", "user"], label: "Recipient" },
   { to: "/payment", icon: ["fas", "money-bill"], label: "Payments" },
   { to: "/help", icon: ["fas", "question-circle"], label: "Help" },
 ];
@@ -111,18 +108,14 @@ router.afterEach(() => {
   align-items: center;
   gap: var(--size-12);
   padding: var(--size-12) var(--size-16);
-  font-size: var(--text-md);
   color: var(--cool-blue);
   text-decoration: none;
-}
-
-.navigation a span {
-  font-weight: var(--semi-bold);
 }
 
 .navigation a:hover svg,
 .navigation a:hover span {
   color: var(--slate-blue) !important;
+  font-weight: var(--semi-bold);
 }
 
 .navigation .icon {
@@ -144,7 +137,7 @@ router.afterEach(() => {
 }
 
 .backdrop.open,
-.close-button {
+.btn-close {
   display: none;
 }
 
@@ -172,7 +165,7 @@ router.afterEach(() => {
     display: block;
   }
 
-  .close-button {
+  .btn-close {
     display: flex;
     position: absolute;
     right: 0;

@@ -28,7 +28,7 @@
         />
       </button>
       <div class="dropdown-menu" :class="{ open: store.isDropdownOpen }">
-        <div class="close-button" @click="store.closeDropdown">
+        <div class="btn-close" @click="store.closeDropdown">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
             <path
               d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"
@@ -54,7 +54,7 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref } from "vue";
+import { ref, onMounted, onUnmounted, watch } from "vue";
 import { useRouter, RouterLink } from "vue-router";
 import { useAuthStore } from "../../stores/authStore.js";
 import { useStore } from "@/stores/useStore";
@@ -122,11 +122,11 @@ onUnmounted(() => {
 }
 
 .notification {
-  min-width: var(--size-48);
-  max-width: var(--size-48);
-  min-height: var(--size-48);
-  max-height: var(--size-48);
-  border-radius: 50%;
+  min-width: var(--size-40);
+  max-width: var(--size-40);
+  min-height: var(--size-40);
+  max-height: var(--size-40);
+  border-radius: var(--border-circle);
 }
 
 .notification:hover {
@@ -141,18 +141,20 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: var(--size-8);
-  min-height: var(--size-48);
-  max-height: var(--size-48);
+  min-height: var(--size-40);
+  max-height: var(--size-40);
 }
 
 .profile:hover,
 .profile.open {
   background: var(--cool-blue);
-  border-radius: 10px;
-  transition: color, background-color 0.15s ease-in-out;
+  border-radius: var(--border-md);
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
+    border 0.15s ease-in-out;
 }
 
 .profile .user .name {
+  color: var(--slate-blue);
   font-weight: var(--semi-bold);
 }
 
@@ -207,7 +209,7 @@ svg {
   color: var(--cool-blue);
   text-decoration: none;
   border: 1px solid #ffffff;
-  border-radius: 10px;
+  border-radius: var(--border-md);
 }
 
 .dropdown-menu a span,
@@ -263,10 +265,8 @@ svg {
 
   .hamburger .logo {
     display: block;
-    min-width: 118px;
-    max-width: 118px;
-    min-height: var(--size-40);
-    max-height: var(--size-40);
+    min-height: 30px;
+    max-height: 30px;
   }
 
   .hamburger .icon {
@@ -274,8 +274,12 @@ svg {
   }
 }
 
-.close-button {
+.btn-close {
   display: none;
+}
+
+.no-scroll {
+  position: fixed;
 }
 
 .dropdown-menu .username {
@@ -285,7 +289,7 @@ svg {
   color: var(--slate-blue);
 }
 
-@media (max-width: 576px) {
+@media (max-width: 768px) {
   .profile {
     position: unset;
   }
@@ -302,7 +306,10 @@ svg {
     height: 100%;
     position: fixed;
     top: 0;
+    left: 0;
+    overflow-y: auto;
     border-radius: 0px;
+    max-width: none;
     animation: listSlideOver 0.15s ease-out forwards;
   }
 
@@ -316,7 +323,7 @@ svg {
     }
   }
 
-  .close-button {
+  .btn-close {
     display: flex;
     background: var(--cool-blue);
   }
