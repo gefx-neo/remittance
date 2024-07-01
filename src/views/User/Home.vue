@@ -15,10 +15,9 @@
           <div class="dropdown">
             <button @click="currencyStore.toggleSenderDropdown">
               <img
-                :src="`src/assets/currency/${currencyStore.senderCurrency}.svg`"
-                class="currency-image"
+                :src="`src/assets/currency/${currencyStore.senderCurrency.code}.svg`"
               />
-              <span>{{ currencyStore.senderCurrency }}</span>
+              <span>{{ currencyStore.senderCurrency.code }}</span>
               <font-awesome-icon :icon="['fa', 'chevron-down']" />
             </button>
             <CurrencyDropdown
@@ -30,16 +29,16 @@
         </div>
       </div>
       <div class="form-group">
-        <label>Recipent gets</label>
+        <label>Recipient gets</label>
         <div class="input-group">
           <input type="text" />
           <div class="dropdown">
             <button @click="currencyStore.toggleRecipientDropdown">
               <img
-                :src="`src/assets/currency/${currencyStore.recipientCurrency}.svg`"
+                :src="`src/assets/currency/${currencyStore.recipientCurrency.code}.svg`"
                 class="currency-image"
               />
-              <span>{{ currencyStore.recipientCurrency }}</span>
+              <span>{{ currencyStore.recipientCurrency.code }}</span>
               <font-awesome-icon :icon="['fa', 'chevron-down']" />
             </button>
             <CurrencyDropdown
@@ -90,16 +89,18 @@
           </div>
         </div>
       </div>
-      <div class="recipent">
+      <div class="recipient">
         <div class="title">
           <h3>Popular Recipients</h3>
-          <router-link to="/history">View</router-link>
+          <router-link to="/history">
+            <font-awesome-icon :icon="['fa', 'plus']" />
+          </router-link>
         </div>
         <div class="item-section">
           <div
             v-for="(recipient, index) in recipients"
             :key="index"
-            class="item in recipents"
+            class="item in recipients"
           >
             <div class="icon-round">{{ recipient.initials }}</div>
             <span>{{ recipient.name }}</span>
@@ -129,6 +130,14 @@
       </div>
     </div>
   </div>
+  <div
+    class="backdrop"
+    :class="{
+      open:
+        currencyStore.isRecipientDropdownOpen ||
+        currencyStore.isSenderDropdownOpen,
+    }"
+  ></div>
 </template>
 
 <script setup>
@@ -140,36 +149,38 @@ const currencyStore = useCurrencyStore();
 
 const updateSenderCurrency = (currency) => {
   currencyStore.setSenderCurrency(currency);
+  console.log("Sender Currency Set To:", currencyStore.senderCurrency);
 };
 
 const updateRecipientCurrency = (currency) => {
   currencyStore.setRecipientCurrency(currency);
+  console.log("Recipient Currency Set To:", currencyStore.recipientCurrency);
 };
 
 const transactions = [
   {
     name: "John Doe",
-    date: "2 May 2024",
+    date: "28 July 2024",
     remittedAmount: "1,463.82 USD",
     paidAmount: "2,000 SGD",
   },
   {
-    name: "John Doe",
-    date: "2 May 2024",
-    remittedAmount: "1,463.82 USD",
-    paidAmount: "2,000 SGD",
+    name: "Sylvie Goh",
+    date: "21 July 2024",
+    remittedAmount: "732.00 EUR",
+    paidAmount: "1,066.02 SGD",
   },
   {
-    name: "John Doe",
-    date: "2 May 2024",
-    remittedAmount: "1,463.82 USD",
-    paidAmount: "2,000 SGD",
+    name: "Shopee Delivery",
+    date: "17 June 2024",
+    remittedAmount: "10,000 GBP",
+    paidAmount: "17,542.70 SGD",
   },
   {
-    name: "John Doe",
+    name: "Henry Lim",
     date: "2 May 2024",
-    remittedAmount: "1,463.82 USD",
-    paidAmount: "2,000 SGD",
+    remittedAmount: "100,000 YEN",
+    paidAmount: "842.00 SGD",
   },
   {
     name: "John Doe",
@@ -190,11 +201,12 @@ const recipients = [
 
 const currencies = [
   { icon: "src/assets/currency/usd.svg", code: "USD", rate: "SGD 1.36" },
-  { icon: "src/assets/currency/usd.svg", code: "USD", rate: "SGD 1.36" },
-  { icon: "src/assets/currency/usd.svg", code: "USD", rate: "SGD 1.36" },
-  { icon: "src/assets/currency/usd.svg", code: "USD", rate: "SGD 1.36" },
-  { icon: "src/assets/currency/usd.svg", code: "USD", rate: "SGD 1.36" },
+  { icon: "src/assets/currency/eur.svg", code: "EUR", rate: "SGD 1.46" },
+  { icon: "src/assets/currency/gbp.svg", code: "GBP", rate: "SGD 1.72" },
+  { icon: "src/assets/currency/cny.svg", code: "CNY", rate: "SGD 0.19" },
+  { icon: "src/assets/currency/jpy.svg", code: "JPY", rate: "SGD 0.0084" },
 ];
+
 const handleClickOutside = (event) => {
   if (!event.target.closest(".dropdown")) {
     currencyStore.closeAllDropdowns();
@@ -217,12 +229,10 @@ watch(() => currencyStore.isRecipientDropdownOpen, toggleNoScroll);
 
 onMounted(() => {
   document.addEventListener("click", handleClickOutside);
-  console.log("onmountedclick");
 });
 
 onUnmounted(() => {
   document.removeEventListener("click", handleClickOutside);
-  console.log("onountedclick");
 });
 </script>
 

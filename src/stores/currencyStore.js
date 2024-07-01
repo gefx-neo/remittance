@@ -1,11 +1,20 @@
-// currencyStore.js
 import { defineStore } from "pinia";
 
 export const useCurrencyStore = defineStore("currencyStore", {
   state: () => ({
-    currencies: ["sgd", "USD", "EUR", "JPY", "GBP"],
-    senderCurrency: "SGD",
-    recipientCurrency: "USD",
+    currencies: [
+      { code: "SGD", name: "Singapore Dollar" },
+      { code: "USD", name: "US Dollar" },
+      { code: "EUR", name: "Euro" },
+      { code: "JPY", name: "Japanese Yen" },
+      { code: "GBP", name: "British Pound" },
+      { code: "AUD", name: "Australian Dollar" },
+      { code: "CNY", name: "Chinese Yuan" },
+      { code: "MYR", name: "Malaysian Ringgit" },
+      { code: "NZD", name: "New Zealand Dollar" },
+    ],
+    senderCurrency: { code: "SGD", name: "Singapore Dollar" },
+    recipientCurrency: { code: "USD", name: "US Dollar" },
     isSenderDropdownOpen: false,
     isRecipientDropdownOpen: false,
   }),

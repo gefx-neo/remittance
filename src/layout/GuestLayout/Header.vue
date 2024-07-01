@@ -37,7 +37,7 @@ router.afterEach(() => {
 
 <style scoped>
 .header-container {
-  height: 136px;
+  height: 120px;
 }
 
 .header-area {
@@ -46,7 +46,7 @@ router.afterEach(() => {
   justify-content: space-between;
   width: 100%;
   max-width: 1440px;
-  height: 136px;
+  height: 120px;
   position: fixed;
   top: 0;
   background: white;
@@ -54,7 +54,7 @@ router.afterEach(() => {
 
 .logo {
   width: 240px;
-  height: 136px;
+  height: 120px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -69,9 +69,9 @@ router.afterEach(() => {
   align-items: center;
   justify-content: end;
   width: calc(100% - 240px);
-  max-width: 1016px;
+  max-width: 1024px;
   margin: 0 auto;
-  padding: 0 var(--size-40);
+  padding: 0 var(--size-32);
   min-height: var(--size-40);
   max-height: var(--size-40);
 }
@@ -100,16 +100,14 @@ router.afterEach(() => {
 }
 
 /* TABLET */
-@media (max-width: 991px) {
+@media (max-width: 1023px) {
   .header-container {
-    height: 136px;
-    max-width: 936px;
+    height: 120px;
     margin: 0 auto;
   }
 
   .header-area {
     width: 100%;
-    max-width: 936px;
     padding: 0 var(--size-24);
   }
 
@@ -125,13 +123,13 @@ router.afterEach(() => {
 /* TABLET */
 
 /* MOBILE  */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .header-container {
-    height: 88px;
+    height: 80px;
   }
 
   .header-area {
-    height: 88px;
+    height: 80px;
     padding: 0 var(--size-16);
     border-bottom: 1px solid rgba(14, 15, 12, 0.122);
   }

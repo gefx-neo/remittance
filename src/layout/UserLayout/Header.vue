@@ -105,7 +105,7 @@ onUnmounted(() => {
 
 <style scoped>
 .header-area {
-  height: 136px;
+  height: 120px;
   display: flex;
   align-items: center;
   gap: var(--size-16);
@@ -189,7 +189,7 @@ svg {
   width: 330px;
   height: 200px;
   background: var(--bg-screen);
-  border-radius: var(--size-24);
+  border-radius: var(--border-lg);
   box-shadow: 0 0 40px rgba(69, 71, 69, 0.2);
   padding: var(--size-32);
 }
@@ -248,19 +248,19 @@ svg {
   color: var(--cool-blue);
 }
 
-@media (min-width: 991px) {
+@media (min-width: 1023px) {
   .hamburger .icon {
     display: none;
   }
 }
-@media (max-width: 991px) {
+@media (max-width: 1023px) {
   .profile .user .name {
     display: none;
   }
 }
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .header-area {
-    height: 88px;
+    height: 80px;
   }
 
   .hamburger .logo {
@@ -289,7 +289,7 @@ svg {
   color: var(--slate-blue);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .profile {
     position: unset;
   }

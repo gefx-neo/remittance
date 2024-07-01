@@ -11,9 +11,9 @@ import Header from "./Header.vue";
 </script>
 
 <style scoped>
-/* MOBILE 365PX ~ 768PX */
+/* MOBILE 365PX ~ 767px */
 /* TABLET 769PX ~ 990PX */
-/* DESKTOP 991PX AND ABOVE */
+/* DESKTOP 1023px AND ABOVE */
 
 .page-layout {
   min-height: 100vh;
@@ -22,7 +22,7 @@ import Header from "./Header.vue";
 }
 
 /* DESKTOP */
-@media (min-width: 991px) {
+@media (min-width: 1023px) {
   .page-layout {
     max-width: 1440px;
     margin: 0 auto;

@@ -18,9 +18,9 @@ const authStore = useAuthStore();
 </script>
 
 <style scoped>
-/* MOBILE 365PX ~ 768PX */
+/* MOBILE 365PX ~ 767px */
 /* TABLET 769PX ~ 990PX */
-/* DESKTOP 991PX AND ABOVE */
+/* DESKTOP 1023px AND ABOVE */
 
 .page-layout {
   min-height: 100vh;
@@ -29,17 +29,16 @@ const authStore = useAuthStore();
 }
 
 .main-container {
-  max-width: 1016px;
+  max-width: 1024px;
   margin: 0 auto;
-  padding: 0 var(--size-40);
+  padding: 0 var(--size-32);
   display: block;
   width: calc(100% - 240px);
 }
 
 /* TABLET */
-@media (max-width: 991px) {
+@media (max-width: 1023px) {
   .main-container {
-    max-width: 936px;
     width: 100%;
     padding: 0 var(--size-24);
   }
@@ -47,18 +46,17 @@ const authStore = useAuthStore();
 /* TABLET */
 
 /* MOBILE  */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .main-container {
-    max-width: 1216px;
     width: 100%;
     padding: 0 var(--size-16);
-    padding-bottom: 62px;
+    padding-bottom: 60px;
   }
 }
 /* MOBILE */
 
 /* DESKTOP */
-@media (min-width: 991px) {
+@media (min-width: 1023px) {
   .page-layout {
     max-width: 1440px;
     display: flex;

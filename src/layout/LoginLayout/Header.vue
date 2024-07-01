@@ -34,13 +34,13 @@ router.afterEach(() => {
   justify-content: space-between;
   width: 100%;
   max-width: 1440px;
-  height: 136px;
+  height: 120px;
   background: white;
 }
 
 .logo {
   width: 240px;
-  height: 136px;
+  height: 120px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -51,11 +51,9 @@ router.afterEach(() => {
 }
 
 /* TABLET */
-@media (max-width: 991px) {
+@media (max-width: 1023px) {
   .header-area {
-    height: 136px;
-    max-width: 936px;
-    max-width: 936px;
+    height: 120px;
     padding: 0 var(--size-24);
   }
 
@@ -66,13 +64,13 @@ router.afterEach(() => {
 /* TABLET */
 
 /* MOBILE  */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .header-container {
-    height: 88px;
+    height: 80px;
   }
 
   .header-area {
-    height: 88px;
+    height: 80px;
     padding: 0 var(--size-16);
   }
 

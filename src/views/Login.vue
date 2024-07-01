@@ -98,13 +98,13 @@ form {
   padding: var(--size-12) var(--size-16);
 }
 
-@media (max-width: 991px) {
+@media (max-width: 1023px) {
   .content-area {
     padding: 0 var(--size-24);
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .content-area {
     padding: 0 var(--size-16);
   }

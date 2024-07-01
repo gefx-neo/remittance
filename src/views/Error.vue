@@ -32,7 +32,7 @@ const authStore = useAuthStore();
   align-items: center;
   flex-direction: column;
   gap: var(--size-12);
-  height: calc(100vh - 136px);
+  height: calc(100vh - 120px);
 }
 
 .error {
@@ -90,7 +90,7 @@ const authStore = useAuthStore();
   font-size: var(--text-lg);
 }
 
-@media (max-width: 991px) {
+@media (max-width: 1023px) {
   .content-area {
     padding: 0 var(--size-24);
   }
@@ -120,9 +120,9 @@ const authStore = useAuthStore();
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .content-area {
-    height: calc(100vh - 88px);
+    height: calc(100vh - 80px);
     padding: 0 var(--size-16);
   }
 }

@@ -10,7 +10,7 @@
   align-items: center;
   background: var(--sky-blue);
   color: var(--slate-blue);
-  border-radius: var(--border-sm);
+  border-radius: var(--border-md);
   padding: var(--size-24);
 }
 
@@ -112,7 +112,7 @@
 }
 
 .history .title,
-.recipent .title,
+.recipient .title,
 .currency .title {
   display: flex;
   justify-content: space-between;
@@ -125,7 +125,11 @@
 .currency .title a {
   font-size: var(--text-sm);
   color: var(--crimson-red);
-  font-weight: var (--semi-bold);
+  font-weight: var(--semi-bold);
+}
+
+.recipient .title a svg {
+  color: var(--slate-blue);
 }
 
 .history .item-section {
@@ -205,19 +209,19 @@
   font-size: var(--text-sm);
 }
 
-.recipent {
+.recipient {
   min-width: 25%;
   max-width: 25%;
 }
 
-.recipent .item-section {
+.recipient .item-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
   place-items: center;
   margin: var(--size-4) 0;
 }
 
-.recipent .item-section .item {
+.recipient .item-section .item {
   display: flex;
   align-items: center;
   flex-direction: column;
@@ -229,11 +233,11 @@
     border 0.15s ease-in-out;
 }
 
-.recipent .item-section .item:hover {
+.recipient .item-section .item:hover {
   background: var(--sky-blue);
 }
 
-.recipent .item .icon-round {
+.recipient .item .icon-round {
   font-size: var(--text-lg);
   font-weight: var(--semi-bold);
   color: var(--slate-blue);
@@ -241,10 +245,10 @@
   transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
     border 0.15s ease-in-out;
 }
-.recipent .item-section .item:hover .icon-round {
+.recipient .item-section .item:hover .icon-round {
   background: var(--cool-blue);
 }
-.recipent .item span {
+.recipient .item span {
   font-size: var(--text-sm);
   text-align: center;
   overflow: hidden;
@@ -256,7 +260,7 @@
     border 0.15s ease-in-out;
 }
 
-.recipent .item-section .item:hover span {
+.recipient .item-section .item:hover span {
   color: var(--slate-blue);
   font-weight: var(--semi-bold);
 }
@@ -307,25 +311,31 @@
   }
 
   .history,
-  .recipent,
+  .recipient,
   .currency {
     min-width: 100%;
     max-width: 100%;
   }
 
-  .recipent .item-section {
+  .recipient .item-section {
     display: flex;
     flex-wrap: nowrap;
     gap: var(--size-12);
     overflow-x: auto;
   }
 
-  .recipent .item-section .item {
+  .recipient .item-section .item {
     flex: 0 0 72px;
   }
 }
 
-@media (max-width: 768px) {
+@media (min-width: 767px) {
+  .backdrop.open {
+    display: none !important;
+  }
+}
+
+@media (max-width: 767px) {
   .exchange-rate {
     flex-direction: column;
     gap: var(--size-12);
