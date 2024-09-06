@@ -23,7 +23,7 @@ export const useAuthStore = defineStore("auth", {
         if (response.data.status === "ok") {
           this.user = true;
           this.error = null;
-          router.push({ name: "home" });
+          router.push({ name: "dashboard" });
 
           // Generate and store the device ID
           const deviceStore = useDeviceStore();

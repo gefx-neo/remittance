@@ -6,13 +6,13 @@
         @click="store.openSidebar"
         class="icon"
       />
-      <RouterLink to="/home">
+      <RouterLink to="/dashboard">
         <img src="@/assets/logo.jpg" class="logo" />
       </RouterLink>
     </div>
-    <button class="notification">
+    <!-- <button class="notification">
       <font-awesome-icon :icon="['fas', 'bell']" />
-    </button>
+    </button> -->
     <div
       class="profile"
       :class="{ open: store.isDropdownOpen }"
@@ -20,7 +20,7 @@
     >
       <button class="user" @click="store.toggleDropdown">
         <font-awesome-icon :icon="['fas', 'user']" />
-        <span class="name">Elvin Ong</span>
+        <span class="name">garytsai@gefx.sg</span>
         <font-awesome-icon
           :icon="['fa', 'chevron-down']"
           class="arrow-down"
@@ -105,7 +105,7 @@ onUnmounted(() => {
 
 <style scoped>
 .header-area {
-  height: 120px;
+  height: 100px;
   display: flex;
   align-items: center;
   gap: var(--size-16);
@@ -130,34 +130,53 @@ onUnmounted(() => {
 }
 
 .notification:hover {
+  background: var(--sky-blue);
+}
+
+.notification:focus {
   background: var(--cool-blue);
 }
 
 .profile {
   position: relative;
+  border-radius: var(--border-md);
 }
 
 .profile .user {
   display: flex;
   align-items: center;
   gap: var(--size-8);
-  min-height: var(--size-40);
-  max-height: var(--size-40);
+  padding: var(--size-8) var(--size-4);
+  min-height: var(--size-48);
+  max-height: var(--size-48);
+  border-radius: var(--border-md);
+  background: var(--bg-screen);
 }
 
-.profile:hover,
-.profile.open {
+.profile .user:hover {
+  background: var(--sky-blue);
+}
+
+.profile .user:focus {
   background: var(--cool-blue);
-  border-radius: var(--border-md);
-  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
-    border 0.15s ease-in-out;
+}
+
+.profile .user:focus:not(:focus-visible) {
+  background: var(--bg-screen);
+}
+
+.profile .user:focus:hover {
+  background: var(--sky-blue);
+}
+
+.profile .user:focus:active {
+  background: var(--cool-blue);
 }
 
 .profile .user .name {
   color: var(--slate-blue);
   font-weight: var(--semi-bold);
 }
-
 svg {
   min-width: var(--size-24);
   max-width: var(--size-24);
@@ -186,12 +205,12 @@ svg {
   z-index: 1054;
   padding: 8px;
   margin: 0;
-  width: 330px;
-  height: 200px;
+  width: 320px;
+  max-height: 200px;
   background: var(--bg-screen);
   border-radius: var(--border-lg);
   box-shadow: 0 0 40px rgba(69, 71, 69, 0.2);
-  padding: var(--size-32);
+  padding: var(--size-24) var(--size-16);
 }
 
 .dropdown-menu.open {
@@ -204,7 +223,7 @@ svg {
   align-items: center;
   gap: var(--size-12);
   width: 100%;
-  padding: var(--size-12) var(--size-16);
+  padding: var(--size-dropdown-item);
   font-size: var(--text-md);
   color: var(--cool-blue);
   text-decoration: none;
@@ -219,7 +238,7 @@ svg {
 
 .dropdown-menu a:hover,
 .dropdown-menu button:hover {
-  border: 1px solid var(--slate-blue);
+  background: var(--sky-blue);
   color: var(--slate-blue);
 }
 
@@ -287,6 +306,7 @@ svg {
   font-size: var(--size-20);
   font-weight: var(--semi-bold);
   color: var(--slate-blue);
+  padding-bottom: var(--size-4);
 }
 
 @media (max-width: 767px) {
@@ -304,6 +324,7 @@ svg {
     transition: transform 0.5s ease;
     width: 100%;
     height: 100%;
+    max-height: unset;
     position: fixed;
     top: 0;
     left: 0;

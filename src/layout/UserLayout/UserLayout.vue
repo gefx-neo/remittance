@@ -34,6 +34,7 @@ const authStore = useAuthStore();
   padding: 0 var(--size-32);
   display: block;
   width: calc(100% - 240px);
+  padding-bottom: var(--size-24);
 }
 
 /* TABLET */
@@ -41,6 +42,7 @@ const authStore = useAuthStore();
   .main-container {
     width: 100%;
     padding: 0 var(--size-24);
+    padding-bottom: var(--size-24);
   }
 }
 /* TABLET */
@@ -50,7 +52,7 @@ const authStore = useAuthStore();
   .main-container {
     width: 100%;
     padding: 0 var(--size-16);
-    padding-bottom: 60px;
+    padding-bottom: 76px;
   }
 }
 /* MOBILE */

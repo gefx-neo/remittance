@@ -1,1 +1,185 @@
 @import "./base.css";
+
+.btn-close {
+  min-width: var(--size-40);
+  max-width: var(--size-40);
+  min-height: var(--size-40);
+  max-height: var(--size-40);
+  border-radius: var(--border-circle);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn-close svg {
+  min-width: var(--size-24);
+  max-width: var(--size-24);
+  min-height: var(--size-24);
+  max-height: var(--size-24);
+  fill: var(--slate-blue);
+}
+
+.btn-red {
+  background: var(--crimson-red);
+  color: #ffffff;
+  font-weight: var(--semi-bold);
+}
+
+.btn-red:hover {
+  background: var(--crimson-red);
+}
+
+.btn-red:focus {
+  background: var(--dark-crimson-red);
+}
+
+.btn-red:focus:not(:focus-visible) {
+  background: var(--crimson-red);
+}
+
+/* .btn-red:focus-visible {
+    background: var(--dark-crimson-red);
+  } */
+
+.btn-red:focus:active {
+  background: var(--dark-crimson-red);
+}
+
+.btn-blue {
+  background: var(--light-blue);
+  color: #ffffff;
+  font-weight: var(--semi-bold);
+}
+
+.btn-blue:hover {
+  background: var(--light-blue);
+}
+
+.btn-blue:focus {
+  background: var(--dark-blue);
+}
+
+.btn-blue:focus:not(:focus-visible) {
+  background: var(--light-blue);
+}
+
+.btn-blue:focus:active {
+  background: var(--dark-blue);
+}
+
+.btn-back {
+  min-width: var(--size-32);
+  max-width: var(--size-32);
+  min-height: var(--size-32);
+  max-height: var(--size-32);
+  background: var(--sky-blue);
+  border-radius: var(--border-circle);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn-back svg {
+  min-width: var(--size-16);
+  max-width: var(--size-16);
+  min-height: var(--size-16);
+  max-height: var(--size-16);
+  fill: var(--slate-blue);
+  color: var(--slate-blue);
+}
+
+.btn-back:hover {
+  background: var(--sky-blue);
+}
+
+.btn-back:focus {
+  background: var(--cool-blue);
+}
+
+.btn-back:focus:not(:focus-visible) {
+  background: var(--sky-blue);
+}
+
+.btn-back:focus:hover {
+  background: var(--sky-blue);
+}
+
+.btn-back:focus:active {
+  background: var(--cool-blue);
+}
+
+.icon-round {
+  min-width: var(--size-48);
+  max-width: var(--size-48);
+  min-height: var(--size-48);
+  max-height: var(--size-48);
+  border-radius: var(--border-circle);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--sky-blue);
+}
+
+.icon-round svg {
+  min-width: var(--size-24);
+  max-width: var(--size-24);
+  min-height: var(--size-24);
+  max-height: var(--size-24);
+  fill: var(--cool-blue);
+  color: var(--cool-blue);
+}
+
+.btn-load {
+  min-width: 100%;
+  max-width: 100%;
+  background: var(--light-grey);
+  color: var(--black);
+  font-weight: var(--semi-bold);
+  text-align: center;
+  padding: var(--size-8);
+  border-radius: var(--border-md);
+  cursor: pointer;
+}
+
+.btn-load:hover {
+  background: var(--light-grey);
+}
+
+.btn-load:focus {
+  background: rgba(102, 102, 102, 0.4);
+}
+
+.btn-load:focus:not(:focus-visible) {
+  background: var(--light-grey);
+}
+
+.btn-load:focus:active {
+  background: rgba(102, 102, 102, 0.4);
+}
+
+.btn-delete {
+  background: var(--bg-screen);
+  border: 1px solid var(--crimson-red);
+  color: var(--crimson-red);
+  font-weight: var(--semi-bold);
+}
+
+.btn-delete:hover {
+  border: 1px solid var(--crimson-red);
+  color: var(--crimson-red);
+}
+
+.btn-delete:focus {
+  border: 1px solid #f45b7a;
+  color: #f45b7a;
+}
+
+.btn-delete:focus:not(:focus-visible) {
+  border: 1px solid var(--crimson-red);
+  color: var(--crimson-red);
+}
+
+.btn-delete:focus:active {
+  border: 1px solid #f45b7a;
+  color: #f45b7a;
+}

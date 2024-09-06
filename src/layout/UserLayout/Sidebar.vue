@@ -1,7 +1,7 @@
 <template>
   <div class="sidebar-container" :class="{ open: store.isSidebarOpen }">
     <div class="logo">
-      <RouterLink to="/home">
+      <RouterLink to="/dashboard">
         <img src="@/assets/logo.jpg" />
       </RouterLink>
     </div>
@@ -16,9 +16,10 @@
 
     <div class="navigation">
       <RouterLink
-        v-for="route in desktopRoutes"
+        v-for="route in routes"
         :key="route.label"
         :to="route.to"
+        :class="{ 'router-link-exact-active': isActiveRoute(route) }"
       >
         <span class="icon">
           <font-awesome-icon :icon="route.icon" size="1x" />
@@ -33,7 +34,12 @@
     :class="{ open: store.isSidebarOpen }"
   ></div>
   <div class="mobile-footer-container">
-    <RouterLink v-for="route in mobileRoutes" :key="route.label" :to="route.to">
+    <RouterLink
+      v-for="route in routes"
+      :key="route.label"
+      :to="route.to"
+      :class="{ 'router-link-exact-active': isActiveRoute(route) }"
+    >
       <span class="icon">
         <font-awesome-icon :icon="route.icon" size="1x" />
       </span>
@@ -43,25 +49,28 @@
 </template>
 
 <script setup>
-import { useRouter, RouterLink } from "vue-router";
+import { useRouter, useRoute, RouterLink } from "vue-router";
 import { useStore } from "@/stores/useStore";
 
 const store = useStore();
 const router = useRouter();
+const currentRoute = useRoute();
 
-const desktopRoutes = [
-  { to: "/home", icon: ["fas", "home"], label: "Home" },
-  { to: "/recipient", icon: ["fas", "user"], label: "Recipient" },
-  { to: "/payment", icon: ["fas", "money-bill"], label: "Payments" },
-  { to: "/help", icon: ["fas", "question-circle"], label: "Help" },
+const routes = [
+  { to: "/dashboard", icon: ["fas", "home"], label: "Dashboard" },
+  { to: "/beneficiary", icon: ["fas", "user"], label: "Beneficiary" },
+  { to: "/transaction", icon: ["fas", "money-bill"], label: "Transaction" },
+  // { to: "/help", icon: ["fas", "question-circle"], label: "Help" },
 ];
 
-const mobileRoutes = [
-  { to: "/home", icon: ["fas", "home"], label: "Home" },
-  { to: "/recipient", icon: ["fas", "user"], label: "Recipient" },
-  { to: "/payment", icon: ["fas", "money-bill"], label: "Payments" },
-  { to: "/help", icon: ["fas", "question-circle"], label: "Help" },
-];
+const isActiveRoute = (route) => {
+  if (route.to === "/beneficiary") {
+    return currentRoute.path.startsWith("/beneficiary");
+  } else if (route.to === "/transaction") {
+    return currentRoute.path.startsWith("/transaction");
+  }
+  return currentRoute.path === route.to;
+};
 
 // Handle dropdown state on route change
 router.beforeEach((to, from, next) => {
@@ -87,7 +96,7 @@ router.afterEach(() => {
 }
 .logo {
   width: 240px;
-  height: 120px;
+  height: 100px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -107,7 +116,7 @@ router.afterEach(() => {
   display: flex;
   align-items: center;
   gap: var(--size-12);
-  padding: var(--size-12) var(--size-16);
+  padding: var(--size-dropdown-item);
   color: var(--cool-blue);
   text-decoration: none;
 }
@@ -187,7 +196,7 @@ router.afterEach(() => {
 
   .mobile-footer-container {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     width: 100%;
     height: 60px;
     background: var(--bg-screen);
@@ -197,10 +206,8 @@ router.afterEach(() => {
     right: 0;
     margin: 0;
     padding: 0;
-    border-top-left-radius: var(--border-lg);
-    border-top-right-radius: var(--border-lg);
-    box-shadow: 0 0 40px rgba(69, 71, 69, 0.2);
     z-index: 8;
+    border-top: 1px solid rgba(102, 102, 102, 0.2);
   }
 
   .mobile-footer-container a {

@@ -49,7 +49,7 @@ router.afterEach(() => {
 
 <style scoped>
 .header-container {
-  height: 120px;
+  height: 100px;
 }
 
 .header-area {
@@ -57,7 +57,7 @@ router.afterEach(() => {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  height: 120px;
+  height: 100px;
   position: fixed;
   top: 0;
   background: white;
@@ -65,7 +65,7 @@ router.afterEach(() => {
 
 .logo {
   width: 240px;
-  height: 120px;
+  height: 100px;
   display: flex;
   justify-content: center;
   align-items: center;

@@ -71,13 +71,13 @@ const selectedCurrency = computed({
   get() {
     return props.currencyType === "sender"
       ? currencyStore.senderCurrency
-      : currencyStore.recipientCurrency;
+      : currencyStore.beneficiaryCurrency;
   },
   set(value) {
     if (props.currencyType === "sender") {
       currencyStore.setSenderCurrency(value);
     } else {
-      currencyStore.setRecipientCurrency(value);
+      currencyStore.setBeneficiaryCurrency(value);
     }
   },
 });
@@ -141,7 +141,7 @@ const selectCurrency = (item) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--size-12) var(--size-16);
+  padding: var(--size-dropdown-item);
   margin: 0px var(--size-8);
   border-radius: var(--border-md);
   border: 1px solid var(--bg-screen);
@@ -184,11 +184,13 @@ const selectCurrency = (item) => {
 /* Custom Scrollbar */
 .dropdown-menu .body::-webkit-scrollbar {
   width: 8px;
+  cursor: pointer;
 }
 
 .dropdown-menu .body::-webkit-scrollbar-thumb {
   background-color: var(--cool-blue);
   border-radius: var(--border-lg);
+  cursor: pointer;
 }
 
 .dropdown-menu .body::-webkit-scrollbar-thumb:hover {

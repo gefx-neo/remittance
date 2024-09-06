@@ -95,7 +95,7 @@ form {
   border-radius: 9999px;
   width: 100%;
   min-height: var(--size-48);
-  padding: var(--size-12) var(--size-16);
+  padding: var(--size-dropdown-item);
 }
 
 @media (max-width: 1023px) {

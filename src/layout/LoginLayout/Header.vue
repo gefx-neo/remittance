@@ -34,13 +34,13 @@ router.afterEach(() => {
   justify-content: space-between;
   width: 100%;
   max-width: 1440px;
-  height: 120px;
+  height: 100px;
   background: white;
 }
 
 .logo {
   width: 240px;
-  height: 120px;
+  height: 100px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -53,7 +53,7 @@ router.afterEach(() => {
 /* TABLET */
 @media (max-width: 1023px) {
   .header-area {
-    height: 120px;
+    height: 100px;
     padding: 0 var(--size-24);
   }
 

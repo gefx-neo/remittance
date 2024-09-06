@@ -14,34 +14,34 @@ export const useCurrencyStore = defineStore("currencyStore", {
       { code: "NZD", name: "New Zealand Dollar" },
     ],
     senderCurrency: { code: "SGD", name: "Singapore Dollar" },
-    recipientCurrency: { code: "USD", name: "US Dollar" },
+    beneficiaryCurrency: { code: "USD", name: "US Dollar" },
     isSenderDropdownOpen: false,
-    isRecipientDropdownOpen: false,
+    isBeneficiaryDropdownOpen: false,
   }),
   actions: {
     setSenderCurrency(currency) {
       this.senderCurrency = currency;
       this.isSenderDropdownOpen = false;
     },
-    setRecipientCurrency(currency) {
-      this.recipientCurrency = currency;
-      this.isRecipientDropdownOpen = false;
+    setBeneficiaryCurrency(currency) {
+      this.beneficiaryCurrency = currency;
+      this.isBeneficiaryDropdownOpen = false;
     },
     toggleSenderDropdown() {
       this.isSenderDropdownOpen = !this.isSenderDropdownOpen;
       if (this.isSenderDropdownOpen) {
-        this.isRecipientDropdownOpen = false;
+        this.isBeneficiaryDropdownOpen = false;
       }
     },
-    toggleRecipientDropdown() {
-      this.isRecipientDropdownOpen = !this.isRecipientDropdownOpen;
-      if (this.isRecipientDropdownOpen) {
+    toggleBeneficiaryDropdown() {
+      this.isBeneficiaryDropdownOpen = !this.isBeneficiaryDropdownOpen;
+      if (this.isBeneficiaryDropdownOpen) {
         this.isSenderDropdownOpen = false;
       }
     },
     closeAllDropdowns() {
       this.isSenderDropdownOpen = false;
-      this.isRecipientDropdownOpen = false;
+      this.isBeneficiaryDropdownOpen = false;
     },
   },
 });

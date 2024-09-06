@@ -37,7 +37,7 @@ router.afterEach(() => {
 
 <style scoped>
 .header-container {
-  height: 120px;
+  height: 100px;
 }
 
 .header-area {
@@ -46,7 +46,7 @@ router.afterEach(() => {
   justify-content: space-between;
   width: 100%;
   max-width: 1440px;
-  height: 120px;
+  height: 100px;
   position: fixed;
   top: 0;
   background: white;
@@ -54,7 +54,7 @@ router.afterEach(() => {
 
 .logo {
   width: 240px;
-  height: 120px;
+  height: 100px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -91,6 +91,10 @@ router.afterEach(() => {
 }
 
 .menu .register:hover {
+  background: var(--sky-blue);
+}
+
+.menu .register:focus {
   background: var(--cool-blue);
 }
 
@@ -102,7 +106,7 @@ router.afterEach(() => {
 /* TABLET */
 @media (max-width: 1023px) {
   .header-container {
-    height: 120px;
+    height: 100px;
     margin: 0 auto;
   }
 
@@ -131,7 +135,7 @@ router.afterEach(() => {
   .header-area {
     height: 80px;
     padding: 0 var(--size-16);
-    border-bottom: 1px solid rgba(14, 15, 12, 0.122);
+    border-bottom: 1px solid rgba(102, 102, 102, 0.2);
   }
 
   .logo {

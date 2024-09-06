@@ -12,8 +12,8 @@
         <h1>404</h1>
         <h2>Page not found</h2>
         <p>Sorry, the page you are looking for could not be found.</p>
-        <router-link to="/home" v-if="authStore.user" class="btn-red"
-          >Go back home</router-link
+        <router-link to="/dashboard" v-if="authStore.user" class="btn-red"
+          >Go back dashboard</router-link
         >
         <router-link to="/" v-else class="btn-red">Go back home</router-link>
       </div>
@@ -32,7 +32,7 @@ const authStore = useAuthStore();
   align-items: center;
   flex-direction: column;
   gap: var(--size-12);
-  height: calc(100vh - 120px);
+  height: calc(100vh - 100px);
 }
 
 .error {

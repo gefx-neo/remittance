@@ -40,19 +40,38 @@ const routes = [
     meta: { requiresAuth: true },
     children: [
       {
-        path: "home",
-        name: "home",
-        component: () => import("../views/User/Home.vue"), // Dynamic import
+        path: "dashboard",
+        name: "dashboard",
+        component: () => import("../views/User/Dashboard.vue"), // Dynamic import
       },
       {
-        path: "recipient",
-        name: "recipient",
-        component: () => import("../views/User/Recipients.vue"),
+        path: "/",
+        children: [
+          {
+            path: "beneficiary",
+            name: "beneficiary",
+            component: () =>
+              import("../views/User/Beneficiary/BeneficiaryList.vue"),
+          },
+          {
+            path: "/beneficiary/:id",
+            name: "beneficiary-detail",
+            component: () =>
+              import("../views/User/Beneficiary/BeneficiaryDetail.vue"),
+            props: true,
+          },
+          {
+            path: "/beneficiary/add-beneficiary",
+            name: "add-beneficiary",
+            component: () =>
+              import("../views/User/Beneficiary/AddBeneficiary.vue"),
+          },
+        ],
       },
       {
-        path: "payment",
-        name: "payment",
-        component: () => import("../views/User/Payment.vue"),
+        path: "transaction",
+        name: "transaction",
+        component: () => import("../views/User/Transaction.vue"),
       },
       {
         path: "profile",
@@ -107,7 +126,7 @@ router.beforeEach((to, from, next) => {
       authStore.user &&
       (to.name === "homeview" || to.name === "login" || to.name === "register")
     ) {
-      next({ name: "home" });
+      next({ name: "dashboard" });
     } else {
       next();
     }
