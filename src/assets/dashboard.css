@@ -117,14 +117,6 @@
   max-width: 20%;
 }
 
-.exchange-rate .button-group button {
-  min-height: var(--size-48);
-  max-height: var(--size-48);
-  border: none !important;
-  border-radius: var(--border-md);
-  padding: var(--size-dropdown-item);
-}
-
 .transaction {
   display: flex;
   justify-content: space-between;
@@ -142,7 +134,7 @@
   justify-content: space-between;
   align-items: center;
   padding: var(--size-12) 0;
-  border-bottom: 1px solid rgba(102, 102, 102, 0.2);
+  border-bottom: 1px solid var(--light-grey);
 }
 
 .history .title a,
@@ -181,11 +173,11 @@
 }
 
 .history .item:hover .icon-round {
-  background: var(--cool-blue);
+  background: var(--slate-blue);
 }
 
 .history .item:hover .icon-round svg {
-  color: var(--slate-blue);
+  color: var(--sky-blue);
 }
 
 .history .item .detail {
@@ -282,8 +274,10 @@
 }
 
 .beneficiary .item-section .item:hover .icon-round {
-  background: var(--cool-blue);
+  background: var(--slate-blue);
+  color: var(--sky-blue);
 }
+
 .beneficiary .item span {
   font-size: var(--text-sm);
   text-align: center;

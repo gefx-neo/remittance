@@ -207,7 +207,7 @@ router.afterEach(() => {
     margin: 0;
     padding: 0;
     z-index: 8;
-    border-top: 1px solid rgba(102, 102, 102, 0.2);
+    border-top: 1px solid var(--light-grey);
   }
 
   .mobile-footer-container a {

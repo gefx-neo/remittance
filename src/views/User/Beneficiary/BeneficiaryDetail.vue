@@ -2,22 +2,24 @@
   <div class="content-area">
     <div class="beneficiary">
       <div class="profile-section">
-        <button class="btn-back" @click="goBack">
+        <button class="btn-back-round" @click="goBack">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
             <path
               d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0L214.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"
             />
           </svg>
         </button>
-        <div>
+        <div class="user-group">
           <span class="icon-round">{{ beneficiary.initials }}</span>
-          <span>{{ beneficiary.name }}</span>
+          <div>
+            <span>{{ beneficiary.name }}</span>
+            <FavouriteButton :beneficiaryId="beneficiary.id" />
+          </div>
         </div>
-        <FavouriteButton :beneficiaryId="beneficiary.id" />
-      </div>
-      <div class="button-group">
-        <button class="btn-red">Send money</button>
-        <button class="btn-delete">Delete</button>
+        <div class="button-group">
+          <button class="btn-red">Send money</button>
+          <button class="btn-delete">Delete</button>
+        </div>
       </div>
 
       <div class="item-section">
@@ -148,16 +150,16 @@ onMounted(() => {
 
 .beneficiary .profile-section {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
 }
 
-.beneficiary .profile-section div:nth-child(2) {
+.beneficiary .profile-section .user-group {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.beneficiary .profile-section div:nth-child(2) .icon-round {
+.beneficiary .profile-section .user-group .icon-round {
   min-width: var(--size-60);
   max-width: var(--size-60);
   min-height: var(--size-60);
@@ -168,9 +170,16 @@ onMounted(() => {
   margin-bottom: var(--size-8);
 }
 
-.beneficiary .profile-section div:nth-child(2) span {
+.beneficiary .profile-section .user-group span {
   color: var(--slate-blue);
   font-weight: var(--semi-bold);
+}
+
+.beneficiary .profile-section .user-group div {
+  display: flex;
+  align-items: center;
+  gap: var(--size-8);
+  margin-bottom: var(--size-12);
 }
 
 .beneficiary .button-group {
@@ -220,25 +229,20 @@ onMounted(() => {
   font-size: var(--text-sm);
   font-weight: var(--semi-bold);
   margin-bottom: var(--size-12);
-  padding-left: var(--size-20);
-  padding-top: var(--size-20);
+  padding-left: var(--size-24);
+  padding-top: var(--size-24);
 }
 
 .beneficiary .item-section .detail .item-group {
   display: grid;
   grid-template-columns: 1fr 1fr;
   row-gap: var(--size-24);
-  padding: 0 var(--size-20);
+  padding: 0 var(--size-24);
   padding-bottom: var(--size-24);
   border-bottom: 1px solid var(--light-grey);
 }
 
 .beneficiary .item-section .detail .item-group:nth-child(6) {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  row-gap: var(--size-24);
-  padding: 0 var(--size-20);
-  padding-bottom: var(--size-24);
   border-bottom: 0px solid var(--light-grey);
 }
 
@@ -252,8 +256,23 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
-  .beneficiary .item-section .detail .item-group {
+  .beneficiary .item-section .detail .item-group,
+  .beneficiary .item-section .detail .item-group:nth-child(6) {
     grid-template-columns: 1fr;
+  }
+
+  .beneficiary .item-section .detail .title {
+    color: var(--cool-blue);
+    font-size: var(--text-sm);
+    font-weight: var(--semi-bold);
+    margin-bottom: var(--size-12);
+    padding-left: var(--size-16);
+    padding-top: var(--size-16);
+  }
+
+  .beneficiary .item-section .detail .item-group {
+    padding: 0 var(--size-16);
+    padding-bottom: var(--size-16);
   }
 }
 </style>

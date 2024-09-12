@@ -14,13 +14,15 @@
           </svg>
         </div>
         <div class="button-group">
-          <button class="btn-blue desktop">New Transaction</button>
-          <button class="btn-blue mobile">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
-              <path
-                d="M64 64C28.7 64 0 92.7 0 128L0 384c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-256c0-35.3-28.7-64-64-64L64 64zM272 192l224 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-224 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zM256 304c0-8.8 7.2-16 16-16l224 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-224 0c-8.8 0-16-7.2-16-16zM164 152l0 13.9c7.5 1.2 14.6 2.9 21.1 4.7c10.7 2.8 17 13.8 14.2 24.5s-13.8 17-24.5 14.2c-11-2.9-21.6-5-31.2-5.2c-7.9-.1-16 1.8-21.5 5c-4.8 2.8-6.2 5.6-6.2 9.3c0 1.8 .1 3.5 5.3 6.7c6.3 3.8 15.5 6.7 28.3 10.5l.7 .2c11.2 3.4 25.6 7.7 37.1 15c12.9 8.1 24.3 21.3 24.6 41.6c.3 20.9-10.5 36.1-24.8 45c-7.2 4.5-15.2 7.3-23.2 9l0 13.8c0 11-9 20-20 20s-20-9-20-20l0-14.6c-10.3-2.2-20-5.5-28.2-8.4c0 0 0 0 0 0s0 0 0 0c-2.1-.7-4.1-1.4-6.1-2.1c-10.5-3.5-16.1-14.8-12.6-25.3s14.8-16.1 25.3-12.6c2.5 .8 4.9 1.7 7.2 2.4c13.6 4.6 24 8.1 35.1 8.5c8.6 .3 16.5-1.6 21.4-4.7c4.1-2.5 6-5.5 5.9-10.5c0-2.9-.8-5-5.9-8.2c-6.3-4-15.4-6.9-28-10.7l-1.7-.5c-10.9-3.3-24.6-7.4-35.6-14c-12.7-7.7-24.6-20.5-24.7-40.7c-.1-21.1 11.8-35.7 25.8-43.9c6.9-4.1 14.5-6.8 22.2-8.5l0-14c0-11 9-20 20-20s20 9 20 20z"
-              />
-            </svg>
+          <button class="btn-blue standard-button" @click="removeFocus">
+            <span class="desktop">New transaction</span>
+            <span class="mobile">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
+                <path
+                  d="M64 64C28.7 64 0 92.7 0 128L0 384c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-256c0-35.3-28.7-64-64-64L64 64zM272 192l224 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-224 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zM256 304c0-8.8 7.2-16 16-16l224 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-224 0c-8.8 0-16-7.2-16-16zM164 152l0 13.9c7.5 1.2 14.6 2.9 21.1 4.7c10.7 2.8 17 13.8 14.2 24.5s-13.8 17-24.5 14.2c-11-2.9-21.6-5-31.2-5.2c-7.9-.1-16 1.8-21.5 5c-4.8 2.8-6.2 5.6-6.2 9.3c0 1.8 .1 3.5 5.3 6.7c6.3 3.8 15.5 6.7 28.3 10.5l.7 .2c11.2 3.4 25.6 7.7 37.1 15c12.9 8.1 24.3 21.3 24.6 41.6c.3 20.9-10.5 36.1-24.8 45c-7.2 4.5-15.2 7.3-23.2 9l0 13.8c0 11-9 20-20 20s-20-9-20-20l0-14.6c-10.3-2.2-20-5.5-28.2-8.4c0 0 0 0 0 0s0 0 0 0c-2.1-.7-4.1-1.4-6.1-2.1c-10.5-3.5-16.1-14.8-12.6-25.3s14.8-16.1 25.3-12.6c2.5 .8 4.9 1.7 7.2 2.4c13.6 4.6 24 8.1 35.1 8.5c8.6 .3 16.5-1.6 21.4-4.7c4.1-2.5 6-5.5 5.9-10.5c0-2.9-.8-5-5.9-8.2c-6.3-4-15.4-6.9-28-10.7l-1.7-.5c-10.9-3.3-24.6-7.4-35.6-14c-12.7-7.7-24.6-20.5-24.7-40.7c-.1-21.1 11.8-35.7 25.8-43.9c6.9-4.1 14.5-6.8 22.2-8.5l0-14c0-11 9-20 20-20s20 9 20 20z"
+                />
+              </svg>
+            </span>
           </button>
         </div>
       </div>
@@ -69,58 +71,13 @@
 </template>
 
 <script setup>
-const transactions = [
-  {
-    number: "#60011234",
-    date: "28 July 2024",
-    status: "Unpaid",
-    beneficiaryName: "John Doe",
-    beneficiaryBankName: "Bank of America",
-    beneficiaryBankAccountNumber: "987541012",
-    sendingAmount: "1,463.82 USD",
-    receivingAmount: "2,000 SGD",
-  },
-  {
-    number: "#60011233",
-    date: "27 July 2024",
-    status: "Pending",
-    beneficiaryName: "John Doe",
-    beneficiaryBankName: "Bank of America",
-    beneficiaryBankAccountNumber: "987541012",
-    sendingAmount: "1,463.82 USD",
-    receivingAmount: "2,000 SGD",
-  },
-  {
-    number: "#60011232",
-    date: "26 July 2024",
-    status: "Pending",
-    beneficiaryName: "John Doe",
-    beneficiaryBankName: "Bank of America",
-    beneficiaryBankAccountNumber: "987541012",
-    sendingAmount: "1,463.82 USD",
-    receivingAmount: "2,000 SGD",
-  },
-  {
-    number: "#60011231",
-    date: "16 June 2024",
-    status: "Completed",
-    beneficiaryName: "John Doe",
-    beneficiaryBankName: "Bank of America",
-    beneficiaryBankAccountNumber: "987541012",
-    sendingAmount: "1,463.82 USD",
-    receivingAmount: "2,000 SGD",
-  },
-  {
-    number: "#60011230",
-    date: "28 July 2024",
-    status: "Failed",
-    beneficiaryName: "Caleb Takamura",
-    beneficiaryBankName: "Bank of Japan",
-    beneficiaryBankAccountNumber: "66335012",
-    sendingAmount: "100,000 YEN",
-    receivingAmount: "842 SGD",
-  },
-];
+import { useTransactionStore } from "@/stores/transactionStore";
+import { storeToRefs } from "pinia";
+const removeFocus = (event) => {
+  event.target.blur(); // Remove focus from the button
+};
+const transactionStore = useTransactionStore();
+const { transactions } = storeToRefs(transactionStore);
 </script>
 
 <style scoped>
@@ -143,7 +100,7 @@ const transactions = [
   justify-content: space-between;
   align-items: center;
   padding: var(--size-12) 0;
-  border-bottom: 1px solid rgba(102, 102, 102, 0.2);
+  border-bottom: 1px solid var(--light-grey);
 }
 
 .transaction .title a {
@@ -189,20 +146,12 @@ const transactions = [
   max-width: 20%;
 }
 
-.transaction .search-section .button-group .btn-blue.desktop {
+.transaction .search-section .button-group .btn-blue .desktop {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  min-width: 100%;
-  max-width: 100%;
-  min-height: var(--size-48);
-  max-height: var(--size-48);
-  border: none !important;
-  border-radius: var(--border-md);
-  padding: var(--size-dropdown-item);
+  font-weight: var(--semi-bold);
 }
 
-.transaction .search-section .button-group .btn-blue.mobile {
+.transaction .search-section .button-group .btn-blue .mobile {
   display: none;
 }
 
@@ -297,24 +246,15 @@ const transactions = [
 }
 
 @media (max-width: 767px) {
-  .transaction .search-section .button-group .btn-blue.desktop {
+  .transaction .search-section .button-group .btn-blue .desktop {
     display: none;
   }
 
-  .transaction .search-section .button-group .btn-blue.mobile {
+  .transaction .search-section .button-group .btn-blue .mobile {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    min-width: 100%;
-    max-width: 100%;
-    min-height: var(--size-48);
-    max-height: var(--size-48);
-    border: none !important;
-    border-radius: var(--border-md);
-    padding: var(--size-dropdown-item);
   }
 
-  .transaction .search-section .button-group .btn-blue.mobile svg {
+  .transaction .search-section .button-group .btn-blue .mobile svg {
     min-width: var(--size-24);
     max-width: var(--size-24);
     fill: #fff;

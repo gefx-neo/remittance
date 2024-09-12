@@ -1,7 +1,6 @@
 <!-- Routerview here renders Layout.vue and Layout.vue renders the children route pages -->
 <template>
   <RouterView />
-  <Loading />
 </template>
 
 <script setup>

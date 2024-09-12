@@ -1,10 +1,12 @@
+// useStore.js
 import { defineStore } from "pinia";
 
 export const useStore = defineStore("main", {
   state: () => ({
     isSidebarOpen: false, // User tablet sidebar
     isDropdownOpen: false, // User profile dropdown
-    isLoading: false,
+    isLoading: false, // Button API loading
+    isModalOpen: false, // Modal
   }),
   actions: {
     openSidebar() {
@@ -24,6 +26,12 @@ export const useStore = defineStore("main", {
     },
     setLoading(isLoading) {
       this.isLoading = isLoading;
+    },
+    openModal() {
+      this.isModalOpen = true;
+    },
+    closeModal() {
+      this.isModalOpen = false;
     },
   },
 });

@@ -58,7 +58,7 @@
       </div>
 
       <div class="button-group">
-        <button class="btn-red">Calculate</button>
+        <button class="btn-red standard-button">Calculate</button>
       </div>
     </div>
 
@@ -123,7 +123,7 @@
         </div>
         <div class="item-section">
           <div
-            v-for="(beneficiary, index) in beneficiaries"
+            v-for="(beneficiary, index) in beneficiaries.slice(0, 3)"
             :key="index"
             class="item"
           >
@@ -169,8 +169,15 @@
 import { onMounted, onUnmounted, watch } from "vue";
 import CurrencyDropdown from "@/components/CurrencyDropdown.vue";
 import { useCurrencyStore } from "@/stores/currencyStore";
+import { useTransactionStore } from "@/stores/transactionStore";
+import { useBeneficiaryStore } from "@/stores/beneficiaryStore";
+import { storeToRefs } from "pinia";
 
 const currencyStore = useCurrencyStore();
+const transactionStore = useTransactionStore();
+const beneficiaryStore = useBeneficiaryStore();
+const { transactions } = storeToRefs(transactionStore);
+const { beneficiaries } = storeToRefs(beneficiaryStore);
 
 const updateSenderCurrency = (currency) => {
   currencyStore.setSenderCurrency(currency);
@@ -185,59 +192,12 @@ const updateBeneficiaryCurrency = (currency) => {
   );
 };
 
-const transactions = [
-  {
-    number: "#60011234",
-    status: "Unpaid",
-    date: "28 July 2024",
-    sendingAmount: "1,463.82 USD",
-    receivingAmount: "2,000 SGD",
-  },
-  {
-    number: "#60011233",
-    status: "Pending",
-    date: "27 July 2024",
-    sendingAmount: "1,463.82 USD",
-    receivingAmount: "2,000 SGD",
-  },
-  {
-    number: "#60011232",
-    status: "Pending",
-    date: "26 July 2024",
-    sendingAmount: "1,463.82 USD",
-    receivingAmount: "2,000 SGD",
-  },
-  {
-    number: "#60011231",
-    status: "Completed",
-    date: "16 June 2024",
-    sendingAmount: "1,463.82 USD",
-    receivingAmount: "2,000 SGD",
-  },
-  {
-    number: "#60011230",
-    status: "Failed",
-    date: "16 June 2024",
-    sendingAmount: "100,000 YEN",
-    receivingAmount: "842 SGD",
-  },
-];
-
-const beneficiaries = [
-  { initials: "JD", name: "John Doe" },
-  { initials: "CW", name: "Sylvie Goh" },
-  { initials: "SD", name: "Shopee Delivery" },
-  { initials: "HL", name: "Henry Lim" },
-  { initials: "JD", name: "John Doe" },
-  { initials: "LC", name: "Linda Cheng" },
-];
-
 const currencies = [
   { icon: "src/assets/currency/usd.svg", code: "USD", rate: "SGD 1.36" },
   { icon: "src/assets/currency/eur.svg", code: "EUR", rate: "SGD 1.46" },
   { icon: "src/assets/currency/gbp.svg", code: "GBP", rate: "SGD 1.72" },
   { icon: "src/assets/currency/cny.svg", code: "CNY", rate: "SGD 0.19" },
-  { icon: "src/assets/currency/jpy.svg", code: "JPY", rate: "SGD 0.0084" },
+  { icon: "src/assets/currency/myr.svg", code: "MYR", rate: "SGD 0.30" },
 ];
 
 const handleClickOutside = (event) => {

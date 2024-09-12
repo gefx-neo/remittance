@@ -1,5 +1,17 @@
 @import "./base.css";
 
+.standard-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 100%;
+  max-width: 100%;
+  min-height: var(--size-48);
+  max-height: var(--size-48);
+  padding: var(--size-dropdown-item);
+  border-radius: var(--border-md);
+}
+
 .btn-close {
   min-width: var(--size-40);
   max-width: var(--size-40);
@@ -23,51 +35,57 @@
   background: var(--crimson-red);
   color: #ffffff;
   font-weight: var(--semi-bold);
+  border-radius: var(--border-md);
 }
 
 .btn-red:hover {
-  background: var(--crimson-red);
+  background: var(--dark-crimson-red);
 }
 
 .btn-red:focus {
-  background: var(--dark-crimson-red);
+  background: var(--darker-crimson-red);
 }
 
 .btn-red:focus:not(:focus-visible) {
   background: var(--crimson-red);
 }
 
-/* .btn-red:focus-visible {
-    background: var(--dark-crimson-red);
-  } */
+.btn-red:focus:hover {
+  background: var(--dark-crimson-red);
+}
 
 .btn-red:focus:active {
-  background: var(--dark-crimson-red);
+  background: var(--darker-crimson-red);
 }
 
 .btn-blue {
   background: var(--light-blue);
   color: #ffffff;
   font-weight: var(--semi-bold);
+  border-radius: var(--border-md);
 }
 
 .btn-blue:hover {
-  background: var(--light-blue);
+  background: var(--dark-blue);
 }
 
 .btn-blue:focus {
-  background: var(--dark-blue);
+  background: var(--darker-blue);
 }
 
 .btn-blue:focus:not(:focus-visible) {
   background: var(--light-blue);
 }
 
-.btn-blue:focus:active {
+.btn-blue:focus:hover {
   background: var(--dark-blue);
 }
 
-.btn-back {
+.btn-blue:focus:active {
+  background: var(--darker-blue);
+}
+
+.btn-back-round {
   min-width: var(--size-32);
   max-width: var(--size-32);
   min-height: var(--size-32);
@@ -79,7 +97,7 @@
   align-items: center;
 }
 
-.btn-back svg {
+.btn-back-round svg {
   min-width: var(--size-16);
   max-width: var(--size-16);
   min-height: var(--size-16);
@@ -88,23 +106,23 @@
   color: var(--slate-blue);
 }
 
-.btn-back:hover {
+.btn-back-round:hover {
   background: var(--sky-blue);
 }
 
-.btn-back:focus {
+.btn-back-round:focus {
   background: var(--cool-blue);
 }
 
-.btn-back:focus:not(:focus-visible) {
+.btn-back-round:focus:not(:focus-visible) {
   background: var(--sky-blue);
 }
 
-.btn-back:focus:hover {
+.btn-back-round:focus:hover {
   background: var(--sky-blue);
 }
 
-.btn-back:focus:active {
+.btn-back-round:focus:active {
   background: var(--cool-blue);
 }
 
@@ -129,32 +147,41 @@
   color: var(--cool-blue);
 }
 
+.icon-round:hover {
+  background: var(--slate-blue);
+  color: var(--sky-blue) !important;
+  cursor: pointer;
+}
+
 .btn-load {
   min-width: 100%;
   max-width: 100%;
   background: var(--light-grey);
   color: var(--black);
-  font-weight: var(--semi-bold);
   text-align: center;
   padding: var(--size-8);
+  font-weight: var(--semi-bold);
   border-radius: var(--border-md);
-  cursor: pointer;
 }
 
 .btn-load:hover {
-  background: var(--light-grey);
+  background: var(--dark-grey);
 }
 
 .btn-load:focus {
-  background: rgba(102, 102, 102, 0.4);
+  background: var(--darker-grey);
 }
 
 .btn-load:focus:not(:focus-visible) {
   background: var(--light-grey);
 }
 
+.btn-load:focus:hover {
+  background: var(--dark-grey);
+}
+
 .btn-load:focus:active {
-  background: rgba(102, 102, 102, 0.4);
+  background: var(--darker-grey);
 }
 
 .btn-delete {
@@ -182,4 +209,31 @@
 .btn-delete:focus:active {
   border: 1px solid #f45b7a;
   color: #f45b7a;
+}
+
+.btn-back {
+  background: var(--bg-screen);
+  color: var(--black);
+  border: 1px solid var(--black);
+  font-weight: var(--semi-bold);
+}
+
+.btn-back:hover {
+  background: var(--sky-blue);
+}
+
+.btn-back:focus {
+  background: var(--cool-blue);
+}
+
+.btn-back:focus:not(:focus-visible) {
+  background: var(--sky-blue);
+}
+
+.btn-back:focus:hover {
+  background: var(--sky-blue);
+}
+
+.btn-back:focus:active {
+  background: var(--cool-blue);
 }

@@ -1,9 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
 import GuestLayout from "../layout/GuestLayout/GuestLayout.vue";
-import LoginLayout from "../layout/LoginLayout/LoginLayout.vue";
 import UserLayout from "../layout/UserLayout/UserLayout.vue";
 import ErrorLayout from "../layout/ErrorLayout/ErrorLayout.vue";
-import HomeView from "../views/HomeView.vue"; // Static import
+import Login from "../views/Guest/Login.vue"; // Static import
 import { useAuthStore } from "../stores/authStore.js";
 
 const routes = [
@@ -13,24 +12,18 @@ const routes = [
     children: [
       {
         path: "",
-        name: "homeview",
-        component: HomeView, // Static import
-      },
-    ],
-  },
-  {
-    path: "/",
-    component: LoginLayout,
-    children: [
-      {
-        path: "login",
         name: "login",
-        component: () => import("../views/Login.vue"),
+        component: Login, // Static import
       },
       {
         path: "register",
         name: "register",
-        component: () => import("../views/Register.vue"),
+        component: () => import("../views/Guest/Register.vue"),
+      },
+      {
+        path: "forgotpassword",
+        name: "forgotpassword",
+        component: () => import("../views/Guest/ForgotPassword.vue"),
       },
     ],
   },
@@ -61,7 +54,7 @@ const routes = [
             props: true,
           },
           {
-            path: "/beneficiary/add-beneficiary",
+            path: "/beneficiary/addbeneficiary",
             name: "add-beneficiary",
             component: () =>
               import("../views/User/Beneficiary/AddBeneficiary.vue"),
@@ -75,9 +68,22 @@ const routes = [
       },
       {
         path: "profile",
-        name: "profile",
-        component: () => import("../views/User/Profile.vue"),
+        component: () => import("../views/User/Profile/Profile.vue"),
+        children: [
+          {
+            path: "",
+            name: "profile-detail",
+            component: () => import("../views/User/Profile/ProfileDetail.vue"),
+          },
+          {
+            path: "accountverification",
+            name: "account-verification",
+            component: () =>
+              import("../views/User/Profile/AccountVerification.vue"), // Nested AccountVerification view
+          },
+        ],
       },
+
       {
         path: "help",
         name: "help",
@@ -107,8 +113,8 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
 
-  // Call refresh cookie function
-  if (!authStore.cookieRefreshed) {
+  // Call refresh cookie function only if the user is logged in
+  if (authStore.user && !authStore.cookieRefreshed) {
     authStore.refreshCookie();
   }
 
@@ -124,7 +130,9 @@ router.beforeEach((to, from, next) => {
     // Disables logged in users to access login/register page
     if (
       authStore.user &&
-      (to.name === "homeview" || to.name === "login" || to.name === "register")
+      (to.name === "login" ||
+        to.name === "register" ||
+        to.name === "forgetpassword")
     ) {
       next({ name: "dashboard" });
     } else {

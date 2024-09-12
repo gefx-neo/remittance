@@ -6,12 +6,16 @@
   --cool-blue: #9fb3c0;
   --slate-blue: #42596c;
   --crimson-red: #ec0841;
-  --dark-crimson-red: #d10a3a;
+  --dark-crimson-red: #e20a3b;
+  --darker-crimson-red: #d10a3a;
   --light-blue: #217ec9;
-  --dark-blue: #185a8a;
+  --dark-blue: #1e70b6;
+  --darker-blue: #1a61a3;
   --pastel-green: #67cc89;
   --black: #3c3f41;
   --light-grey: rgba(102, 102, 102, 0.2);
+  --dark-grey: rgba(102, 102, 102, 0.3);
+  --darker-grey: rgba(102, 102, 102, 0.4);
   --grey: #666666;
   --midnight-violet: #231d9a;
   --yellow-star: #ffd700;
@@ -39,6 +43,7 @@
   --size-64: 64px;
   --size-dropdown-item: var(--size-12) var(--size-16);
 
+  --border-sm: 5px;
   --border-md: 10px;
   --border-lg: 15px;
   --border-circle: 9999px;
@@ -135,7 +140,7 @@ svg {
   display: block;
   width: 100%;
   height: 100%;
-  opacity: 0.9;
+  opacity: 1;
   background-color: rgba(0, 0, 0, 0.6);
 }
 
@@ -172,7 +177,9 @@ label {
   margin-bottom: var(--size-4);
 }
 
-input {
+input[type="text"],
+input[type="email"],
+input[type="password"] {
   font-family: "Work Sans", sans-serif;
   background: none;
   font-size: var(--text-md);
@@ -186,13 +193,64 @@ input {
   color: var(--black);
 }
 
-input:hover {
+input[type="text"]:hover,
+input[type="email"]:hover,
+input[type="password"]:hover {
   box-shadow: inset 0 0 0 2px var(--cool-blue);
 }
 
-input:focus {
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
   box-shadow: inset 0 0 0 3px var(--slate-blue);
   outline: none !important;
+}
+
+input[type="radio"] {
+  background: none;
+  border: none !important;
+  appearance: none;
+  min-width: var(--size-16);
+  max-width: var(--size-16);
+  min-height: var(--size-16);
+  max-height: var(--size-16);
+  border-radius: var(--border-circle);
+  background: var(--bg-screen);
+  color: var(--black);
+  box-shadow: inset 0 0 0 1px var(--cool-blue);
+  transition: box-shadow 0.3s ease-in-out;
+  cursor: pointer;
+  position: relative;
+}
+
+input[type="radio"]:hover {
+  box-shadow: inset 0 0 0 1px var(--black);
+}
+
+input[type="radio"]:checked {
+  position: relative;
+  background: var(--bg-screen);
+  box-shadow: inset 0 0 0 1px var(--black);
+}
+
+input[type="radio"]:checked::after {
+  content: "";
+  width: var(--size-12);
+  height: var(--size-12);
+  border-radius: var(--border-circle);
+  background-color: var(--black);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+input[type="radio"]:checked:hover {
+  box-shadow: inset 0 0 0 1px var(--black);
+}
+
+input[type="radio"]:checked + label {
+  font-weight: var(--semi-bold);
 }
 
 /* input:-webkit-autofill {

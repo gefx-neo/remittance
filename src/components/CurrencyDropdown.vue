@@ -1,9 +1,5 @@
 <template>
-  <div
-    class="dropdown-menu"
-    v-if="isDropdownOpen"
-    :class="{ open: isDropdownOpen }"
-  >
+  <div class="dropdown-menu" :class="{ open: isDropdownOpen }">
     <div class="header">
       <div class="btn-close" @click="currencyStore.closeAllDropdowns">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
@@ -201,7 +197,7 @@ const selectCurrency = (item) => {
   background-color: var(--bg-screen);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .dropdown-menu {
     width: 100%;
     height: calc(100vh - 80px);
@@ -219,9 +215,9 @@ const selectCurrency = (item) => {
     transition: visibility 0.3s, transform 0.3s;
   }
 
-  /* .dropdown-menu:not(.open) {
+  .dropdown-menu:not(.open) {
     animation: menuSlideOut 0.3s ease-out forwards;
-  } */
+  }
 
   .dropdown-menu.open {
     animation: menuSlideIn 0.3s ease-out forwards;

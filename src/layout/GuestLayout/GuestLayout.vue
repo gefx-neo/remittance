@@ -23,6 +23,10 @@ import Header from "./Header.vue";
   width: 100%;
 }
 
+.main-container {
+  padding-bottom: var(--size-24);
+}
+
 /* DESKTOP */
 @media (min-width: 1023px) {
   .page-layout {
@@ -31,4 +35,20 @@ import Header from "./Header.vue";
   }
 }
 /* DESKTOP */
+
+/* TABLET */
+@media (max-width: 1023px) {
+  .main-container {
+    padding-bottom: var(--size-24);
+  }
+}
+/* TABLET */
+
+/* MOBILE  */
+@media (max-width: 767px) {
+  .main-container {
+    padding-bottom: var(--size-16);
+  }
+}
+/* MOBILE */
 </style>

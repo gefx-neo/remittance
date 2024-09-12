@@ -6,14 +6,12 @@ import { createPinia } from "pinia";
 import App from "./App.vue";
 import router from "./router";
 import { FontAwesomeIcon } from "@/fontawesome/fontawesome"; // Use named import
-import Loading from "./components/Loading.vue";
 
 const app = createApp(App);
 
 app.use(createPinia());
 app.use(router);
 app.component("font-awesome-icon", FontAwesomeIcon);
-app.component("Loading", Loading);
 
 app.mount("#app");
 

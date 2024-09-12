@@ -6,12 +6,12 @@
           <img src="@/assets/logo.jpg" />
         </RouterLink>
       </div>
-      <div class="menu">
+      <!-- <div class="menu">
         <div class="login-section">
           <RouterLink to="/register" class="register">Register</RouterLink>
           <RouterLink to="/login" class="btn-red login">Log in</RouterLink>
         </div>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
@@ -47,8 +47,8 @@ router.afterEach(() => {
   width: 100%;
   max-width: 1440px;
   height: 100px;
-  position: fixed;
-  top: 0;
+  /* position: fixed;
+  top: 0; */
   background: white;
 }
 
@@ -64,7 +64,7 @@ router.afterEach(() => {
   height: 40px;
 }
 
-.menu {
+/* .menu {
   display: flex;
   align-items: center;
   justify-content: end;
@@ -81,27 +81,7 @@ router.afterEach(() => {
   display: flex;
   align-items: center;
   gap: var(--size-4);
-}
-
-.menu .register {
-  color: var(--slate-blue);
-  font-weight: var(--semi-bold);
-  padding: 4px 8px;
-  border-radius: 9999px;
-}
-
-.menu .register:hover {
-  background: var(--sky-blue);
-}
-
-.menu .register:focus {
-  background: var(--cool-blue);
-}
-
-.menu .login {
-  padding: 4px 16px;
-  border-radius: 9999px;
-}
+} */
 
 /* TABLET */
 @media (max-width: 1023px) {
@@ -119,10 +99,10 @@ router.afterEach(() => {
     justify-content: start;
   }
 
-  .menu {
+  /* .menu {
     width: 100%;
     padding: 0;
-  }
+  } */
 }
 /* TABLET */
 
