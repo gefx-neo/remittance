@@ -9,6 +9,7 @@ export const useRegisterStore = defineStore("registerStore", {
   actions: {
     async register(form) {
       this.error = null;
+
       const registrationData = {
         surname: form.surname,
         givenName: form.givenName,
@@ -16,21 +17,30 @@ export const useRegisterStore = defineStore("registerStore", {
         accountType: form.accountType,
       };
 
-      if (form.accountType === "Corporate & Trading Company") {
+      // Only include companyName if accountType is Corporate & Trading Company
+      if (registrationData.accountType === "Corporate & Trading Company") {
         registrationData.companyName = form.companyName;
       }
-      console.log("Submitting form data:", registrationData);
+
+      // Manually convert the object into a string with escaped quotes
+      const payload = JSON.stringify(registrationData);
+      const stringifiedPayload = `"${JSON.stringify(registrationData).replace(
+        /"/g,
+        '\\"'
+      )}"`;
+
+      console.log("Submitting form data:", stringifiedPayload);
 
       try {
-        const response = await axios.post(
-          "http://10.100.2.6:82/User/register",
-          registrationData,
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const response = await axios({
+          method: "post",
+          url: "http://10.100.2.6:802/User/register",
+          data: stringifiedPayload, // Sending the payload as a string
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
         console.log("Registration response successful:", response.data);
         return response.data;
       } catch (error) {

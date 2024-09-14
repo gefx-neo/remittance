@@ -13,27 +13,35 @@ export const useAuthStore = defineStore("auth", {
     iv: null,
   }),
   actions: {
-    async fetchHexAndIv() {
-      // Simulate API call to fetch hex and iv with a delay
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const hex =
-            "a1c91b5f95d37b3c48f59861c21156e31e1176f7c5ec3c5512dfb63a70c8ffbd";
-          const iv = "51d94482ec57e7b0fde837dbf1380eeb";
+    async getReqKey(username) {
+      try {
+        const response = await axios.post(
+          "http://172.188.98.99:802/User/reqkey",
+          {
+            username,
+          }
+        );
 
-          // Log the fetched hex and iv values
-          console.log("Fetched hex:", hex);
-          console.log("Fetched iv:", iv);
+        if (response.data.status === 200) {
+          const hex = response.data.key;
+          const iv = response.data.iv;
 
-          // Set hex and iv in the store and local storage
+          // Save hex and iv to local state and storage
           this.hex = hex;
           this.iv = iv;
           localStorage.setItem("sessionKey", hex);
           localStorage.setItem("sessionIv", iv);
 
-          resolve({ hex, iv });
-        }, 1000); // Simulate 1-second delay
-      });
+          return { hex, iv };
+        } else {
+          console.error("Failed to fetch hex and iv:", response.data.message);
+          return null;
+        }
+      } catch (error) {
+        console.error("Error while fetching hex and iv:", error);
+        this.error = error.response?.data?.message || "Failed to fetch data";
+        return null;
+      }
     },
 
     async loginn(login, password) {

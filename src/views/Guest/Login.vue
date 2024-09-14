@@ -13,7 +13,7 @@
     <form v-if="step === 1" @submit.prevent="handleStep1">
       <div class="form-group">
         <label for="login">E-mail address</label>
-        <input id="login" v-model="login" type="email" required />
+        <input id="username" v-model="username" type="email" required />
       </div>
       <ButtonAPI :disabled="store.isLoading" class="btn-red standard-button">
         Next
@@ -73,14 +73,14 @@ const authStore = useAuthStore();
 const store = useStore();
 
 const step = ref(1);
-const login = ref("");
+const username = ref("");
 const password = ref("");
 const showPassword = ref(false);
 
 const handleStep1 = async () => {
   try {
     store.setLoading(true);
-    await authStore.fetchHexAndIv();
+    await authStore.getReqKey(String(username.value)); // Ensure the username is passed as a string
     step.value = 2;
   } finally {
     store.setLoading(false);

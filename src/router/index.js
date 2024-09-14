@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHashHistory } from "vue-router";
 import GuestLayout from "../layout/GuestLayout/GuestLayout.vue";
 import UserLayout from "../layout/UserLayout/UserLayout.vue";
 import ErrorLayout from "../layout/ErrorLayout/ErrorLayout.vue";
@@ -105,7 +105,7 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHashHistory(import.meta.env.VITE_API_BASE_URL),
   routes,
 });
 
