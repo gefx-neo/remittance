@@ -6,10 +6,10 @@
         No account yet?
         <router-link to="/register">Register here</router-link>
       </div>
-      <div v-if="step === 2 && login">
-        {{ login }}
-      </div>
+      <div v-if="step === 2 && username">{{ username }}</div>
     </div>
+
+    <!-- Step 1: Enter email to get reqKey -->
     <form v-if="step === 1" @submit.prevent="handleStep1">
       <div class="form-group">
         <label for="login">E-mail address</label>
@@ -20,6 +20,7 @@
       </ButtonAPI>
     </form>
 
+    <!-- Step 2: Enter password to log in -->
     <form v-if="step === 2" @submit.prevent="handleStep2">
       <div class="form-group">
         <label for="password">Password</label>
@@ -47,16 +48,18 @@
       </div>
       <div class="button-group">
         <ButtonAPI :disabled="store.isLoading" class="btn-red standard-button">
-          Next
+          Login
         </ButtonAPI>
         <button type="button" class="btn-back standard-button" @click="goBack">
           Back
         </button>
       </div>
     </form>
+
     <div v-if="authStore.error" class="error">
       {{ authStore.error }}
     </div>
+
     <footer>
       <router-link to="/forgotpassword">Forgot password?</router-link>
     </footer>
@@ -77,25 +80,32 @@ const username = ref("");
 const password = ref("");
 const showPassword = ref(false);
 
+// Step 1: Handle the first step, which is fetching the reqKey (hex and iv)
 const handleStep1 = async () => {
   try {
     store.setLoading(true);
-    await authStore.getReqKey(String(username.value)); // Ensure the username is passed as a string
-    step.value = 2;
+    await authStore.getReqKey(username.value); // Fetch reqKey using the username
+    step.value = 2; // Move to the second step (password input)
+  } catch (error) {
+    console.error("Failed to get reqKey:", error);
   } finally {
     store.setLoading(false);
   }
 };
 
+// Step 2: Handle the second step, which is performing the login
 const handleStep2 = async () => {
   try {
     store.setLoading(true);
-    await authStore.loginn(login.value, password.value);
+    await authStore.login(username.value, password.value); // Use the stored reqKey to login
+  } catch (error) {
+    console.error("Login failed:", error);
   } finally {
     store.setLoading(false);
   }
 };
 
+// Go back to step 1
 const goBack = () => {
   step.value = 1;
 };

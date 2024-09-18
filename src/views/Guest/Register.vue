@@ -25,35 +25,7 @@
           required
         />
       </div>
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input
-          id="password"
-          :type="showPassword.value ? 'text' : 'password'"
-          v-model="form.password"
-          required
-        />
-        <div class="checkbox-group">
-          <div class="item" @click="togglePassword">
-            <input
-              type="checkbox"
-              id="showPassword"
-              v-model="showPassword.value"
-            />
-            <svg
-              v-if="showPassword.value"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 448 512"
-            >
-              <path
-                d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"
-              />
-            </svg>
-          </div>
 
-          <label for="showPassword">Show password</label>
-        </div>
-      </div>
       <div class="form-group">
         <label>Account type</label>
         <div class="radio-group">
@@ -82,7 +54,6 @@
         </div>
       </div>
 
-      <!-- Conditionally render company name input -->
       <div
         class="form-group"
         v-if="form.accountType === 'Corporate & Trading Company'"
@@ -125,13 +96,8 @@ const form = reactive({
   surname: "",
   givenName: "",
   emailAddress: "",
-  password: "",
   accountType: "Individual",
   companyName: "",
-});
-
-const showPassword = reactive({
-  value: false,
 });
 
 const handleRegister = async () => {
@@ -145,10 +111,6 @@ const handleRegister = async () => {
   } finally {
     store.setLoading(false);
   }
-};
-
-const togglePassword = () => {
-  showPassword.value = !showPassword.value;
 };
 </script>
 

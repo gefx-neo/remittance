@@ -1,13 +1,12 @@
-// stores/registerStore.js
 import { defineStore } from "pinia";
-import axios from "axios";
+import apiService from "@/services/apiService"; // Adjust the path according to your project structure
 
 export const useRegisterStore = defineStore("registerStore", {
   state: () => ({
     error: null,
   }),
   actions: {
-    async register(form) {
+    async register(form, sendAsPlainString = false) {
       this.error = null;
 
       const registrationData = {
@@ -22,37 +21,20 @@ export const useRegisterStore = defineStore("registerStore", {
         registrationData.companyName = form.companyName;
       }
 
-      // Manually convert the object into a string with escaped quotes
-      const payload = JSON.stringify(registrationData);
-      const stringifiedPayload = `"${JSON.stringify(registrationData).replace(
-        /"/g,
-        '\\"'
-      )}"`;
-
-      console.log("Submitting form data:", stringifiedPayload);
+      const url = "http://172.188.98.99:802/User/register";
 
       try {
-        const response = await axios({
-          method: "post",
-          url: "http://10.100.2.6:802/User/register",
-          data: stringifiedPayload, // Sending the payload as a string
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        const response = await apiService.postRequest(
+          url,
+          registrationData,
+          sendAsPlainString
+        );
 
-        console.log("Registration response successful:", response.data);
-        return response.data;
+        console.log("Registration response successful:", response);
+        return response;
       } catch (error) {
-        console.error("Registration request failed with error:", error);
-        if (error.response) {
-          console.error(
-            "Error response data:",
-            error.response.data,
-            error.response.status
-          );
-        }
-        this.error = error.response?.data?.message || error.message;
+        console.error("Registration requestt failed:", error);
+        this.error = error;
         throw error;
       }
     },
