@@ -102,14 +102,11 @@ const form = reactive({
 
 const handleRegister = async () => {
   try {
-    store.setLoading(true);
     const response = await registerStore.register(form);
-    console.log("Registration response:", response);
-    store.isModalOpen = true;
+    console.log("Registration response:", response.message);
+    store.openModal();
   } catch (error) {
     console.error("Registration failed:", error);
-  } finally {
-    store.setLoading(false);
   }
 };
 </script>

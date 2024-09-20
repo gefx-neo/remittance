@@ -1,44 +1,74 @@
 <template>
   <div class="content-area">
-    <!-- <div class="profile">
+    <div class="profile">
       <div class="user-section">
         <div class="user-group">
-          <span class="icon-round">GT</span>
-          <span>Gary Tsai</span>
+          <span class="icon-round">{{ initials }}</span>
+          <span
+            >{{ profileDetails.givenName }} {{ profileDetails.surname }}</span
+          >
         </div>
         <button class="btn-blue">Verify account</button>
       </div>
 
       <div class="item-section">
         <div class="item">
-          <span>Full name</span>
-          <span>Gary Tsai</span>
+          <span>Given name</span>
+          <span>{{ profileDetails.givenName }}</span>
         </div>
         <div class="item">
-          <span>Account type</span>
-          <span>Individual</span>
+          <span>Surname</span>
+          <span>{{ profileDetails.surname }}</span>
         </div>
         <div class="item">
           <span>E-mail address</span>
-          <span>garytsai@gefx.sg</span>
+          <span>{{ username }}</span>
         </div>
         <div class="item">
-          <span>Phone number</span>
-          <span>014-6686748</span>
+          <span>Account type</span>
+          <span>{{ profileDetails.accountType }}</span>
+        </div>
+        <div
+          class="item"
+          v-if="profileDetails.accountType === 'Corporate & Trading Comp'"
+        >
+          <span>Company Name</span>
+          <span>{{ profileDetails.companyName }}</span>
         </div>
       </div>
-    </div> -->
+    </div>
   </div>
 </template>
 
 <script setup>
-import { useRouter } from "vue-router";
+import { ref, computed, onMounted } from "vue";
+import { useUserStore } from "@/stores/userStore";
+import cookieService from "@/services/cookieService";
 
-const router = useRouter();
+const userStore = useUserStore();
 
-const goBack = () => {
-  router.go(-1);
-};
+const profileDetails = ref({
+  givenName: "",
+  surname: "",
+  accountType: "",
+  email: "",
+  phoneNumber: "",
+});
+
+const username = ref("");
+
+const initials = computed(() => {
+  const firstInitial = profileDetails.value.givenName.charAt(0) || "";
+  const lastInitial = profileDetails.value.surname.charAt(0) || "";
+  return `${firstInitial}${lastInitial}`.toUpperCase();
+});
+
+// Fetch profile details when the component is mounted
+onMounted(async () => {
+  await userStore.getProfileDetail();
+  profileDetails.value = userStore.profileDetails;
+  username.value = cookieService.getCookie("username");
+});
 </script>
 
 <style scoped>
@@ -103,7 +133,6 @@ const goBack = () => {
   grid-template-columns: 1fr 1fr;
   row-gap: var(--size-24);
   padding: var(--size-24);
-  border-bottom: 1px solid var(--light-grey);
 }
 
 .profile .item-section .item {

@@ -1,25 +1,41 @@
 <template>
   <div class="content-area">
     <div class="heading">
-      <h1>Reset password</h1>
+      <h1 v-if="step === 1">Reset password</h1>
+      <h1 v-if="step === 2">Set new password</h1>
+      <div v-if="step === 2 && username">{{ username }}</div>
     </div>
+
     <form v-if="step === 1" @submit.prevent="handleStep1">
       <div class="form-group">
         <label for="login">E-mail address</label>
-        <input id="login" v-model="login" type="email" required />
+        <input id="username" v-model="username" type="email" required />
       </div>
-      <APIButton :disabled="store.isLoading" class="btn-red standard-button">
-        Submit
-      </APIButton>
+      <ButtonAPI :disabled="store.isLoading" class="btn-red standard-button">
+        Next
+      </ButtonAPI>
     </form>
 
     <form v-if="step === 2" @submit.prevent="handleStep2">
       <div class="form-group">
-        <label for="password">Password</label>
+        <label for="login">Temporary password</label>
+        <input id="code" v-model="code" type="text" required />
+      </div>
+      <div class="form-group">
+        <label for="password">New password</label>
         <input
           id="password"
           :type="showPassword ? 'text' : 'password'"
-          v-model="password"
+          v-model="newPassword"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label for="confirmNewPassword">Confirm new password</label>
+        <input
+          id="confirmNewPassword"
+          :type="showPassword ? 'text' : 'password'"
+          v-model="confirmNewPassword"
           required
         />
         <div class="checkbox-group">
@@ -37,55 +53,85 @@
           </div>
           <label for="showPassword">Show password</label>
         </div>
+        <div v-if="passwordMismatch" class="error">Passwords do not match.</div>
       </div>
       <div class="button-group">
-        <APIButton :disabled="store.isLoading" class="btn-red standard-button">
+        <ButtonAPI
+          :disabled="store.isLoading || passwordMismatch"
+          class="btn-red standard-button"
+        >
           Submit
-        </APIButton>
+        </ButtonAPI>
         <button type="button" class="btn-back standard-button" @click="goBack">
           Back
         </button>
       </div>
     </form>
-    <div v-if="authStore.error" class="error">
-      {{ authStore.error }}
+
+    <div v-show="forgotPasswordStore.error" class="error">
+      {{ forgotPasswordStore.error }}
     </div>
+
     <footer>
-      <router-link to="/">Go back to login</router-link>
+      <router-link to="/forgotpassword">Forgot password?</router-link>
     </footer>
+    <Modal
+      :isModalOpen="store.isModalOpen"
+      title="Reset successfully"
+      :redirectToLogin="true"
+    >
+    </Modal>
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed, watch } from "vue";
+import { useForgotPasswordStore } from "@/stores/forgotPasswordStore";
 import { useAuthStore } from "@/stores/authStore";
 import { useStore } from "@/stores/useStore";
-import APIButton from "@/components/ButtonAPI.vue"; // Import the reusable button
+import Modal from "@/components/Modal.vue";
+import ButtonAPI from "@/components/ButtonAPI.vue";
 
+const forgotPasswordStore = useForgotPasswordStore();
 const authStore = useAuthStore();
 const store = useStore();
 
 const step = ref(1);
-const login = ref("");
-const password = ref("");
+const code = ref("");
+const username = ref("");
+const newPassword = ref("");
+const confirmNewPassword = ref("");
 const showPassword = ref(false);
+
+const passwordMismatch = computed(() => {
+  return (
+    newPassword.value !== confirmNewPassword.value &&
+    confirmNewPassword.value !== ""
+  );
+});
 
 const handleStep1 = async () => {
   try {
-    store.setLoading(true);
-    await authStore.fetchHexAndIv();
+    await forgotPasswordStore.changePassword(username.value);
     step.value = 2;
-  } finally {
-    store.setLoading(false);
+    console.log("step 2");
+  } catch (error) {
+    console.error("Change password failed:", error);
   }
 };
 
 const handleStep2 = async () => {
+  if (passwordMismatch.value) return;
+
   try {
-    store.setLoading(true);
-    await authStore.loginn(login.value, password.value);
-  } finally {
-    store.setLoading(false);
+    await forgotPasswordStore.setNewPassword(
+      code.value,
+      username.value,
+      newPassword.value
+    );
+    store.openModal();
+  } catch (error) {
+    console.error("Set new password failed:", error);
   }
 };
 
@@ -96,6 +142,18 @@ const goBack = () => {
 const togglePassword = () => {
   showPassword.value = !showPassword.value;
 };
+
+// Watcher to call getReqKey when transitioning to step 2
+watch(step, async (newStep) => {
+  if (newStep === 2) {
+    try {
+      console.log("run get reqkey");
+      await authStore.getReqKey(username.value);
+    } catch (error) {
+      console.error("Fetching request key failed:", error);
+    }
+  }
+});
 </script>
 
 <style scoped>

@@ -54,11 +54,10 @@
           Back
         </button>
       </div>
+      <div v-show="authStore.error" class="error">
+        {{ authStore.error }}
+      </div>
     </form>
-
-    <div v-if="authStore.error" class="error">
-      {{ authStore.error }}
-    </div>
 
     <footer>
       <router-link to="/forgotpassword">Forgot password?</router-link>
@@ -67,6 +66,7 @@
 </template>
 
 <script setup>
+import { onBeforeRouteLeave } from "vue-router";
 import { ref } from "vue";
 import { useAuthStore } from "@/stores/authStore";
 import { useStore } from "@/stores/useStore";
@@ -80,39 +80,39 @@ const username = ref("");
 const password = ref("");
 const showPassword = ref(false);
 
-// Step 1: Handle the first step, which is fetching the reqKey (hex and iv)
+// Step 1: Handle the first step, getReqKey to get hex and iv
 const handleStep1 = async () => {
   try {
-    store.setLoading(true);
-    await authStore.getReqKey(username.value); // Fetch reqKey using the username
-    step.value = 2; // Move to the second step (password input)
+    await authStore.getReqKey(username.value); // Get hex and iv
+    step.value = 2;
   } catch (error) {
     console.error("Failed to get reqKey:", error);
-  } finally {
-    store.setLoading(false);
   }
 };
 
-// Step 2: Handle the second step, which is performing the login
+// Step 2: Handle the second step, login with id, encryptedPassword and deviceId
 const handleStep2 = async () => {
   try {
-    store.setLoading(true);
     await authStore.login(username.value, password.value); // Use the stored reqKey to login
   } catch (error) {
     console.error("Login failed:", error);
-  } finally {
-    store.setLoading(false);
   }
 };
 
-// Go back to step 1
 const goBack = () => {
   step.value = 1;
+  password.value = "";
+  authStore.error = null;
 };
 
 const togglePassword = () => {
   showPassword.value = !showPassword.value;
 };
+
+onBeforeRouteLeave((to, from, next) => {
+  authStore.$reset(); // Clear the store
+  next();
+});
 </script>
 
 <style scoped>

@@ -28,7 +28,7 @@ export default {
   // Get a regular cookie
   getCookie(name) {
     const nameEQ = name + "=";
-    const ca = document.cookie.split(";");
+    const ca = document.cookie.split("; ");
     for (let i = 0; i < ca.length; i++) {
       let c = ca[i];
       while (c.charAt(0) === " ") c = c.substring(1, c.length);
@@ -39,14 +39,19 @@ export default {
 
   // Erase a cookie
   eraseCookie(name) {
-    document.cookie = name + "=; Max-Age=-99999999;";
+    document.cookie = name + "=; Max-Age=-99999999; path=/;";
   },
 
-  // Set a complex cookie with encryption
+  // Set a complex cookie with encryption (using the provided hex and iv)
   setComplexCookie(name, valueObj, days, key, iv) {
-    const value = JSON.stringify(valueObj);
-    const { parsedKey, parsedIv } = parseHexKeyIv(key, iv); // Parse dynamic key and IV
+    const value = JSON.stringify({
+      username: valueObj.username,
+      token: valueObj.token,
+      deviceId: valueObj.deviceId,
+    });
 
+    // Encrypt the value using the provided key and iv
+    const { parsedKey, parsedIv } = parseHexKeyIv(key, iv);
     const encryptedValue = CryptoJS.AES.encrypt(value, parsedKey, {
       iv: parsedIv,
       mode: CryptoJS.mode.CBC,
@@ -55,32 +60,25 @@ export default {
 
     this.setCookie(name, encryptedValue, days);
 
+    // Log the original and encrypted values for debugging
     const date = new Date();
     date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
     console.log(
       `Cookie set: ${name}
-       Value: ${value}
-       Encrypted value: ${encryptedValue}
+       Original Value: ${value}
+       Encrypted Value: ${encryptedValue}
        Expires: ${date.toUTCString()}`
     );
   },
 
   // Get and decrypt a complex cookie
-  getComplexCookie(name) {
-    const value = this.getCookie(name);
-    if (value) {
+  getComplexCookie(name, key, iv) {
+    const encryptedValue = this.getCookie(name);
+    if (encryptedValue) {
       try {
-        const key = localStorage.getItem("sessionKey");
-        const iv = localStorage.getItem("sessionIv");
-
-        if (!key || !iv) {
-          console.error("Key or IV is missing");
-          return null;
-        }
-
         const { parsedKey, parsedIv } = parseHexKeyIv(key, iv);
 
-        const bytes = CryptoJS.AES.decrypt(value, parsedKey, {
+        const bytes = CryptoJS.AES.decrypt(encryptedValue, parsedKey, {
           iv: parsedIv,
           mode: CryptoJS.mode.CBC,
           padding: CryptoJS.pad.Pkcs7,
@@ -95,44 +93,3 @@ export default {
     return null;
   },
 };
-
-// Function to encrypt data
-function encryptData(plaintext, key, iv) {
-  const { parsedKey, parsedIv } = parseHexKeyIv(key, iv); // Parse key and IV
-
-  const encrypted = CryptoJS.AES.encrypt(plaintext, parsedKey, {
-    iv: parsedIv,
-    mode: CryptoJS.mode.CBC,
-    padding: CryptoJS.pad.Pkcs7,
-  }).toString();
-
-  console.log("Encrypted Data:", encrypted);
-  return encrypted;
-}
-
-// Function to decrypt data
-function decryptData(encryptedText, key, iv) {
-  const { parsedKey, parsedIv } = parseHexKeyIv(key, iv); // Parse key and IV
-
-  const decrypted = CryptoJS.AES.decrypt(encryptedText, parsedKey, {
-    iv: parsedIv,
-    mode: CryptoJS.mode.CBC,
-    padding: CryptoJS.pad.Pkcs7,
-  });
-
-  const plaintext = decrypted.toString(CryptoJS.enc.Utf8);
-  console.log("Decrypted Data:", plaintext);
-  return plaintext;
-}
-
-// Example usage
-const key = "a1c91b5f95d37b3c48f59861c21156e31e1176f7c5ec3c5512dfb63a70c8ffbd"; // 64-character hex key
-const iv = "51d94482ec57e7b0fde837dbf1380eeb"; // 32-character hex IV
-
-const plaintext = "Sensitive data";
-
-// Encrypt the data
-const encryptedText = encryptData(plaintext, key, iv);
-
-// Decrypt the data
-const decryptedText = decryptData(encryptedText, key, iv);

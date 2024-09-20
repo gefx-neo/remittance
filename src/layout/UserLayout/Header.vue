@@ -20,7 +20,7 @@
     >
       <button class="user" @click="store.toggleDropdown">
         <font-awesome-icon :icon="['fas', 'user']" />
-        <span class="name">garytsai@gefx.sg</span>
+        <span class="name">{{ username }}</span>
         <font-awesome-icon
           :icon="['fa', 'chevron-down']"
           class="arrow-down"
@@ -35,7 +35,6 @@
             />
           </svg>
         </div>
-        <div class="username">Elvin Ong</div>
         <RouterLink to="/profile">
           <span class="icon">
             <font-awesome-icon :icon="['fas', 'user']" size="1x" />
@@ -54,28 +53,29 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { useRouter, RouterLink } from "vue-router";
 import { useAuthStore } from "../../stores/authStore.js";
 import { useStore } from "@/stores/useStore";
+import cookieService from "@/services/cookieService";
 
 const authStore = useAuthStore();
 const store = useStore();
 const router = useRouter();
 
 const profileDropdown = ref(null);
-
+const username = ref("");
 const logout = async () => {
-  if (store.isLoading) return;
-  store.setLoading(true);
   try {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    authStore.logout();
+    await authStore.logout(username.value);
   } catch (error) {
-  } finally {
-    store.setLoading(false);
+    console.error("Failed to get reqKey:", error);
   }
 };
+
+onMounted(async () => {
+  username.value = cookieService.getCookie("username");
+});
 
 const handleClickOutside = (event) => {
   if (profileDropdown.value && !profileDropdown.value.contains(event.target)) {

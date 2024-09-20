@@ -114,9 +114,7 @@ router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
 
   // Call refresh cookie function only if the user is logged in
-  if (authStore.user && !authStore.cookieRefreshed) {
-    authStore.refreshCookie();
-  }
+  authStore.checkSession();
 
   if (to.matched.some((record) => record.meta.requiresAuth)) {
     // If the route requires authentication and the user is not logged in
@@ -132,7 +130,7 @@ router.beforeEach((to, from, next) => {
       authStore.user &&
       (to.name === "login" ||
         to.name === "register" ||
-        to.name === "forgetpassword")
+        to.name === "forgotpassword")
     ) {
       next({ name: "dashboard" });
     } else {

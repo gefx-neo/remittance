@@ -1,13 +1,16 @@
 import { defineStore } from "pinia";
-import apiService from "@/services/apiService"; // Adjust the path according to your project structure
+import apiService from "@/services/apiService";
+import { useStore } from "@/stores/useStore";
 
 export const useRegisterStore = defineStore("registerStore", {
   state: () => ({
     error: null,
   }),
   actions: {
-    async register(form, sendAsPlainString = false) {
+    async register(form) {
+      const store = useStore();
       this.error = null;
+      store.setLoading(true);
 
       const registrationData = {
         surname: form.surname,
@@ -21,21 +24,31 @@ export const useRegisterStore = defineStore("registerStore", {
         registrationData.companyName = form.companyName;
       }
 
-      const url = "http://172.188.98.99:802/User/register";
-
       try {
         const response = await apiService.postRequest(
-          url,
+          "User/register",
           registrationData,
-          sendAsPlainString
+          true
         );
 
-        console.log("Registration response successful:", response);
-        return response;
+        // Assuming response.status is 1 for success and 0 for failure
+        if (response.status === 1) {
+          console.log("Registration response successful:", response);
+          return response;
+        } else {
+          console.error("Registration failed with message:", response);
+          this.error =
+            response.message || "Registration failed due to an unknown error.";
+          throw new Error(this.error);
+        }
       } catch (error) {
-        console.error("Registration requestt failed:", error);
-        this.error = error;
+        console.error("Registration request failed:", error);
+        this.error =
+          error.message ||
+          "Request failed due to network issues or server error.";
         throw error;
+      } finally {
+        store.setLoading(false); // Reset loading state
       }
     },
   },
