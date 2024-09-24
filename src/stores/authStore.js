@@ -1,5 +1,4 @@
 import { defineStore } from "pinia";
-import cookieService from "../services/cookieService.js";
 import { useDeviceStore } from "./deviceStore.js";
 import router from "../router/index.js";
 import apiService from "@/services/apiService";
@@ -8,23 +7,25 @@ import { encryptData, decryptData } from "../services/encryptionService.js";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
-    user: cookieService.getCookie("sessionData") || null,
+    user: localStorage.getItem("username") || null,
     error: null,
     cookieRefreshed: false,
     hex: null,
     iv: null,
   }),
   actions: {
-    // Check if the user is already logged in based on session data stored in cookies
+    // Check if the user is already logged in based on session data stored in localStorage
     checkSession() {
       const token = localStorage.getItem("token"); // Check for token in localStorage
-      const username = cookieService.getCookie("username"); // Check for username in cookies
+      const username = localStorage.getItem("username"); // Check for username in localStorage
 
-      if (token && username) {
-        this.user = true;
+      if (token && token !== "null" && username) {
+        this.user = true; // Validates token
         console.log("User session found with token:", token);
+      } else if (token == "null") {
+        this.logout(); // Token expires
       } else {
-        this.user = null;
+        this.user = null; // Guest
         console.log("No active session found.");
       }
     },
@@ -101,7 +102,7 @@ export const useAuthStore = defineStore("auth", {
           this.user = true;
           this.error = null;
           localStorage.setItem("token", loginResponse.token);
-          cookieService.setCookie("username", username, 7);
+          localStorage.setItem("username", username);
 
           router.push({ name: "dashboard" });
         } else {
@@ -122,11 +123,8 @@ export const useAuthStore = defineStore("auth", {
       const store = useStore();
       store.setLoading(true);
       try {
-        // Retrieve the username from the cookie
-        const username = cookieService.getCookie("username");
-        if (!username) {
-          throw new Error("No username cookie found");
-        }
+        // Retrieve the username from localStorage
+        const username = localStorage.getItem("username");
 
         // Call the logout API
         const logoutResponse = await apiService.postRequest(
@@ -140,7 +138,7 @@ export const useAuthStore = defineStore("auth", {
 
           // Erase session data
           localStorage.removeItem("token"); // Erase token from localStorage
-          cookieService.eraseCookie("username"); // Erase the username cookie
+          localStorage.removeItem("username"); // Erase the username from localStorage
           router.push("/");
 
           console.log("Logged out successfully and session cleared.");

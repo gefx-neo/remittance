@@ -93,7 +93,6 @@ import Modal from "@/components/Modal.vue";
 import ButtonAPI from "@/components/ButtonAPI.vue";
 
 const forgotPasswordStore = useForgotPasswordStore();
-const authStore = useAuthStore();
 const store = useStore();
 
 const step = ref(1);
@@ -148,7 +147,7 @@ watch(step, async (newStep) => {
   if (newStep === 2) {
     try {
       console.log("run get reqkey");
-      await authStore.getReqKey(username.value);
+      await forgotPasswordStore.getReqKey(username.value);
     } catch (error) {
       console.error("Fetching request key failed:", error);
     }
@@ -187,11 +186,6 @@ form {
 
 .form-group {
   margin-bottom: var(--size-24);
-}
-
-.error {
-  color: red;
-  margin-top: 10px;
 }
 
 .checkbox-group {

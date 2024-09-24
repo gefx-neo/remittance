@@ -1,11 +1,12 @@
 <template>
+  <!-- @click.self is for parent overlay, @click.stop is to prevent parent click affect child modal -->
   <div
     class="modal-overlay"
-    :class="{ open: store.isModalOpen }"
-    v-if="store.isModalOpen"
+    :class="{ open: isModalOpen }"
+    v-if="isModalOpen"
     @click.self="handleClose"
   >
-    <div class="modal" :class="{ open: store.isModalOpen }" @click.stop>
+    <div class="modal" :class="{ open: isModalOpen }" @click.stop>
       <div class="header">
         <slot name="header">
           <h2>{{ title }}</h2></slot
@@ -21,6 +22,13 @@
 
       <div class="body">
         <div v-if="redirectToLogin" class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+            <path
+              d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5 12.5 32.8 12.5 45.3 0z"
+            />
+          </svg>
+        </div>
+        <div v-if="success" class="icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
             <path
               d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5 12.5 32.8 12.5 45.3 0z"
@@ -45,7 +53,6 @@
 
 <script setup>
 import { watch } from "vue";
-import { useRouter } from "vue-router"; // Import the router
 import { useStore } from "@/stores/useStore";
 
 const props = defineProps({
@@ -55,16 +62,23 @@ const props = defineProps({
   },
   title: {
     type: String,
+    default: "",
   },
   redirectToLogin: {
+    // For Login, Register, Reset password
     type: Boolean,
-    required: false,
+    default: false,
+  },
+  success: {
+    // For User success action
+    type: Boolean,
     default: false,
   },
 });
 
+const emit = defineEmits(["close"]);
+
 const store = useStore();
-const router = useRouter();
 
 // Watch for isModalOpen changes and disable body scrolling when open
 watch(
@@ -84,7 +98,8 @@ const handleClose = () => {
     // router.push("/");
     window.location.href = "/"; // This will refresh the page and reset the state
   } else {
-    store.closeModal();
+    emit("close"); // This is only for modals declared in their local page like Change password(Success)
+    store.closeModal(); // This is for default modals
   }
 };
 </script>
@@ -119,7 +134,6 @@ const handleClose = () => {
   padding: 8px;
   width: 400px;
   max-width: 400px;
-  max-height: 250px;
   background: var(--bg-screen);
   border-radius: var(--border-lg);
   padding: var(--size-16);

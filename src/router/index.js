@@ -83,11 +83,10 @@ const routes = [
           },
         ],
       },
-
       {
-        path: "help",
-        name: "help",
-        component: () => import("../views/Help.vue"),
+        path: "setting",
+        name: "setting",
+        component: () => import("../views/User/Setting.vue"),
       },
     ],
   },

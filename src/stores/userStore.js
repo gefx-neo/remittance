@@ -1,6 +1,5 @@
 import { defineStore } from "pinia";
 import apiService from "@/services/apiService";
-import cookieService from "../services/cookieService";
 import { useStore } from "@/stores/useStore";
 
 export const useUserStore = defineStore("user", {
@@ -13,10 +12,10 @@ export const useUserStore = defineStore("user", {
       const store = useStore();
       store.setLoading(true);
       try {
-        // Retrieve the username from the cookie
-        const username = cookieService.getCookie("username");
+        // Retrieve the username from localStorage
+        const username = localStorage.getItem("username");
         if (!username) {
-          throw new Error("No username cookie found");
+          throw new Error("No username found in localStorage");
         }
 
         // Call the API with username as a query parameter

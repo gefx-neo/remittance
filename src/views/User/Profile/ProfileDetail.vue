@@ -67,7 +67,7 @@ const initials = computed(() => {
 onMounted(async () => {
   await userStore.getProfileDetail();
   profileDetails.value = userStore.profileDetails;
-  username.value = cookieService.getCookie("username");
+  username.value = localStorage.getItem("username");
 });
 </script>
 

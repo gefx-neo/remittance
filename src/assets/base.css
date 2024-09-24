@@ -82,10 +82,12 @@ video {
 
 .router-link-exact-active {
   color: var(--slate-blue) !important;
+  fill: var(--slate-blue) !important;
 }
 
 .router-link-exact-active svg {
   color: var(--slate-blue) !important;
+  fill: var(--slate-blue) !important;
 }
 
 .router-link-exact-active span {
@@ -275,3 +277,7 @@ input:-moz-autofill:focus {
   border-radius: 10px;
   transition: background-color 5000s ease-in-out 0s;
 } */
+.error {
+  color: var(--dark-crimson-red);
+  margin-top: 12px;
+}
