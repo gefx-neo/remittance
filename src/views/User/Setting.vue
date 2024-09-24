@@ -104,6 +104,7 @@ import { useStore } from "@/stores/useStore";
 import { useForgotPasswordStore } from "@/stores/forgotPasswordStore";
 import Modal from "@/components/Modal.vue";
 import ButtonAPI from "@/components/ButtonAPI.vue";
+import { getLocalStorageWithExpiry } from "@/services/localStorageService.js";
 
 const store = useStore();
 const forgotPasswordStore = useForgotPasswordStore();
@@ -117,14 +118,13 @@ const isPasswordModalOpen = ref(false);
 const isSuccessModalOpen = ref(false);
 
 onMounted(() => {
-  username.value = localStorage.getItem("username");
+  username.value = getLocalStorageWithExpiry("username");
 });
 
 const passwordMismatch = computed(
   () => newPassword.value !== confirmPassword.value
 );
 
-// Functions to open and close the modals
 const openPasswordModal = () => {
   isPasswordModalOpen.value = true;
 };
@@ -141,17 +141,15 @@ const closeSuccessModal = () => {
   isSuccessModalOpen.value = false;
 };
 
-// Handle the Change Password action
 const handleChangePassword = async () => {
   try {
     await forgotPasswordStore.changePassword(username.value);
-    openPasswordModal(); // Open password modal
+    openPasswordModal();
   } catch (error) {
     console.error("Change password failed:", error);
   }
 };
 
-// Handle setting the new password on modal submission
 const handleSetNewPassword = async () => {
   if (passwordMismatch.value) return; // Prevent submission if passwords don't match
 
@@ -161,8 +159,8 @@ const handleSetNewPassword = async () => {
       username.value,
       newPassword.value
     );
-    closePasswordModal(); // Close password modal
-    openSuccessModal(); // Open success modal
+    closePasswordModal();
+    openSuccessModal();
   } catch (error) {
     console.error("Set new password failed:", error);
   }
@@ -174,7 +172,7 @@ const togglePassword = () => {
 
 // Watch for when the password modal opens, then fetch the encryption keys
 watch(
-  () => isPasswordModalOpen.value, // Watch for changes to isPasswordModalOpen
+  () => isPasswordModalOpen.value,
   async (isOpen) => {
     if (isOpen) {
       try {

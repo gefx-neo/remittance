@@ -1,8 +1,12 @@
 import { defineStore } from "pinia";
 import apiService from "@/services/apiService";
 import { useStore } from "@/stores/useStore";
+import {
+  setLocalStorageWithExpiry,
+  getLocalStorageWithExpiry,
+} from "@/services/localStorageService.js";
 
-export const useUserStore = defineStore("user", {
+export const useProfileStore = defineStore("profile", {
   state: () => ({
     profileDetails: null,
     error: null,
@@ -13,7 +17,7 @@ export const useUserStore = defineStore("user", {
       store.setLoading(true);
       try {
         // Retrieve the username from localStorage
-        const username = localStorage.getItem("username");
+        const username = getLocalStorageWithExpiry("username");
         if (!username) {
           throw new Error("No username found in localStorage");
         }
@@ -24,7 +28,9 @@ export const useUserStore = defineStore("user", {
         );
 
         this.profileDetails = response;
-        localStorage.setItem("token", response.token);
+        setLocalStorageWithExpiry("token", response.token, 4);
+        setLocalStorageWithExpiry("username", username, 4);
+
         console.log("profile response token", response.token);
       } catch (error) {
         this.error =
@@ -35,7 +41,6 @@ export const useUserStore = defineStore("user", {
       }
     },
 
-    // Clear profile details
     clearProfileDetails() {
       this.profileDetails = null;
       this.error = null;

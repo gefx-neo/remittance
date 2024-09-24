@@ -3,30 +3,39 @@ import { useDeviceStore } from "./deviceStore.js";
 import router from "../router/index.js";
 import apiService from "@/services/apiService";
 import { useStore } from "@/stores/useStore";
-import { encryptData, decryptData } from "../services/encryptionService.js";
+import { encryptData } from "../services/encryptionService.js";
+import {
+  setLocalStorageWithExpiry,
+  getLocalStorageWithExpiry,
+  removeLocalStorageWithExpiry,
+} from "@/services/localStorageService.js";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
-    user: localStorage.getItem("username") || null,
+    user: getLocalStorageWithExpiry("username") || null,
     error: null,
     cookieRefreshed: false,
     hex: null,
     iv: null,
   }),
   actions: {
-    // Check if the user is already logged in based on session data stored in localStorage
     checkSession() {
-      const token = localStorage.getItem("token"); // Check for token in localStorage
-      const username = localStorage.getItem("username"); // Check for username in localStorage
+      const token = getLocalStorageWithExpiry("token");
+      const username = getLocalStorageWithExpiry("username");
 
-      if (token && token !== "null" && username) {
-        this.user = true; // Validates token
+      if (token && username) {
+        // If both token and username are found, assume the user is logged in
+        this.user = true;
         console.log("User session found with token:", token);
-      } else if (token == "null") {
-        this.logout(); // Token expires
+      } else if (!token || !username) {
+        // If token or username are missing or expired, clear them and log out the user
+        removeLocalStorageWithExpiry("token");
+        removeLocalStorageWithExpiry("username");
+        this.user = null;
+      } else if (token === null) {
+        this.logout;
       } else {
-        this.user = null; // Guest
-        console.log("No active session found.");
+        this.user = false;
       }
     },
 
@@ -83,31 +92,33 @@ export const useAuthStore = defineStore("auth", {
 
         console.log("Original password:", password);
 
-        const requestBody = {
+        const payload = {
           username,
           pwd: encryptedPassword, // Encrypted password
           deviceid: deviceId,
         };
 
-        console.log("Request body:", requestBody);
+        console.log("Payload:", payload);
 
         // Send the login request
-        const loginResponse = await apiService.postRequest(
+        const response = await apiService.postRequest(
           "/User/login",
-          requestBody,
+          payload,
           true
         );
 
-        if (loginResponse.status === 1) {
+        if (response.status === 1) {
           this.user = true;
           this.error = null;
-          localStorage.setItem("token", loginResponse.token);
-          localStorage.setItem("username", username);
+
+          // Set token and username in localStorage with a 4-hour expiration
+          setLocalStorageWithExpiry("token", response.token, 4);
+          setLocalStorageWithExpiry("username", username, 4);
 
           router.push({ name: "dashboard" });
         } else {
           this.user = false;
-          this.error = loginResponse.message || "Login failed";
+          this.error = response.message || "Login failed";
           console.error("Login failed:", this.error);
         }
       } catch (error) {
@@ -123,28 +134,22 @@ export const useAuthStore = defineStore("auth", {
       const store = useStore();
       store.setLoading(true);
       try {
-        // Retrieve the username from localStorage
-        const username = localStorage.getItem("username");
+        const username = getLocalStorageWithExpiry("username");
 
-        // Call the logout API
-        const logoutResponse = await apiService.postRequest(
-          "/User/logout",
-          username
-        );
+        const response = await apiService.postRequest("/User/logout", username);
 
-        if (logoutResponse.status === 1) {
+        if (response.status === 1) {
           this.user = false;
           this.error = null;
 
-          // Erase session data
-          localStorage.removeItem("token"); // Erase token from localStorage
-          localStorage.removeItem("username"); // Erase the username from localStorage
+          removeLocalStorageWithExpiry("token");
+          removeLocalStorageWithExpiry("username");
           router.push("/");
 
           console.log("Logged out successfully and session cleared.");
         } else {
-          console.error("Logout failed:", logoutResponse.message);
-          this.error = logoutResponse.message || "Logout failed";
+          console.error("Logout failed:", response.message);
+          this.error = response.message || "Logout failed";
         }
       } catch (error) {
         console.error("Error during logout:", error);

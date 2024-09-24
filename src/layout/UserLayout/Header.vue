@@ -67,6 +67,7 @@ import { ref, onMounted, onUnmounted } from "vue";
 import { useRouter, RouterLink } from "vue-router";
 import { useAuthStore } from "../../stores/authStore.js";
 import { useStore } from "@/stores/useStore";
+import { getLocalStorageWithExpiry } from "@/services/localStorageService.js";
 
 const authStore = useAuthStore();
 const store = useStore();
@@ -77,12 +78,12 @@ const logout = async () => {
   try {
     await authStore.logout(username.value);
   } catch (error) {
-    console.error("Failed to get reqKey:", error);
+    console.error("Failed to get username to logout:", error);
   }
 };
 
 onMounted(async () => {
-  username.value = localStorage.getItem("username");
+  username.value = getLocalStorageWithExpiry("username");
 });
 
 const handleClickOutside = (event) => {

@@ -12,7 +12,7 @@ export const useRegisterStore = defineStore("registerStore", {
       this.error = null;
       store.setLoading(true);
 
-      const registrationData = {
+      const payload = {
         surname: form.surname,
         givenName: form.givenName,
         emailAddress: form.emailAddress,
@@ -20,14 +20,14 @@ export const useRegisterStore = defineStore("registerStore", {
       };
 
       // Only include companyName if accountType is Corporate & Trading Company
-      if (registrationData.accountType === "Corporate & Trading Company") {
-        registrationData.companyName = form.companyName;
+      if (payload.accountType === "Corporate & Trading Company") {
+        payload.companyName = form.companyName;
       }
 
       try {
         const response = await apiService.postRequest(
           "User/register",
-          registrationData,
+          payload,
           true
         );
 

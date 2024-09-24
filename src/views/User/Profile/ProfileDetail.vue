@@ -42,10 +42,10 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { useUserStore } from "@/stores/userStore";
-import cookieService from "@/services/cookieService";
+import { useProfileStore } from "@/stores/profileStore";
+import { getLocalStorageWithExpiry } from "@/services/localStorageService.js";
 
-const userStore = useUserStore();
+const profileStore = useProfileStore();
 
 const profileDetails = ref({
   givenName: "",
@@ -65,9 +65,9 @@ const initials = computed(() => {
 
 // Fetch profile details when the component is mounted
 onMounted(async () => {
-  await userStore.getProfileDetail();
-  profileDetails.value = userStore.profileDetails;
-  username.value = localStorage.getItem("username");
+  await profileStore.getProfileDetail();
+  profileDetails.value = profileStore.profileDetails;
+  username.value = getLocalStorageWithExpiry("username");
 });
 </script>
 
