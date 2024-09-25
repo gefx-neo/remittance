@@ -31,7 +31,6 @@ export const useRegisterStore = defineStore("registerStore", {
           true
         );
 
-        // Assuming response.status is 1 for success and 0 for failure
         if (response.status === 1) {
           console.log("Registration response successful:", response);
           return response;
@@ -48,7 +47,7 @@ export const useRegisterStore = defineStore("registerStore", {
           "Request failed due to network issues or server error.";
         throw error;
       } finally {
-        store.setLoading(false); // Reset loading state
+        store.setLoading(false);
       }
     },
   },

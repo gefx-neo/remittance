@@ -6,30 +6,29 @@
         No account yet?
         <router-link to="/register">Register here</router-link>
       </div>
-      <div v-if="step === 2 && username">{{ username }}</div>
+      <div v-if="step === 2 && form.username">{{ form.username }}</div>
     </div>
 
-    <!-- Step 1: Enter email to get reqKey -->
     <form v-if="step === 1" @submit.prevent="handleStep1">
       <div class="form-group">
         <label for="login">E-mail address</label>
-        <input id="username" v-model="username" type="email" required />
+        <input id="username" v-model="form.username" type="text" />
+        <span v-if="errors.username" class="error">{{ errors.username }}</span>
       </div>
       <ButtonAPI :disabled="store.isLoading" class="btn-red standard-button">
         Next
       </ButtonAPI>
     </form>
 
-    <!-- Step 2: Enter password to log in -->
     <form v-if="step === 2" @submit.prevent="handleStep2">
       <div class="form-group">
         <label for="password">Password</label>
         <input
           id="password"
           :type="showPassword ? 'text' : 'password'"
-          v-model="password"
-          required
+          v-model="form.password"
         />
+        <span v-if="errors.password" class="error">{{ errors.password }}</span>
         <div class="checkbox-group">
           <div class="item" @click="togglePassword">
             <input type="checkbox" id="showPassword" v-model="showPassword" />
@@ -67,50 +66,85 @@
 
 <script setup>
 import { onBeforeRouteLeave } from "vue-router";
-import { ref } from "vue";
+import { ref, reactive } from "vue";
 import { useAuthStore } from "@/stores/authStore";
 import { useStore } from "@/stores/useStore";
+import { validationService } from "@/services/validationService.js";
 import ButtonAPI from "@/components/ButtonAPI.vue";
 
 const authStore = useAuthStore();
 const store = useStore();
 
 const step = ref(1);
-const username = ref("");
-const password = ref("");
 const showPassword = ref(false);
 
-// Step 1: Handle the first step, getReqKey to get hex and iv
+const form = reactive({
+  username: "",
+  password: "",
+});
+
+const errors = reactive({});
+
 const handleStep1 = async () => {
+  // Clear previous errors before validation
+  clearErrors();
+
+  // Revalidate on submit
+  const validationErrors = validationService.validateUsername(form);
+  Object.assign(errors, validationErrors);
+
+  // Prevent submit if error exists
+  if (Object.keys(errors).length > 0) {
+    console.error("Validation errors:", errors);
+    return;
+  }
+
   try {
-    await authStore.getReqKey(username.value); // Get hex and iv
+    await authStore.getReqKey(form.username); // Get hex and iv
     step.value = 2;
   } catch (error) {
     console.error("Failed to get reqKey:", error);
   }
 };
 
-// Step 2: Handle the second step, login with id, encryptedPassword and deviceId
 const handleStep2 = async () => {
+  // Clear previous errors before validation
+  clearErrors();
+
+  // Revalidate on submit
+  const validationErrors = validationService.validatePassword(form);
+  Object.assign(errors, validationErrors);
+
+  // Prevent submit if error exists
+  if (Object.keys(errors).length > 0) {
+    console.error("Validation errors:", errors);
+    return;
+  }
+
   try {
-    await authStore.login(username.value, password.value); // Use the stored reqKey to login
+    await authStore.login(form);
   } catch (error) {
     console.error("Login failed:", error);
   }
-};
-
-const goBack = () => {
-  step.value = 1;
-  password.value = "";
-  authStore.error = null;
 };
 
 const togglePassword = () => {
   showPassword.value = !showPassword.value;
 };
 
+const goBack = () => {
+  step.value = 1;
+  form.password = "";
+  authStore.error = null;
+  // clearErrors();
+};
+
+const clearErrors = () => {
+  Object.keys(errors).forEach((key) => delete errors[key]);
+};
+
 onBeforeRouteLeave((to, from, next) => {
-  authStore.$reset(); // Clear the store
+  authStore.$reset();
   next();
 });
 </script>
@@ -146,11 +180,6 @@ form {
 
 .form-group {
   margin-bottom: var(--size-24);
-}
-
-.error {
-  color: red;
-  margin-top: 10px;
 }
 
 .checkbox-group {

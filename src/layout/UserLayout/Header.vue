@@ -6,9 +6,9 @@
         @click="store.openSidebar"
         class="icon"
       />
-      <RouterLink to="/dashboard">
+      <a href="/">
         <img src="@/assets/logo.jpg" class="logo" />
-      </RouterLink>
+      </a>
     </div>
     <!-- <button class="notification">
       <font-awesome-icon :icon="['fas', 'bell']" />

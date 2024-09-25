@@ -34,20 +34,28 @@
         <div class="body">
           <div class="form-group">
             <label>Code</label>
-            <input v-model="code" type="text" placeholder="Enter the code" />
+            <input
+              v-model="form.code"
+              type="text"
+              placeholder="Enter the code"
+            />
+            <span v-if="errors.code" class="error">{{ errors.code }}</span>
           </div>
           <div class="form-group">
             <label>New Password</label>
             <input
-              v-model="newPassword"
+              v-model="form.newPassword"
               :type="showPassword ? 'text' : 'password'"
               placeholder="Enter new password"
             />
+            <span v-if="errors.newPassword" class="error">{{
+              errors.newPassword
+            }}</span>
           </div>
           <div class="form-group">
             <label>Confirm new password</label>
             <input
-              v-model="confirmPassword"
+              v-model="confirmNewPassword"
               :type="showPassword ? 'text' : 'password'"
               placeholder="Confirm new password"
             />
@@ -70,8 +78,8 @@
               </div>
               <label for="showPassword">Show password</label>
             </div>
-            <div v-if="passwordMismatch" class="error">
-              Passwords do not match.
+            <div v-if="errors.confirmNewPassword" class="error">
+              {{ errors.confirmNewPassword }}
             </div>
           </div>
         </div>
@@ -99,31 +107,33 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, reactive, onMounted, watch } from "vue";
 import { useStore } from "@/stores/useStore";
 import { useForgotPasswordStore } from "@/stores/forgotPasswordStore";
 import Modal from "@/components/Modal.vue";
 import ButtonAPI from "@/components/ButtonAPI.vue";
 import { getLocalStorageWithExpiry } from "@/services/localStorageService.js";
+import { validationService } from "@/services/validationService.js";
 
 const store = useStore();
 const forgotPasswordStore = useForgotPasswordStore();
 
-const username = ref("");
-const code = ref("");
-const newPassword = ref("");
-const confirmPassword = ref("");
+const confirmNewPassword = ref("");
 const showPassword = ref(false);
 const isPasswordModalOpen = ref(false);
 const isSuccessModalOpen = ref(false);
+const username = ref("");
+const form = reactive({
+  code: "",
+  username: "",
+  newPassword: "",
+});
+const errors = reactive({});
 
 onMounted(() => {
   username.value = getLocalStorageWithExpiry("username");
+  form.username = username.value;
 });
-
-const passwordMismatch = computed(
-  () => newPassword.value !== confirmPassword.value
-);
 
 const openPasswordModal = () => {
   isPasswordModalOpen.value = true;
@@ -151,14 +161,33 @@ const handleChangePassword = async () => {
 };
 
 const handleSetNewPassword = async () => {
-  if (passwordMismatch.value) return; // Prevent submission if passwords don't match
+  clearErrors();
+
+  const validationErrors = validationService.validateStep2(form);
+  Object.assign(errors, validationErrors);
+
+  // Check if confirmNewPassword is empty
+  if (confirmNewPassword.value === "") {
+    errors.confirmNewPassword = "Please confirm your new password.";
+    console.error("Confirm new password is required");
+  }
+
+  // Check for password mismatch
+  if (
+    form.newPassword !== confirmNewPassword.value &&
+    confirmNewPassword.value !== ""
+  ) {
+    errors.confirmNewPassword = "Passwords do not match.";
+    console.error("Passwords do not match");
+  }
+
+  if (Object.keys(errors).length > 0) {
+    console.error("Validation errors:", errors);
+    return;
+  }
 
   try {
-    await forgotPasswordStore.setNewPassword(
-      code.value,
-      username.value,
-      newPassword.value
-    );
+    await forgotPasswordStore.setNewPassword(form);
     closePasswordModal();
     openSuccessModal();
   } catch (error) {
@@ -185,6 +214,10 @@ watch(
     }
   }
 );
+
+const clearErrors = () => {
+  Object.keys(errors).forEach((key) => delete errors[key]);
+};
 </script>
 
 <style scoped>

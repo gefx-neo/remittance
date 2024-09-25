@@ -1,9 +1,9 @@
 <template>
   <div class="sidebar-container" :class="{ open: store.isSidebarOpen }">
     <div class="logo">
-      <RouterLink to="/dashboard">
+      <a href="/">
         <img src="@/assets/logo.jpg" />
-      </RouterLink>
+      </a>
     </div>
 
     <div class="btn-close" @click="store.closeSidebar">

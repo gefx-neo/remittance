@@ -67,7 +67,7 @@ export const useAuthStore = defineStore("auth", {
     },
 
     // Step 2: Handle login with encrypted password
-    async login(username, password) {
+    async login(form) {
       if (!this.hex || !this.iv) {
         this.error =
           "Encryption keys are missing, please restart the login process.";
@@ -78,27 +78,18 @@ export const useAuthStore = defineStore("auth", {
       store.setLoading(true);
       try {
         // Encrypt the password using the global encryptData function
-        const encryptedPassword = encryptData(password, this.hex, this.iv);
-
-        // Log the hex and iv used to encrypt the password
-        console.log("Hex used for encryption:", this.hex);
-        console.log("IV used for encryption:", this.iv);
-        console.log("Encrypted password:", encryptedPassword);
+        const encryptedPassword = encryptData(form.password, this.hex, this.iv);
 
         // Get device ID from the device store
         const deviceStore = useDeviceStore();
         await deviceStore.generateDeviceId();
         const deviceId = deviceStore.deviceId;
 
-        console.log("Original password:", password);
-
         const payload = {
-          username,
+          username: form.username,
           pwd: encryptedPassword, // Encrypted password
           deviceid: deviceId,
         };
-
-        console.log("Payload:", payload);
 
         // Send the login request
         const response = await apiService.postRequest(
@@ -113,7 +104,7 @@ export const useAuthStore = defineStore("auth", {
 
           // Set token and username in localStorage with a 4-hour expiration
           setLocalStorageWithExpiry("token", response.token, 4);
-          setLocalStorageWithExpiry("username", username, 4);
+          setLocalStorageWithExpiry("username", form.username, 4);
 
           router.push({ name: "dashboard" });
         } else {

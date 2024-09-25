@@ -3,13 +3,14 @@
     <div class="heading">
       <h1 v-if="step === 1">Reset password</h1>
       <h1 v-if="step === 2">Set new password</h1>
-      <div v-if="step === 2 && username">{{ username }}</div>
+      <div v-if="step === 2 && form.username">{{ form.username }}</div>
     </div>
 
     <form v-if="step === 1" @submit.prevent="handleStep1">
       <div class="form-group">
         <label for="login">E-mail address</label>
-        <input id="username" v-model="username" type="email" required />
+        <input id="username" v-model="form.username" type="text" />
+        <span v-if="errors.username" class="error">{{ errors.username }}</span>
       </div>
       <ButtonAPI :disabled="store.isLoading" class="btn-red standard-button">
         Next
@@ -18,17 +19,20 @@
 
     <form v-if="step === 2" @submit.prevent="handleStep2">
       <div class="form-group">
-        <label for="login">Temporary password</label>
-        <input id="code" v-model="code" type="text" required />
+        <label for="code">Temporary password</label>
+        <input id="code" v-model="form.code" type="text" />
+        <span v-if="errors.code" class="error">{{ errors.code }}</span>
       </div>
       <div class="form-group">
-        <label for="password">New password</label>
+        <label for="newPassword">New password</label>
         <input
-          id="password"
+          id="newPassword"
           :type="showPassword ? 'text' : 'password'"
-          v-model="newPassword"
-          required
+          v-model="form.newPassword"
         />
+        <span v-if="errors.newPassword" class="error">{{
+          errors.newPassword
+        }}</span>
       </div>
       <div class="form-group">
         <label for="confirmNewPassword">Confirm new password</label>
@@ -36,7 +40,6 @@
           id="confirmNewPassword"
           :type="showPassword ? 'text' : 'password'"
           v-model="confirmNewPassword"
-          required
         />
         <div class="checkbox-group">
           <div class="item" @click="togglePassword">
@@ -53,13 +56,12 @@
           </div>
           <label for="showPassword">Show password</label>
         </div>
-        <div v-if="passwordMismatch" class="error">Passwords do not match.</div>
+        <div v-if="errors.confirmNewPassword" class="error">
+          {{ errors.confirmNewPassword }}
+        </div>
       </div>
       <div class="button-group">
-        <ButtonAPI
-          :disabled="store.isLoading || passwordMismatch"
-          class="btn-red standard-button"
-        >
+        <ButtonAPI :disabled="store.isLoading" class="btn-red standard-button">
           Submit
         </ButtonAPI>
         <button type="button" class="btn-back standard-button" @click="goBack">
@@ -73,7 +75,7 @@
     </div>
 
     <footer>
-      <router-link to="/forgotpassword">Forgot password?</router-link>
+      <router-link to="/">Go back to login</router-link>
     </footer>
     <Modal
       :isModalOpen="store.isModalOpen"
@@ -85,33 +87,41 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, watch, reactive } from "vue";
 import { useForgotPasswordStore } from "@/stores/forgotPasswordStore";
-import { useAuthStore } from "@/stores/authStore";
 import { useStore } from "@/stores/useStore";
 import Modal from "@/components/Modal.vue";
 import ButtonAPI from "@/components/ButtonAPI.vue";
+import { validationService } from "@/services/validationService.js";
 
 const forgotPasswordStore = useForgotPasswordStore();
 const store = useStore();
 
 const step = ref(1);
-const code = ref("");
-const username = ref("");
-const newPassword = ref("");
 const confirmNewPassword = ref("");
 const showPassword = ref(false);
 
-const passwordMismatch = computed(() => {
-  return (
-    newPassword.value !== confirmNewPassword.value &&
-    confirmNewPassword.value !== ""
-  );
+const form = reactive({
+  code: "",
+  username: "",
+  newPassword: "",
 });
 
+const errors = reactive({});
+
 const handleStep1 = async () => {
+  clearErrors();
+
+  const validationErrors = validationService.validateUsername(form);
+  Object.assign(errors, validationErrors);
+
+  if (Object.keys(errors).length > 0) {
+    console.error("Validation errors:", errors);
+    return;
+  }
+
   try {
-    await forgotPasswordStore.changePassword(username.value);
+    await forgotPasswordStore.changePassword(form.username);
     step.value = 2;
     console.log("step 2");
   } catch (error) {
@@ -120,14 +130,33 @@ const handleStep1 = async () => {
 };
 
 const handleStep2 = async () => {
-  if (passwordMismatch.value) return;
+  clearErrors();
+
+  const validationErrors = validationService.validateStep2(form);
+  Object.assign(errors, validationErrors);
+
+  // Check if confirmNewPassword is empty
+  if (confirmNewPassword.value === "") {
+    errors.confirmNewPassword = "Please confirm your new password.";
+    console.error("Confirm new password is required");
+  }
+
+  // Check for password mismatch
+  if (
+    form.newPassword !== confirmNewPassword.value &&
+    confirmNewPassword.value !== ""
+  ) {
+    errors.confirmNewPassword = "Passwords do not match.";
+    console.error("Passwords do not match");
+  }
+
+  if (Object.keys(errors).length > 0) {
+    console.error("Validation errors:", errors);
+    return;
+  }
 
   try {
-    await forgotPasswordStore.setNewPassword(
-      code.value,
-      username.value,
-      newPassword.value
-    );
+    await forgotPasswordStore.setNewPassword(form);
     store.openModal();
   } catch (error) {
     console.error("Set new password failed:", error);
@@ -153,6 +182,10 @@ watch(step, async (newStep) => {
     }
   }
 });
+
+const clearErrors = () => {
+  Object.keys(errors).forEach((key) => delete errors[key]);
+};
 </script>
 
 <style scoped>

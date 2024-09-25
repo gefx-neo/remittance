@@ -279,5 +279,5 @@ input:-moz-autofill:focus {
 } */
 .error {
   color: var(--dark-crimson-red);
-  margin-top: 12px;
+  margin-top: var(--size-8);
 }

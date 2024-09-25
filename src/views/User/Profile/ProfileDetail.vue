@@ -41,32 +41,34 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, reactive } from "vue";
 import { useProfileStore } from "@/stores/profileStore";
 import { getLocalStorageWithExpiry } from "@/services/localStorageService.js";
 
 const profileStore = useProfileStore();
 
-const profileDetails = ref({
+const profileDetails = reactive({
   givenName: "",
   surname: "",
   accountType: "",
   email: "",
   phoneNumber: "",
+  companyName: "",
 });
 
 const username = ref("");
 
+// Computed property to get initials
 const initials = computed(() => {
-  const firstInitial = profileDetails.value.givenName.charAt(0) || "";
-  const lastInitial = profileDetails.value.surname.charAt(0) || "";
+  const firstInitial = profileDetails.givenName.charAt(0) || "";
+  const lastInitial = profileDetails.surname.charAt(0) || "";
   return `${firstInitial}${lastInitial}`.toUpperCase();
 });
 
 // Fetch profile details when the component is mounted
 onMounted(async () => {
   await profileStore.getProfileDetail();
-  profileDetails.value = profileStore.profileDetails;
+  Object.assign(profileDetails, profileStore.profileDetails); // Assign store data to reactive object
   username.value = getLocalStorageWithExpiry("username");
 });
 </script>

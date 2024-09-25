@@ -50,24 +50,28 @@ export const useForgotPasswordStore = defineStore("forgotPasswordstore", {
         store.setLoading(false);
       }
     },
-    async setNewPassword(code, username, password) {
+    async setNewPassword(form) {
       const store = useStore();
       store.setLoading(true);
 
       try {
-        console.log("Original code:", code);
-        console.log("Original password:", password);
+        console.log("Original code:", form.code);
+        console.log("Original password:", form.newPassword);
 
         // Encrypt the new password using the fetched hex and iv
-        const encryptedCode = encryptData(code, this.hex, this.iv);
-        const encryptedPassword = encryptData(password, this.hex, this.iv);
+        const encryptedCode = encryptData(form.code, this.hex, this.iv);
+        const encryptedPassword = encryptData(
+          form.newPassword,
+          this.hex,
+          this.iv
+        );
 
         console.log("Encrypted code:", encryptedCode);
         console.log("Encrypted password:", encryptedPassword);
 
         const payload = {
           code: encryptedCode,
-          username,
+          username: form.username,
           pwd: encryptedPassword, // Encrypted password
         };
 

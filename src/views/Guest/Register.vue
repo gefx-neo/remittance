@@ -10,20 +10,22 @@
     <form @submit.prevent="handleRegister">
       <div class="form-group">
         <label for="surname">Surname</label>
-        <input id="surname" v-model="form.surname" type="text" required />
+        <input id="surname" v-model="form.surname" type="text" />
+        <span v-if="errors.surname" class="error">{{ errors.surname }}</span>
       </div>
       <div class="form-group">
         <label for="givenName">Given name</label>
-        <input id="givenName" v-model="form.givenName" type="text" required />
+        <input id="givenName" v-model="form.givenName" type="text" />
+        <span v-if="errors.givenName" class="error">{{
+          errors.givenName
+        }}</span>
       </div>
       <div class="form-group">
         <label for="emailAddress">E-mail address</label>
-        <input
-          id="emailAddress"
-          v-model="form.emailAddress"
-          type="email"
-          required
-        />
+        <input id="emailAddress" v-model="form.emailAddress" type="text" />
+        <span v-if="errors.emailAddress" class="error">
+          {{ errors.emailAddress }}
+        </span>
       </div>
 
       <div class="form-group">
@@ -36,7 +38,6 @@
               name="accountType"
               value="Natural Person"
               v-model="form.accountType"
-              required
             />
             <label for="individual">Individual</label>
           </div>
@@ -47,11 +48,13 @@
               name="accountType"
               value="Corporate & Trading Company"
               v-model="form.accountType"
-              required
             />
             <label for="business">Business</label>
           </div>
         </div>
+        <span v-if="errors.accountType" class="error">
+          {{ errors.accountType }}
+        </span>
       </div>
 
       <div
@@ -59,12 +62,10 @@
         v-if="form.accountType === 'Corporate & Trading Company'"
       >
         <label for="companyName">Registered company name</label>
-        <input
-          id="companyName"
-          v-model="form.companyName"
-          type="text"
-          required
-        />
+        <input id="companyName" v-model="form.companyName" type="text" />
+        <span v-if="errors.companyName" class="error">
+          {{ errors.companyName }}
+        </span>
       </div>
       <ButtonAPI :disabled="store.isLoading" class="btn-red standard-button">
         Register
@@ -77,15 +78,16 @@
       :isModalOpen="store.isModalOpen"
       title="Account created"
       :redirectToLogin="true"
-    >
-    </Modal>
+    />
   </div>
 </template>
 
 <script setup>
+import { onBeforeRouteLeave } from "vue-router";
 import { reactive } from "vue";
 import { useRegisterStore } from "@/stores/registerStore";
 import { useStore } from "@/stores/useStore";
+import { validationService } from "@/services/validationService.js";
 import Modal from "@/components/Modal.vue";
 import ButtonAPI from "@/components/ButtonAPI.vue";
 
@@ -96,12 +98,28 @@ const form = reactive({
   surname: "",
   givenName: "",
   emailAddress: "",
-  accountType: "Individual",
+  accountType: "",
   companyName: "",
 });
 
+const errors = reactive({});
+
 const handleRegister = async () => {
+  // Clear previous errors before validation
+  clearErrors();
+
+  // Revalidate on submit
+  const validationErrors = validationService.validateRegister(form);
+  Object.assign(errors, validationErrors);
+
+  // Prevent submit if error exists
+  if (Object.keys(errors).length > 0) {
+    console.error("Validation errors:", errors);
+    return;
+  }
+
   try {
+    // Register only if validation passes
     const response = await registerStore.register(form);
     console.log("Registration response:", response.message);
     store.openModal();
@@ -109,6 +127,15 @@ const handleRegister = async () => {
     console.error("Registration failed:", error);
   }
 };
+
+const clearErrors = () => {
+  Object.keys(errors).forEach((key) => delete errors[key]);
+};
+
+onBeforeRouteLeave((to, from, next) => {
+  registerStore.$reset();
+  next();
+});
 </script>
 
 <style scoped>
@@ -142,11 +169,6 @@ form {
 
 .form-group {
   margin-bottom: var(--size-24);
-}
-
-.error {
-  color: red;
-  margin-top: 10px;
 }
 
 .btn-red {

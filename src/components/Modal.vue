@@ -39,8 +39,6 @@
       </div>
 
       <div class="footer">
-        <!-- <router-link to="/">Redirect to login page</router-link> -->
-
         <a href="/" v-if="redirectToLogin" class="message">
           Redirect to login page
         </a>
