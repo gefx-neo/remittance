@@ -39,16 +39,20 @@
 </template>
 
 <script setup>
-import { useRouter, RouterLink } from "vue-router";
+import { useRouter, useRoute, RouterLink } from "vue-router";
 import { useStore } from "@/stores/useStore";
 
 const store = useStore();
 const router = useRouter();
 
 const routes = [
-  { to: "/dashboard", icon: ["fas", "home"], label: "Dashboard" },
-  { to: "/beneficiary", icon: ["fas", "user"], label: "Beneficiary" },
-  { to: "/transaction", icon: ["fas", "money-bill"], label: "Transaction" },
+  { to: "/admin/dashboard", icon: ["fas", "home"], label: "Dashboard" },
+  { to: "/admin/customer", icon: ["fas", "user"], label: "Customer" },
+  {
+    to: "/admin/transaction",
+    icon: ["fas", "money-bill"],
+    label: "Transaction",
+  },
   // { to: "/help", icon: ["fas", "question-circle"], label: "Help" },
 ];
 

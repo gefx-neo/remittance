@@ -101,7 +101,7 @@ const navigateToBeneficiaryDetail = (beneficiary) => {
 };
 
 const navigateToAddBeneficiary = () => {
-  router.push({ name: "add-beneficiary" });
+  router.push({ name: "addbeneficiary" });
 };
 </script>
 <style scoped>

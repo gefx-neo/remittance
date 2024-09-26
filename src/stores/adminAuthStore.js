@@ -10,7 +10,7 @@ import {
   removeLocalStorageWithExpiry,
 } from "@/services/localStorageService.js";
 
-export const useAuthStore = defineStore("auth", {
+export const useAdminAuthStore = defineStore("adminauth", {
   state: () => ({
     user: getLocalStorageWithExpiry("username") || null,
     error: null,
@@ -42,7 +42,10 @@ export const useAuthStore = defineStore("auth", {
     // Step 1: Fetch reqKey (hex and iv) for the username
     async getReqKey(username) {
       try {
-        const response = await apiService.postRequest("/User/reqkey", username);
+        const response = await apiService.postRequest(
+          "/gefx/ad-min/reqKey",
+          username
+        );
 
         if (response.status === 1) {
           this.hex = response.key;

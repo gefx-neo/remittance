@@ -32,6 +32,7 @@ export const useProfileStore = defineStore("profile", {
         setLocalStorageWithExpiry("username", username, 4);
 
         console.log("profile response token", response.token);
+        return response;
       } catch (error) {
         this.error =
           error.response?.data?.message || "Failed to fetch profile details";

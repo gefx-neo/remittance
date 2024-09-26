@@ -6,10 +6,15 @@
       <div v-if="step === 2 && form.username">{{ form.username }}</div>
     </div>
 
-    <form v-if="step === 1" @submit.prevent="handleStep1">
+    <form v-if="step === 1" @submit.prevent="handleChangePassword">
       <div class="form-group">
         <label for="login">E-mail address</label>
-        <input id="username" v-model="form.username" type="text" />
+        <input
+          type="text"
+          id="username"
+          v-model="form.username"
+          :disabled="store.isLoading"
+        />
         <span v-if="errors.username" class="error">{{ errors.username }}</span>
       </div>
       <ButtonAPI :disabled="store.isLoading" class="btn-red standard-button">
@@ -17,18 +22,24 @@
       </ButtonAPI>
     </form>
 
-    <form v-if="step === 2" @submit.prevent="handleStep2">
+    <form v-if="step === 2" @submit.prevent="handleSetNewPassword">
       <div class="form-group">
         <label for="code">Temporary password</label>
-        <input id="code" v-model="form.code" type="text" />
+        <input
+          type="text"
+          id="code"
+          v-model="form.code"
+          :disabled="store.isLoading"
+        />
         <span v-if="errors.code" class="error">{{ errors.code }}</span>
       </div>
       <div class="form-group">
         <label for="newPassword">New password</label>
         <input
-          id="newPassword"
           :type="showPassword ? 'text' : 'password'"
+          id="newPassword"
           v-model="form.newPassword"
+          :disabled="store.isLoading"
         />
         <span v-if="errors.newPassword" class="error">{{
           errors.newPassword
@@ -37,9 +48,10 @@
       <div class="form-group">
         <label for="confirmNewPassword">Confirm new password</label>
         <input
-          id="confirmNewPassword"
           :type="showPassword ? 'text' : 'password'"
+          id="confirmNewPassword"
           v-model="confirmNewPassword"
+          :disabled="store.isLoading"
         />
         <div class="checkbox-group">
           <div class="item" @click="togglePassword">
@@ -109,7 +121,7 @@ const form = reactive({
 
 const errors = reactive({});
 
-const handleStep1 = async () => {
+const handleChangePassword = async () => {
   clearErrors();
 
   const validationErrors = validationService.validateUsername(form);
@@ -121,16 +133,26 @@ const handleStep1 = async () => {
   }
 
   try {
-    await forgotPasswordStore.changePassword(form.username);
-    step.value = 2;
-    console.log("step 2");
+    const response = await forgotPasswordStore.changePassword(form.username);
+
+    if (response.status === 1) {
+      step.value = 2;
+    } else {
+      console.error("Change password failed:", forgotPasswordStore.error);
+    }
   } catch (error) {
     console.error("Change password failed:", error);
   }
 };
 
-const handleStep2 = async () => {
+const handleSetNewPassword = async () => {
   clearErrors();
+
+  // Trim form fields, including confirmNewPassword
+  validationService.trimFormFields(form);
+  confirmNewPassword.value = validationService.trimValue(
+    confirmNewPassword.value
+  );
 
   const validationErrors = validationService.validateStep2(form);
   Object.assign(errors, validationErrors);
@@ -156,8 +178,13 @@ const handleStep2 = async () => {
   }
 
   try {
-    await forgotPasswordStore.setNewPassword(form);
-    store.openModal();
+    const response = await forgotPasswordStore.setNewPassword(form);
+
+    if (response.status === 1) {
+      store.openModal();
+    } else {
+      console.error("Password reset failed:", forgotPasswordStore.error);
+    }
   } catch (error) {
     console.error("Set new password failed:", error);
   }

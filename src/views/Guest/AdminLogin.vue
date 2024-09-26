@@ -1,11 +1,7 @@
 <template>
   <div class="content-area">
     <div class="heading">
-      <h1>Welcome back</h1>
-      <div v-if="step === 1">
-        No account yet?
-        <router-link to="/register">Register here</router-link>
-      </div>
+      <h1>Remittance admin panel</h1>
       <div v-if="step === 2 && form.username">{{ form.username }}</div>
     </div>
 
@@ -101,38 +97,36 @@ const handleStep1 = async () => {
 
   // Prevent submit if error exists
   if (Object.keys(errors).length > 0) {
-    console.log("Validation errors:", errors);
+    console.error("Validation errors:", errors);
     return;
   }
 
   try {
-    const response = await authStore.getReqKey(form.username);
-
-    if (response.status === 1) {
-      step.value = 2;
-    } else {
-      console.log("Failed to get reqKey:", authStore.error);
-    }
+    await authStore.getReqKey(form.username); // Get hex and iv
+    step.value = 2;
   } catch (error) {
-    console.log("Failed to get reqKey:", authStore.error);
+    console.error("Failed to get reqKey:", error);
   }
 };
 
 const handleStep2 = async () => {
+  // Clear previous errors before validation
   clearErrors();
 
+  // Revalidate on submit
   const validationErrors = validationService.validatePassword(form);
   Object.assign(errors, validationErrors);
 
+  // Prevent submit if error exists
   if (Object.keys(errors).length > 0) {
-    console.log("Validation errors:", errors);
+    console.error("Validation errors:", errors);
     return;
   }
 
   try {
     await authStore.login(form);
   } catch (error) {
-    console.log("Login failed:", error);
+    console.error("Login failed:", error);
   }
 };
 

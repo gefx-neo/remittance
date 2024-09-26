@@ -1,7 +1,21 @@
 export const validationService = {
+  // Helper to trim the value before any validation
+  trimValue(value) {
+    return value ? value.trim() : "";
+  },
+
+  // Trims all form fields before validation
+  trimFormFields(form) {
+    Object.keys(form).forEach((key) => {
+      if (typeof form[key] === "string") {
+        form[key] = this.trimValue(form[key]);
+      }
+    });
+  },
+
   // Common validation methods
   isRequired(value, fieldName) {
-    if (!value || value.trim() === "") {
+    if (!value) {
       return `${fieldName} is required.`;
     }
     return null;
@@ -22,8 +36,8 @@ export const validationService = {
     return null;
   },
 
-  validateCompanyName(value, accountType) {
-    if (accountType === "Corporate & Trading Company" && !value.trim()) {
+  isCompanyName(value, accountType) {
+    if (accountType === "Corporate & Trading Company" && !value) {
       return "Registered company name is required for Business accounts.";
     }
     return null;
@@ -31,6 +45,8 @@ export const validationService = {
 
   // Validation for Step 1: Username (Email) input
   validateUsername(form) {
+    this.trimFormFields(form);
+
     let errors = {};
 
     const usernameError =
@@ -42,6 +58,8 @@ export const validationService = {
   },
 
   validatePassword(form) {
+    this.trimFormFields(form);
+
     let errors = {};
 
     const passwordError = this.isRequired(form.password, "Password");
@@ -50,8 +68,8 @@ export const validationService = {
     return errors;
   },
 
-  // New password validation for Step 2
-  validatePasswordRules(value) {
+  // Renamed from validatePasswordRules to isPasswordRules
+  isPasswordRules(value) {
     const passwordPattern = /^(?=.*[A-Z])(?=.*[!@#$&*]).{8,12}$/;
     if (!passwordPattern.test(value)) {
       return "Password must be 8 to 12 characters long, include at least one capital letter and one special character.";
@@ -61,21 +79,25 @@ export const validationService = {
 
   // Validation for Step 2: Code and New Password
   validateStep2(form) {
+    this.trimFormFields(form);
+
     let errors = {};
 
     const codeError = this.isRequired(form.code, "Temporary password");
     if (codeError) errors.code = codeError;
 
-    const newPasswordError =
+    const passwordError =
       this.isRequired(form.newPassword, "New password") ||
-      this.validatePasswordRules(form.newPassword);
-    if (newPasswordError) errors.newPassword = newPasswordError;
+      this.isPasswordRules(form.newPassword);
+    if (passwordError) errors.newPassword = passwordError;
 
     return errors;
   },
 
   // Validation for the entire Registration form
   validateRegister(form) {
+    this.trimFormFields(form);
+
     let errors = {};
 
     const surnameError = this.isRequired(form.surname, "Surname");
@@ -92,7 +114,7 @@ export const validationService = {
     const accountTypeError = this.isAccountTypeSelected(form.accountType);
     if (accountTypeError) errors.accountType = accountTypeError;
 
-    const companyNameError = this.validateCompanyName(
+    const companyNameError = this.isCompanyName(
       form.companyName,
       form.accountType
     );

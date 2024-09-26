@@ -33,31 +33,34 @@
       <template #body>
         <div class="body">
           <div class="form-group">
-            <label>Code</label>
+            <label for="code">Temporary password</label>
             <input
-              v-model="form.code"
               type="text"
-              placeholder="Enter the code"
+              id="code"
+              v-model="form.code"
+              :disabled="store.isLoading"
             />
             <span v-if="errors.code" class="error">{{ errors.code }}</span>
           </div>
           <div class="form-group">
-            <label>New Password</label>
+            <label for="newPassword">New password</label>
             <input
-              v-model="form.newPassword"
               :type="showPassword ? 'text' : 'password'"
-              placeholder="Enter new password"
+              id="newPassword"
+              v-model="form.newPassword"
+              :disabled="store.isLoading"
             />
             <span v-if="errors.newPassword" class="error">{{
               errors.newPassword
             }}</span>
           </div>
           <div class="form-group">
-            <label>Confirm new password</label>
+            <label for="confirmNewPassword">Confirm new password</label>
             <input
-              v-model="confirmNewPassword"
               :type="showPassword ? 'text' : 'password'"
-              placeholder="Confirm new password"
+              id="confirmNewPassword"
+              v-model="confirmNewPassword"
+              :disabled="store.isLoading"
             />
             <div class="checkbox-group">
               <div class="item" @click="togglePassword">
@@ -84,7 +87,6 @@
           </div>
         </div>
       </template>
-
       <template #footer>
         <ButtonAPI
           :disabled="store.isLoading"
@@ -93,6 +95,9 @@
         >
           Submit
         </ButtonAPI>
+        <div v-show="forgotPasswordStore.error" class="error">
+          {{ forgotPasswordStore.error }}
+        </div>
       </template>
     </Modal>
 
@@ -107,6 +112,7 @@
 </template>
 
 <script setup>
+import { onBeforeRouteLeave } from "vue-router";
 import { ref, reactive, onMounted, watch } from "vue";
 import { useStore } from "@/stores/useStore";
 import { useForgotPasswordStore } from "@/stores/forgotPasswordStore";
@@ -153,8 +159,13 @@ const closeSuccessModal = () => {
 
 const handleChangePassword = async () => {
   try {
-    await forgotPasswordStore.changePassword(username.value);
-    openPasswordModal();
+    const response = await forgotPasswordStore.changePassword(form.username);
+
+    if (response.status === 1) {
+      openPasswordModal();
+    } else {
+      console.error("Change password failed:", forgotPasswordStore.error);
+    }
   } catch (error) {
     console.error("Change password failed:", error);
   }
@@ -187,11 +198,16 @@ const handleSetNewPassword = async () => {
   }
 
   try {
-    await forgotPasswordStore.setNewPassword(form);
-    closePasswordModal();
-    openSuccessModal();
+    const response = await forgotPasswordStore.setNewPassword(form);
+
+    if (response.status === 1) {
+      closePasswordModal();
+      openSuccessModal();
+    } else {
+      console.error("Set new password failed:", forgotPasswordStore.error);
+    }
   } catch (error) {
-    console.error("Set new password failed:", error);
+    console.error("Password reset failed:", error);
   }
 };
 
@@ -202,22 +218,40 @@ const togglePassword = () => {
 // Watch for when the password modal opens, then fetch the encryption keys
 watch(
   () => isPasswordModalOpen.value,
-  async (isOpen) => {
+  (isOpen) => {
     if (isOpen) {
-      try {
-        console.log("Fetching encryption keys...");
-        await forgotPasswordStore.getReqKey(username.value);
-        console.log("Encryption keys fetched successfully.");
-      } catch (error) {
-        console.error("Fetching encryption keys failed:", error);
-      }
+      // Modal is opened, fetch encryption keys
+      console.log("Fetching encryption keys...");
+      forgotPasswordStore
+        .getReqKey(username.value)
+        .then(() => {
+          console.log("Encryption keys fetched successfully.");
+        })
+        .catch((error) => {
+          console.error("Fetching encryption keys failed:", error);
+        });
+    } else {
+      // Modal is closed, reset the form and errors
+      resetForm();
     }
   }
 );
 
+const resetForm = () => {
+  form.code = "";
+  form.newPassword = "";
+  confirmNewPassword.value = "";
+  clearErrors();
+};
+
 const clearErrors = () => {
   Object.keys(errors).forEach((key) => delete errors[key]);
 };
+
+onBeforeRouteLeave((to, from, next) => {
+  forgotPasswordStore.$reset();
+  next();
+});
 </script>
 
 <style scoped>

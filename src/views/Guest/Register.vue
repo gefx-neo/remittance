@@ -10,19 +10,34 @@
     <form @submit.prevent="handleRegister">
       <div class="form-group">
         <label for="surname">Surname</label>
-        <input id="surname" v-model="form.surname" type="text" />
+        <input
+          type="text"
+          id="surname"
+          v-model="form.surname"
+          :disabled="store.isLoading"
+        />
         <span v-if="errors.surname" class="error">{{ errors.surname }}</span>
       </div>
       <div class="form-group">
         <label for="givenName">Given name</label>
-        <input id="givenName" v-model="form.givenName" type="text" />
+        <input
+          type="text"
+          id="givenName"
+          v-model="form.givenName"
+          :disabled="store.isLoading"
+        />
         <span v-if="errors.givenName" class="error">{{
           errors.givenName
         }}</span>
       </div>
       <div class="form-group">
         <label for="emailAddress">E-mail address</label>
-        <input id="emailAddress" v-model="form.emailAddress" type="text" />
+        <input
+          type="text"
+          id="emailAddress"
+          v-model="form.emailAddress"
+          :disabled="store.isLoading"
+        />
         <span v-if="errors.emailAddress" class="error">
           {{ errors.emailAddress }}
         </span>
@@ -38,6 +53,7 @@
               name="accountType"
               value="Natural Person"
               v-model="form.accountType"
+              :disabled="store.isLoading"
             />
             <label for="individual">Individual</label>
           </div>
@@ -62,7 +78,12 @@
         v-if="form.accountType === 'Corporate & Trading Company'"
       >
         <label for="companyName">Registered company name</label>
-        <input id="companyName" v-model="form.companyName" type="text" />
+        <input
+          type="text"
+          id="companyName"
+          v-model="form.companyName"
+          :disabled="store.isLoading"
+        />
         <span v-if="errors.companyName" class="error">
           {{ errors.companyName }}
         </span>
@@ -119,12 +140,15 @@ const handleRegister = async () => {
   }
 
   try {
-    // Register only if validation passes
     const response = await registerStore.register(form);
-    console.log("Registration response:", response.message);
-    store.openModal();
+
+    if (response.status === 1) {
+      store.openModal();
+    } else {
+      console.error("Registration failed:", registerStore.error);
+    }
   } catch (error) {
-    console.error("Registration failed:", error);
+    console.error("Registration failed:", registerStore.error);
   }
 };
 

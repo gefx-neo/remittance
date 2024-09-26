@@ -17,17 +17,16 @@ export const useForgotPasswordStore = defineStore("forgotPasswordstore", {
         if (response.status === 1) {
           this.hex = response.key;
           this.iv = response.iv;
-          return { hex: this.hex, iv: this.iv };
         } else {
-          this.error = response.message || "Failed to fetch encryption keys";
-          return null;
+          this.error = response.message;
         }
+        return response;
       } catch (error) {
-        this.error =
-          error.response?.message || "Failed to fetch encryption keys";
+        this.error = error.response?.message;
         return null;
       }
     },
+
     async changePassword(username) {
       const store = useStore();
       store.setLoading(true);
@@ -41,11 +40,13 @@ export const useForgotPasswordStore = defineStore("forgotPasswordstore", {
         if (response.status === 1) {
           this.error = null;
         } else {
-          this.error = response.message || "Failed to change password";
+          this.error = response.message;
         }
+
+        return response;
       } catch (error) {
-        this.error = error.response?.message || "Failed to change password";
-        console.error("Error in changePassword:", error);
+        this.error = error.response?.message;
+        return null;
       } finally {
         store.setLoading(false);
       }
@@ -55,9 +56,6 @@ export const useForgotPasswordStore = defineStore("forgotPasswordstore", {
       store.setLoading(true);
 
       try {
-        console.log("Original code:", form.code);
-        console.log("Original password:", form.newPassword);
-
         // Encrypt the new password using the fetched hex and iv
         const encryptedCode = encryptData(form.code, this.hex, this.iv);
         const encryptedPassword = encryptData(
@@ -66,13 +64,10 @@ export const useForgotPasswordStore = defineStore("forgotPasswordstore", {
           this.iv
         );
 
-        console.log("Encrypted code:", encryptedCode);
-        console.log("Encrypted password:", encryptedPassword);
-
         const payload = {
           code: encryptedCode,
           username: form.username,
-          pwd: encryptedPassword, // Encrypted password
+          pwd: encryptedPassword,
         };
 
         // Send the set new password request
@@ -85,12 +80,12 @@ export const useForgotPasswordStore = defineStore("forgotPasswordstore", {
         if (response.status === 1) {
           this.error = null;
         } else {
-          this.error = response.message || "Password reset failed";
-          console.error("Password reset failed:", this.error);
+          this.error = response.message;
         }
+        return response;
       } catch (error) {
-        this.error = error.response?.message || "Failed to set new password";
-        console.error("Error during password reset:", error);
+        this.error = error.response?.message;
+        return null;
       } finally {
         store.setLoading(false);
       }

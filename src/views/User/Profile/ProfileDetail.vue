@@ -65,7 +65,6 @@ const initials = computed(() => {
   return `${firstInitial}${lastInitial}`.toUpperCase();
 });
 
-// Fetch profile details when the component is mounted
 onMounted(async () => {
   await profileStore.getProfileDetail();
   Object.assign(profileDetails, profileStore.profileDetails); // Assign store data to reactive object

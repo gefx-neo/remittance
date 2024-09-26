@@ -32,16 +32,13 @@ export const useRegisterStore = defineStore("registerStore", {
         );
 
         if (response.status === 1) {
-          console.log("Registration response successful:", response);
-          return response;
+          this.error = null;
         } else {
-          console.error("Registration failed with message:", response);
-          this.error =
-            response.message || "Registration failed due to an unknown error.";
-          throw new Error(this.error);
+          this.error = response.message;
         }
+
+        return response;
       } catch (error) {
-        console.error("Registration request failed:", error);
         this.error =
           error.message ||
           "Request failed due to network issues or server error.";
