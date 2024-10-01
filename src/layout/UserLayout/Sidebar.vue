@@ -72,7 +72,7 @@ router.afterEach(() => {
   width: 240px;
   display: flex;
   flex-direction: column;
-  background-color: var(--bg-screen);
+  background-color: var(--white);
 }
 .logo {
   width: 240px;
@@ -179,7 +179,7 @@ router.afterEach(() => {
     grid-template-columns: 1fr 1fr 1fr;
     width: 100%;
     height: 60px;
-    background: var(--bg-screen);
+    background: var(--white);
     position: fixed;
     bottom: 0;
     left: 0;

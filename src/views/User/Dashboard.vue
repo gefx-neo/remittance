@@ -114,7 +114,7 @@
           </div>
         </div>
       </div>
-      <div class="beneficiary">
+      <!-- <div class="beneficiary">
         <div class="title">
           <h3>Popular Beneficiary</h3>
           <router-link to="/history">
@@ -131,7 +131,7 @@
             <span>{{ beneficiary.name }}</span>
           </div>
         </div>
-      </div>
+      </div> -->
       <div class="currency">
         <div class="title">
           <h3>Current Rates</h3>
@@ -206,19 +206,18 @@ const handleClickOutside = (event) => {
   }
 };
 
-const toggleNoScroll = () => {
-  if (
+watch(
+  () =>
     currencyStore.isSenderDropdownOpen ||
-    currencyStore.isBeneficiaryDropdownOpen
-  ) {
-    document.body.classList.add("no-scroll");
-  } else {
-    document.body.classList.remove("no-scroll");
+    currencyStore.isBeneficiaryDropdownOpen,
+  (newValue) => {
+    if (newValue) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
   }
-};
-
-watch(() => currencyStore.isSenderDropdownOpen, toggleNoScroll);
-watch(() => currencyStore.isBeneficiaryDropdownOpen, toggleNoScroll);
+);
 
 onMounted(() => {
   document.addEventListener("click", handleClickOutside);

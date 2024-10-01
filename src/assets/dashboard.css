@@ -123,8 +123,8 @@
 }
 
 .history {
-  min-width: 45%;
-  max-width: 45%;
+  min-width: 65%;
+  max-width: 65%;
 }
 
 .history .title,
@@ -294,8 +294,8 @@
 }
 
 .currency {
-  min-width: 25%;
-  max-width: 25%;
+  min-width: 30%;
+  max-width: 30%;
 }
 
 .currency .item-section {

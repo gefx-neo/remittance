@@ -13,7 +13,7 @@
       <div class="title">Selected currency</div>
       <div class="item" @click="currencyStore.closeAllDropdowns">
         <div class="currency">
-          <img :src="`src/assets/currency/${selectedCurrency.code}.svg`" />
+          <img :src="`/assets/currency/${selectedCurrency.code}.svg`" />
           <span class="code">{{ selectedCurrency.code }}</span>
           <span class="name">{{ selectedCurrency.name }}</span>
         </div>
@@ -28,7 +28,7 @@
         :class="{ active: isActive(item) }"
       >
         <div class="currency">
-          <img :src="`src/assets/currency/${item.code}.svg`" />
+          <img :src="`/assets/currency/${item.code}.svg`" />
           <span class="code">{{ item.code }}</span>
           <span class="name">{{ item.name }}</span>
         </div>
@@ -98,7 +98,7 @@ const selectCurrency = (item) => {
   margin: 0;
   width: 330px;
   height: 320px;
-  background: var(--bg-screen);
+  background: var(--white);
   border-radius: var(--border-lg);
   box-shadow: 0 0 40px rgba(69, 71, 69, 0.2);
   transition: transform 0.15s;
@@ -129,7 +129,7 @@ const selectCurrency = (item) => {
   font-weight: var(--semi-bold);
   position: sticky;
   top: 0;
-  background: var(--bg-screen);
+  background: var(--white);
   z-index: 1;
 }
 
@@ -140,7 +140,7 @@ const selectCurrency = (item) => {
   padding: var(--size-dropdown-item);
   margin: 0px var(--size-8);
   border-radius: var(--border-md);
-  border: 1px solid var(--bg-screen);
+  border: 1px solid var(--white);
   cursor: pointer;
 }
 
@@ -194,7 +194,7 @@ const selectCurrency = (item) => {
 }
 
 .dropdown-menu .body::-webkit-scrollbar-track {
-  background-color: var(--bg-screen);
+  background-color: var(--white);
 }
 
 @media (max-width: 767px) {

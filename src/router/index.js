@@ -6,7 +6,7 @@ import ErrorLayout from "../layout/ErrorLayout/ErrorLayout.vue";
 import Login from "../views/Guest/Login.vue"; // Static import
 import AdminLogin from "../views/Guest/AdminLogin.vue"; // Admin Login
 import { useAuthStore } from "../stores/authStore.js";
-import { useAdminAuthStore } from "../stores/adminAuthStore.js";
+import { useAdminAuthStore } from "../stores/admin/adminAuthStore.js";
 
 const guestGuard = (to, from, next) => {
   const authStore = useAuthStore();
@@ -147,17 +147,35 @@ const routes = [
   {
     path: "/admin",
     component: AdminLayout,
-    beforeEnter: adminAuthGuard, // Protect admin dashboard route with admin authentication
+    // beforeEnter: adminAuthGuard, // Protect admin dashboard routes with admin authentication
     children: [
       {
-        path: "dashboard",
-        name: "admin-dashboard",
-        component: () => import("../views/Admin/Dashboard.vue"),
-      },
-      {
-        path: "customer",
-        name: "admin-customers",
-        component: () => import("../views/Admin/Customer.vue"),
+        path: "remittance",
+        children: [
+          {
+            path: "customermanagement",
+            name: "admin-remittance-customermanagement",
+            component: () =>
+              import("../views/Admin/Remittance/CustomerManagement.vue"),
+          },
+          {
+            path: "transactionmanagement",
+            name: "admin-remittance-transactionmanagement",
+            component: () =>
+              import("../views/Admin/Remittance/TransactionManagement.vue"),
+          },
+          {
+            path: "beneficiarymanagement",
+            name: "admin-remittance-beneficiarymanagement",
+            component: () =>
+              import("../views/Admin/Remittance/BeneficiaryManagement.vue"),
+          },
+          {
+            path: "auditlog",
+            name: "admin-remittance-auditlog",
+            component: () => import("../views/Admin/Remittance/AuditLog.vue"),
+          },
+        ],
       },
     ],
   },

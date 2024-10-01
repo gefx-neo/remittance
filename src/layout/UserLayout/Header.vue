@@ -159,7 +159,7 @@ onUnmounted(() => {
   min-height: var(--size-48);
   max-height: var(--size-48);
   border-radius: var(--border-md);
-  background: var(--bg-screen);
+  background: var(--white);
 }
 
 .profile .user:hover {
@@ -171,7 +171,7 @@ onUnmounted(() => {
 }
 
 .profile .user:focus:not(:focus-visible) {
-  background: var(--bg-screen);
+  background: var(--white);
 }
 
 .profile .user:focus:hover {
@@ -216,7 +216,7 @@ svg {
   margin: 0;
   width: 320px;
   max-height: 200px;
-  background: var(--bg-screen);
+  background: var(--white);
   border-radius: var(--border-lg);
   box-shadow: 0 0 40px rgba(69, 71, 69, 0.2);
   padding: var(--size-24) var(--size-16);
@@ -307,10 +307,6 @@ svg {
 
 .btn-close {
   display: none;
-}
-
-.no-scroll {
-  position: fixed;
 }
 
 .dropdown-menu .username {

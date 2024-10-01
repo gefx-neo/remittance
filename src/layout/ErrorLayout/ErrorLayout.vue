@@ -17,7 +17,7 @@ import Header from "./Header.vue";
 
 .page-layout {
   min-height: 100vh;
-  background-color: var(--bg-screen);
+  background-color: var(--white);
   width: 100%;
 }
 

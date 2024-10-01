@@ -1,7 +1,7 @@
 <template>
   <div class="content-area">
     <div class="heading">
-      <h1>Remittance admin panel</h1>
+      <h1>GEFX admin panel</h1>
       <div v-if="step === 2 && form.username">{{ form.username }}</div>
     </div>
 

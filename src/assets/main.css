@@ -185,20 +185,20 @@
 }
 
 .btn-delete {
-  background: var(--bg-screen);
+  background: var(--white);
   border: 1px solid var(--crimson-red);
   color: var(--crimson-red);
   font-weight: var(--semi-bold);
 }
 
 .btn-delete:hover {
-  border: 1px solid var(--crimson-red);
-  color: var(--crimson-red);
+  border: 1px solid var(--light-crimson-red);
+  color: var(--light-crimson-red);
 }
 
 .btn-delete:focus {
-  border: 1px solid #f45b7a;
-  color: #f45b7a;
+  border: 1px solid var(--lighter-crimson-red);
+  color: var(--lighter-crimson-red);
 }
 
 .btn-delete:focus:not(:focus-visible) {
@@ -206,34 +206,43 @@
   color: var(--crimson-red);
 }
 
+.btn-delete:focus:hover {
+  border: 1px solid var(--light-crimson-red);
+  color: var(--light-crimson-red);
+}
+
 .btn-delete:focus:active {
-  border: 1px solid #f45b7a;
-  color: #f45b7a;
+  border: 1px solid var(--lighter-crimson-red);
+  color: var(--lighter-crimson-red);
 }
 
 .btn-back {
-  background: var(--bg-screen);
+  background: var(--white);
   color: var(--black);
   border: 1px solid var(--black);
   font-weight: var(--semi-bold);
 }
 
 .btn-back:hover {
-  background: var(--sky-blue);
+  border: 1px solid var(--grey);
+  color: var(--grey);
 }
 
 .btn-back:focus {
-  background: var(--cool-blue);
+  border: 1px solid var(--darker-grey);
+  color: var(--darker-grey);
 }
 
 .btn-back:focus:not(:focus-visible) {
-  background: var(--sky-blue);
+  border: 1px solid #666666;
 }
 
 .btn-back:focus:hover {
-  background: var(--sky-blue);
+  border: 1px solid var(--grey);
+  color: var(--grey);
 }
 
 .btn-back:focus:active {
-  background: var(--cool-blue);
+  border: 1px solid var(--darker-grey);
+  color: var(--darker-grey);
 }

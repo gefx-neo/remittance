@@ -50,7 +50,7 @@ const authStore = useAuthStore();
 }
 
 .icon svg {
-  fill: var(--bg-screen);
+  fill: var(--white);
   width: 300px;
   height: 300px;
 }

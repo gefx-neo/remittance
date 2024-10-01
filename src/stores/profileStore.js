@@ -14,7 +14,7 @@ export const useProfileStore = defineStore("profile", {
   actions: {
     async getProfileDetail() {
       const store = useStore();
-      store.setLoading(true);
+      store.isLoading = true;
       try {
         // Retrieve the username from localStorage
         const username = getLocalStorageWithExpiry("username");
@@ -38,7 +38,7 @@ export const useProfileStore = defineStore("profile", {
           error.response?.data?.message || "Failed to fetch profile details";
         console.error("Error while fetching profile details:", error);
       } finally {
-        store.setLoading(false);
+        store.isLoading = false;
       }
     },
 

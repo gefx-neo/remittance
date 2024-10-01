@@ -1,113 +1,128 @@
 <template>
-  <div class="setting">
-    <div class="title">
-      <h3>Setting</h3>
-    </div>
-    <div class="item-section">
-      <div class="item">
-        <div class="label">
-          <span>Set new password</span>
-          <!-- Trigger Change Password on button click -->
+  <div class="content-area">
+    <div class="setting">
+      <div class="title">
+        <h3>Setting</h3>
+      </div>
+      <div class="item-section">
+        <div class="item">
+          <div class="label">
+            <span>Set new password</span>
+            <!-- Trigger Change Password on button click -->
+            <ButtonAPI
+              :disabled="store.isLoading"
+              class="btn-blue standard-button"
+              @click="handleChangePassword"
+            >
+              Change password
+            </ButtonAPI>
+          </div>
+        </div>
+        <div class="item">
+          <div class="label">
+            <span>Change language</span>
+            <span>English</span>
+          </div>
+        </div>
+      </div>
+
+      <Modal
+        :isModalOpen="isPasswordModalOpen"
+        @close="closePasswordModal"
+        title="Set new password"
+      >
+        <template #body>
+          <div class="body">
+            <div class="remark">
+              We have sent the temporary password to your email. Did not
+              receive?
+              <ButtonAPI
+                @click="handleSendAgain"
+                :disabled="store.isResendLoading || store.resendTime > 0"
+                :showLoader="false"
+                class="btn-timer"
+              >
+                Send again
+                {{ store.resendTime > 0 ? `(${store.resendTime}s)` : "" }}
+              </ButtonAPI>
+            </div>
+            <div class="form-group">
+              <label for="code">Temporary password</label>
+              <input
+                type="text"
+                id="code"
+                v-model="form.code"
+                :disabled="store.isLoading"
+              />
+              <span v-if="errors.code" class="error">{{ errors.code }}</span>
+            </div>
+            <div class="form-group">
+              <label for="newPassword">New password</label>
+              <input
+                :type="showPassword ? 'text' : 'password'"
+                id="newPassword"
+                v-model="form.newPassword"
+                :disabled="store.isLoading"
+              />
+              <span v-if="errors.newPassword" class="error">{{
+                errors.newPassword
+              }}</span>
+            </div>
+            <div class="form-group">
+              <label for="confirmNewPassword">Confirm new password</label>
+              <input
+                :type="showPassword ? 'text' : 'password'"
+                id="confirmNewPassword"
+                v-model="confirmNewPassword"
+                :disabled="store.isLoading"
+              />
+              <div class="checkbox-group">
+                <div class="item" @click="togglePassword">
+                  <input
+                    type="checkbox"
+                    id="showPassword"
+                    v-model="showPassword"
+                  />
+                  <svg
+                    v-if="showPassword"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 448 512"
+                  >
+                    <path
+                      d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"
+                    />
+                  </svg>
+                </div>
+                <label for="showPassword">Show password</label>
+              </div>
+              <div v-if="errors.confirmNewPassword" class="error">
+                {{ errors.confirmNewPassword }}
+              </div>
+            </div>
+          </div>
+        </template>
+        <template #footer>
           <ButtonAPI
             :disabled="store.isLoading"
+            @click="handleSetNewPassword"
             class="btn-blue standard-button"
-            @click="handleChangePassword"
           >
-            Change password
+            Submit
           </ButtonAPI>
-        </div>
-      </div>
-      <div class="item">
-        <div class="label">
-          <span>Change language</span>
-          <span>English</span>
-        </div>
-      </div>
+          <div v-show="forgotPasswordStore.error" class="error">
+            {{ forgotPasswordStore.error }}
+          </div>
+        </template>
+      </Modal>
+
+      <Modal
+        :isModalOpen="isSuccessModalOpen"
+        title="Changed successfully"
+        :success="true"
+        @close="closeSuccessModal"
+      >
+      </Modal>
     </div>
-
-    <Modal
-      :isModalOpen="isPasswordModalOpen"
-      @close="closePasswordModal"
-      title="Set new password"
-    >
-      <template #body>
-        <div class="body">
-          <div class="form-group">
-            <label for="code">Temporary password</label>
-            <input
-              type="text"
-              id="code"
-              v-model="form.code"
-              :disabled="store.isLoading"
-            />
-            <span v-if="errors.code" class="error">{{ errors.code }}</span>
-          </div>
-          <div class="form-group">
-            <label for="newPassword">New password</label>
-            <input
-              :type="showPassword ? 'text' : 'password'"
-              id="newPassword"
-              v-model="form.newPassword"
-              :disabled="store.isLoading"
-            />
-            <span v-if="errors.newPassword" class="error">{{
-              errors.newPassword
-            }}</span>
-          </div>
-          <div class="form-group">
-            <label for="confirmNewPassword">Confirm new password</label>
-            <input
-              :type="showPassword ? 'text' : 'password'"
-              id="confirmNewPassword"
-              v-model="confirmNewPassword"
-              :disabled="store.isLoading"
-            />
-            <div class="checkbox-group">
-              <div class="item" @click="togglePassword">
-                <input
-                  type="checkbox"
-                  id="showPassword"
-                  v-model="showPassword"
-                />
-                <svg
-                  v-if="showPassword"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 448 512"
-                >
-                  <path
-                    d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"
-                  />
-                </svg>
-              </div>
-              <label for="showPassword">Show password</label>
-            </div>
-            <div v-if="errors.confirmNewPassword" class="error">
-              {{ errors.confirmNewPassword }}
-            </div>
-          </div>
-        </div>
-      </template>
-      <template #footer>
-        <ButtonAPI
-          :disabled="store.isLoading"
-          @click="handleSetNewPassword"
-          class="btn-blue standard-button"
-        >
-          Submit
-        </ButtonAPI>
-        <div v-show="forgotPasswordStore.error" class="error">
-          {{ forgotPasswordStore.error }}
-        </div>
-      </template>
-    </Modal>
-
-    <Modal
-      :isModalOpen="isSuccessModalOpen"
-      title="Changed successfully"
-      :success="true"
-      @close="closeSuccessModal"
-    >
-    </Modal>
   </div>
 </template>
 
@@ -211,6 +226,22 @@ const handleSetNewPassword = async () => {
   }
 };
 
+const handleSendAgain = async () => {
+  try {
+    const response = await forgotPasswordStore.changePasswordTimer(
+      form.username
+    );
+
+    if (response.status === 1) {
+      store.startResendTimer();
+    } else {
+      console.error("Send again failed:", forgotPasswordStore.error);
+    }
+  } catch (error) {
+    console.error("Send again failed:", error);
+  }
+};
+
 const togglePassword = () => {
   showPassword.value = !showPassword.value;
 };
@@ -233,6 +264,8 @@ watch(
     } else {
       // Modal is closed, reset the form and errors
       resetForm();
+      store.resetResendTimer();
+      forgotPasswordStore.$reset();
     }
   }
 );
@@ -250,6 +283,7 @@ const clearErrors = () => {
 
 onBeforeRouteLeave((to, from, next) => {
   forgotPasswordStore.$reset();
+  store.resetResendTimer();
   next();
 });
 </script>
@@ -333,7 +367,32 @@ onBeforeRouteLeave((to, from, next) => {
   display: flex;
   flex-direction: column;
   padding: var(--size-12) 0;
-  gap: var(--size-24);
+}
+
+.body .remark {
+  background: var(--lighter-grey);
+  padding: var(--size-12);
+  border-radius: var(--border-sm);
+  margin-bottom: var(--size-12);
+}
+
+.body .remark .btn-timer {
+  position: relative;
+  background: none;
+  color: var(--black);
+  font-weight: var(--semi-bold);
+  text-decoration: underline;
+}
+
+.body .remark .btn-timer:disabled {
+  background: none !important;
+  color: var(--grey) !important;
+  font-weight: var(--semi-bold);
+  text-decoration: none;
+}
+
+.form-group {
+  margin-bottom: var(--size-12);
 }
 
 .checkbox-group {

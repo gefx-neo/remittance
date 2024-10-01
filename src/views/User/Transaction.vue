@@ -73,9 +73,6 @@
 <script setup>
 import { useTransactionStore } from "@/stores/transactionStore";
 import { storeToRefs } from "pinia";
-const removeFocus = (event) => {
-  event.target.blur(); // Remove focus from the button
-};
 const transactionStore = useTransactionStore();
 const { transactions } = storeToRefs(transactionStore);
 </script>

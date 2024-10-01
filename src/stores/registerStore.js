@@ -9,8 +9,7 @@ export const useRegisterStore = defineStore("registerStore", {
   actions: {
     async register(form) {
       const store = useStore();
-      this.error = null;
-      store.setLoading(true);
+      store.isLoading = true;
 
       const payload = {
         surname: form.surname,
@@ -44,7 +43,7 @@ export const useRegisterStore = defineStore("registerStore", {
           "Request failed due to network issues or server error.";
         throw error;
       } finally {
-        store.setLoading(false);
+        store.isLoading = false;
       }
     },
   },

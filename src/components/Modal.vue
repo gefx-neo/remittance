@@ -132,7 +132,7 @@ const handleClose = () => {
   padding: 8px;
   width: 400px;
   max-width: 400px;
-  background: var(--bg-screen);
+  background: var(--white);
   border-radius: var(--border-lg);
   padding: var(--size-16);
   transition: opacity 0.3s ease-in-out;
@@ -174,7 +174,7 @@ const handleClose = () => {
   max-width: 50px;
   min-height: 50px;
   max-height: 50px;
-  fill: var(--bg-screen);
+  fill: var(--white);
 }
 
 .modal .footer a {

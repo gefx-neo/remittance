@@ -26,10 +26,9 @@ export const useForgotPasswordStore = defineStore("forgotPasswordstore", {
         return null;
       }
     },
-
     async changePassword(username) {
       const store = useStore();
-      store.setLoading(true);
+      store.isLoading = true;
 
       try {
         const response = await apiService.postRequest(
@@ -48,12 +47,12 @@ export const useForgotPasswordStore = defineStore("forgotPasswordstore", {
         this.error = error.response?.message;
         return null;
       } finally {
-        store.setLoading(false);
+        store.isLoading = false;
       }
     },
     async setNewPassword(form) {
       const store = useStore();
-      store.setLoading(true);
+      store.isLoading = true;
 
       try {
         // Encrypt the new password using the fetched hex and iv
@@ -87,7 +86,31 @@ export const useForgotPasswordStore = defineStore("forgotPasswordstore", {
         this.error = error.response?.message;
         return null;
       } finally {
-        store.setLoading(false);
+        store.isLoading = false;
+      }
+    },
+    async changePasswordTimer(username) {
+      const store = useStore();
+      store.isResendLoading = true;
+
+      try {
+        const response = await apiService.postRequest(
+          "/User/changePassword",
+          username
+        );
+
+        if (response.status === 1) {
+          this.error = null;
+        } else {
+          this.error = response.message;
+        }
+
+        return response;
+      } catch (error) {
+        this.error = error.response?.message;
+        return null;
+      } finally {
+        store.isResendLoading = false;
       }
     },
   },

@@ -5,7 +5,7 @@
     @click="handleClick"
   >
     <slot></slot>
-    <span v-if="store.isLoading" class="loader"></span>
+    <span v-if="store.isLoading && showLoader" class="loader"></span>
   </button>
 </template>
 
@@ -19,6 +19,10 @@ const props = defineProps({
   },
   class: {
     type: String,
+  },
+  showLoader: {
+    type: Boolean,
+    default: true,
   },
 });
 

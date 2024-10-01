@@ -66,7 +66,7 @@ export const useAuthStore = defineStore("auth", {
       }
 
       const store = useStore();
-      store.setLoading(true);
+      store.isLoading = true;
       try {
         // Encrypt the password using the global encryptData function
         const encryptedPassword = encryptData(form.password, this.hex, this.iv);
@@ -106,13 +106,13 @@ export const useAuthStore = defineStore("auth", {
         this.user = false;
         this.error = error.response?.message;
       } finally {
-        store.setLoading(false);
+        store.isLoading = false;
       }
     },
 
     async logout() {
       const store = useStore();
-      store.setLoading(true);
+      store.isLoading = true;
       try {
         const username = getLocalStorageWithExpiry("username");
 
@@ -133,7 +133,7 @@ export const useAuthStore = defineStore("auth", {
       } catch (error) {
         this.error = error.response?.message || "Error during logout";
       } finally {
-        store.setLoading(false);
+        store.isLoading = false;
       }
     },
   },

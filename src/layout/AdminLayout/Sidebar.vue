@@ -15,6 +15,7 @@
     </div>
 
     <div class="navigation">
+      <h2>Remittance</h2>
       <RouterLink v-for="route in routes" :key="route.label" :to="route.to">
         <span class="icon">
           <font-awesome-icon :icon="route.icon" size="1x" />
@@ -39,21 +40,33 @@
 </template>
 
 <script setup>
-import { useRouter, useRoute, RouterLink } from "vue-router";
+import { useRouter, RouterLink } from "vue-router";
 import { useStore } from "@/stores/useStore";
 
 const store = useStore();
 const router = useRouter();
 
 const routes = [
-  { to: "/admin/dashboard", icon: ["fas", "home"], label: "Dashboard" },
-  { to: "/admin/customer", icon: ["fas", "user"], label: "Customer" },
   {
-    to: "/admin/transaction",
-    icon: ["fas", "money-bill"],
-    label: "Transaction",
+    to: "/admin/remittance/customermanagement",
+    icon: ["fas", "user"],
+    label: "Customer Management",
   },
-  // { to: "/help", icon: ["fas", "question-circle"], label: "Help" },
+  {
+    to: "/admin/remittance/transactionmanagement",
+    icon: ["fas", "money-bill"],
+    label: "Transaction Management",
+  },
+  {
+    to: "/admin/remittance/beneficiarymanagement",
+    icon: ["fas", "user"],
+    label: "Beneficiary Management",
+  },
+  // {
+  //   to: "/admin/remittance/auditlog",
+  //   icon: ["fas", "file"],
+  //   label: "Audit Log",
+  // },
 ];
 
 // Handle dropdown state on route change
@@ -76,7 +89,7 @@ router.afterEach(() => {
   width: 240px;
   display: flex;
   flex-direction: column;
-  background-color: var(--bg-screen);
+  background-color: var(--white);
 }
 .logo {
   width: 240px;
@@ -92,8 +105,14 @@ router.afterEach(() => {
 .navigation {
   display: flex;
   flex-direction: column;
-  padding-left: var(--size-24);
-  padding-right: var(--size-24);
+  margin-left: var(--size-24);
+  border: 1px solid var(--light-grey);
+  border-radius: var(--border-md);
+}
+
+.navigation h2 {
+  padding: var(--size-dropdown-item);
+  border-bottom: 1px solid var(--light-grey);
 }
 
 .navigation a {
@@ -103,6 +122,11 @@ router.afterEach(() => {
   padding: var(--size-dropdown-item);
   color: var(--cool-blue);
   text-decoration: none;
+  border-bottom: 1px solid var(--light-grey);
+}
+
+.navigation a:last-child {
+  border-bottom: none;
 }
 
 .navigation a:hover svg,
@@ -163,6 +187,10 @@ router.afterEach(() => {
     position: absolute;
     right: 0;
   }
+
+  .navigation {
+    padding-right: var(--size-24);
+  }
 }
 
 .mobile-footer-container {
@@ -183,7 +211,7 @@ router.afterEach(() => {
     grid-template-columns: 1fr 1fr 1fr;
     width: 100%;
     height: 60px;
-    background: var(--bg-screen);
+    background: var(--white);
     position: fixed;
     bottom: 0;
     left: 0;

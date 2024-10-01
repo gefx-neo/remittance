@@ -55,7 +55,7 @@
         <ButtonAPI :disabled="store.isLoading" class="btn-red standard-button">
           Login
         </ButtonAPI>
-        <button type="button" class="btn-back standard-button" @click="goBack">
+        <button @click="goBack" type="button" class="btn-back standard-button">
           Back
         </button>
       </div>

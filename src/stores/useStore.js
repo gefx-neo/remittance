@@ -1,4 +1,3 @@
-// useStore.js
 import { defineStore } from "pinia";
 
 export const useStore = defineStore("main", {
@@ -7,6 +6,8 @@ export const useStore = defineStore("main", {
     isDropdownOpen: false, // User profile dropdown
     isLoading: false, // Button API loading
     isModalOpen: false, // Modal
+    isResendLoading: false, // Loading state for "Send again"
+    resendTime: 0, // Timer countdown for "Send again"
   }),
   actions: {
     openSidebar() {
@@ -32,6 +33,23 @@ export const useStore = defineStore("main", {
     },
     closeModal() {
       this.isModalOpen = false;
+    },
+    startResendTimer() {
+      this.resendTime = 180;
+      this.isResendLoading = true;
+
+      const timer = setInterval(() => {
+        if (this.resendTime > 0) {
+          this.resendTime--;
+        } else {
+          clearInterval(timer);
+          this.isResendLoading = false;
+        }
+      }, 1000);
+    },
+    resetResendTimer() {
+      this.isResendLoading = false;
+      this.resendTime = 0;
     },
   },
 });

@@ -35,13 +35,7 @@
             />
           </svg>
         </div>
-        <RouterLink to="/profile">
-          <span class="icon">
-            <font-awesome-icon :icon="['fas', 'user']" size="1x" />
-          </span>
-          <span>Profile</span>
-        </RouterLink>
-        <RouterLink to="/setting">
+        <!-- <RouterLink to="/setting">
           <span class="icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
               <path
@@ -50,7 +44,7 @@
             </svg>
           </span>
           <span>Setting</span>
-        </RouterLink>
+        </RouterLink> -->
         <button class="logout" @click="logout">
           <span class="icon">
             <font-awesome-icon :icon="['fas', 'sign-out-alt']" size="1x" />
@@ -159,7 +153,7 @@ onUnmounted(() => {
   min-height: var(--size-48);
   max-height: var(--size-48);
   border-radius: var(--border-md);
-  background: var(--bg-screen);
+  background: var(--white);
 }
 
 .profile .user:hover {
@@ -171,7 +165,7 @@ onUnmounted(() => {
 }
 
 .profile .user:focus:not(:focus-visible) {
-  background: var(--bg-screen);
+  background: var(--white);
 }
 
 .profile .user:focus:hover {
@@ -216,7 +210,7 @@ svg {
   margin: 0;
   width: 320px;
   max-height: 200px;
-  background: var(--bg-screen);
+  background: var(--white);
   border-radius: var(--border-lg);
   box-shadow: 0 0 40px rgba(69, 71, 69, 0.2);
   padding: var(--size-24) var(--size-16);
@@ -307,10 +301,6 @@ svg {
 
 .btn-close {
   display: none;
-}
-
-.no-scroll {
-  position: fixed;
 }
 
 .dropdown-menu .username {

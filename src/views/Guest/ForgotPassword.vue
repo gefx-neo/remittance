@@ -23,6 +23,17 @@
     </form>
 
     <form v-if="step === 2" @submit.prevent="handleSetNewPassword">
+      <div class="remark">
+        We have sent the temporary password to your email. Did not receive?
+        <ButtonAPI
+          @click="handleSendAgain"
+          :disabled="store.isResendLoading || store.resendTime > 0"
+          :showLoader="false"
+          class="btn-timer"
+        >
+          Send again {{ store.resendTime > 0 ? `(${store.resendTime}s)` : "" }}
+        </ButtonAPI>
+      </div>
       <div class="form-group">
         <label for="code">Temporary password</label>
         <input
@@ -99,6 +110,7 @@
 </template>
 
 <script setup>
+import { onBeforeRouteLeave } from "vue-router";
 import { ref, watch, reactive } from "vue";
 import { useForgotPasswordStore } from "@/stores/forgotPasswordStore";
 import { useStore } from "@/stores/useStore";
@@ -142,6 +154,22 @@ const handleChangePassword = async () => {
     }
   } catch (error) {
     console.error("Change password failed:", error);
+  }
+};
+
+const handleSendAgain = async () => {
+  try {
+    const response = await forgotPasswordStore.changePasswordTimer(
+      form.username
+    );
+
+    if (response.status === 1) {
+      store.startResendTimer();
+    } else {
+      console.error("Send again failed:", forgotPasswordStore.error);
+    }
+  } catch (error) {
+    console.error("Send again failed:", error);
   }
 };
 
@@ -192,13 +220,14 @@ const handleSetNewPassword = async () => {
 
 const goBack = () => {
   step.value = 1;
+  store.resetResendTimer();
+  forgotPasswordStore.$reset();
 };
 
 const togglePassword = () => {
   showPassword.value = !showPassword.value;
 };
 
-// Watcher to call getReqKey when transitioning to step 2
 watch(step, async (newStep) => {
   if (newStep === 2) {
     try {
@@ -213,6 +242,11 @@ watch(step, async (newStep) => {
 const clearErrors = () => {
   Object.keys(errors).forEach((key) => delete errors[key]);
 };
+
+onBeforeRouteLeave((to, from, next) => {
+  forgotPasswordStore.$reset();
+  next();
+});
 </script>
 
 <style scoped>
@@ -242,6 +276,27 @@ form {
   width: 100%;
   max-width: 400px;
   gap: var(--size-24);
+}
+
+form .remark {
+  background: var(--lighter-grey);
+  padding: var(--size-12);
+  border-radius: var(--border-sm);
+  margin-bottom: var(--size-12);
+}
+
+form .remark .btn-timer {
+  background: none;
+  color: var(--black);
+  font-weight: var(--semi-bold);
+  text-decoration: underline;
+}
+
+form .remark .btn-timer:disabled {
+  background: none !important;
+  color: var(--grey) !important;
+  font-weight: var(--semi-bold);
+  text-decoration: none;
 }
 
 .form-group {

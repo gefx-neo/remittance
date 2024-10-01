@@ -1,9 +1,9 @@
 import { defineStore } from "pinia";
-import { useDeviceStore } from "./deviceStore.js";
-import router from "../router/index.js";
+import { useDeviceStore } from "../deviceStore.js";
+import router from "../../router/index.js";
 import apiService from "@/services/apiService";
 import { useStore } from "@/stores/useStore";
-import { encryptData } from "../services/encryptionService.js";
+import { encryptData } from "../../services/encryptionService.js";
 import {
   setLocalStorageWithExpiry,
   getLocalStorageWithExpiry,
@@ -42,10 +42,7 @@ export const useAdminAuthStore = defineStore("adminauth", {
     // Step 1: Fetch reqKey (hex and iv) for the username
     async getReqKey(username) {
       try {
-        const response = await apiService.postRequest(
-          "/gefx/ad-min/reqKey",
-          username
-        );
+        const response = await apiService.postRequest("/User/reqkey", username);
 
         if (response.status === 1) {
           this.hex = response.key;
@@ -69,7 +66,7 @@ export const useAdminAuthStore = defineStore("adminauth", {
       }
 
       const store = useStore();
-      store.setLoading(true);
+      store.isLoading = true;
       try {
         // Encrypt the password using the global encryptData function
         const encryptedPassword = encryptData(form.password, this.hex, this.iv);
@@ -100,7 +97,7 @@ export const useAdminAuthStore = defineStore("adminauth", {
           setLocalStorageWithExpiry("token", response.token, 4);
           setLocalStorageWithExpiry("username", form.username, 4);
 
-          router.push({ name: "dashboard" });
+          router.push({ name: "admin-customermanagement" });
         } else {
           this.user = false;
           this.error = response.message;
@@ -109,13 +106,13 @@ export const useAdminAuthStore = defineStore("adminauth", {
         this.user = false;
         this.error = error.response?.message;
       } finally {
-        store.setLoading(false);
+        store.isLoading = false;
       }
     },
 
     async logout() {
       const store = useStore();
-      store.setLoading(true);
+      store.isLoading = true;
       try {
         const username = getLocalStorageWithExpiry("username");
 
@@ -136,7 +133,7 @@ export const useAdminAuthStore = defineStore("adminauth", {
       } catch (error) {
         this.error = error.response?.message || "Error during logout";
       } finally {
-        store.setLoading(false);
+        store.isLoading = false;
       }
     },
   },
