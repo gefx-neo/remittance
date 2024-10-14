@@ -10,58 +10,60 @@
     </div>
 
     <form v-if="step === 1" @submit.prevent="handleStep1">
-      <div class="form-group">
-        <label for="login">E-mail address</label>
-        <input
-          type="text"
-          id="username"
-          v-model="form.username"
-          :disabled="store.isLoading"
-        />
-        <span v-if="errors.username" class="error">{{ errors.username }}</span>
-      </div>
-      <ButtonAPI :disabled="store.isLoading" class="btn-red standard-button">
-        Next
-      </ButtonAPI>
+      <fieldset :disabled="store.isLoading">
+        <div class="form-group">
+          <label for="login">E-mail address</label>
+          <input type="text" id="username" v-model="form.username" />
+          <span v-if="errors.username" class="error">{{
+            errors.username
+          }}</span>
+        </div>
+        <ButtonAPI class="btn-red standard-button"> Next </ButtonAPI>
+      </fieldset>
     </form>
 
     <form v-if="step === 2" @submit.prevent="handleStep2">
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input
-          :type="showPassword ? 'text' : 'password'"
-          id="password"
-          v-model="form.password"
-          :disabled="store.isLoading"
-        />
-        <span v-if="errors.password" class="error">{{ errors.password }}</span>
-        <div class="checkbox-group">
-          <div class="item" @click="togglePassword">
-            <input type="checkbox" id="showPassword" v-model="showPassword" />
-            <svg
-              v-if="showPassword"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 448 512"
-            >
-              <path
-                d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"
-              />
-            </svg>
+      <fieldset :disabled="store.isLoading">
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input
+            :type="showPassword ? 'text' : 'password'"
+            id="password"
+            v-model="form.password"
+          />
+          <span v-if="errors.password" class="error">{{
+            errors.password
+          }}</span>
+          <div class="checkbox-group">
+            <div class="item" @click="togglePassword">
+              <input type="checkbox" id="showPassword" v-model="showPassword" />
+              <svg
+                v-if="showPassword"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 448 512"
+              >
+                <path
+                  d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"
+                />
+              </svg>
+            </div>
+            <label for="showPassword">Show password</label>
           </div>
-          <label for="showPassword">Show password</label>
         </div>
-      </div>
-      <div class="button-group">
-        <ButtonAPI :disabled="store.isLoading" class="btn-red standard-button">
-          Login
-        </ButtonAPI>
-        <button @click="goBack" type="button" class="btn-back standard-button">
-          Back
-        </button>
-      </div>
-      <div v-show="authStore.error" class="error">
-        {{ authStore.error }}
-      </div>
+        <div class="button-group">
+          <ButtonAPI class="btn-red standard-button"> Login </ButtonAPI>
+          <button
+            @click="goBack"
+            type="button"
+            class="btn-back standard-button"
+          >
+            Back
+          </button>
+        </div>
+        <div v-show="authStore.error" class="error">
+          {{ authStore.error }}
+        </div>
+      </fieldset>
     </form>
 
     <footer>
@@ -75,7 +77,7 @@ import { onBeforeRouteLeave } from "vue-router";
 import { ref, reactive } from "vue";
 import { useAuthStore } from "@/stores/authStore";
 import { useStore } from "@/stores/useStore";
-import { validationService } from "@/services/validationService.js";
+import { validationService } from "@/services/validationUserService.js";
 import ButtonAPI from "@/components/ButtonAPI.vue";
 
 const authStore = useAuthStore();

@@ -6,91 +6,88 @@
       <div v-if="step === 2 && form.username">{{ form.username }}</div>
     </div>
 
+    <!-- Step 1: Reset Password Form -->
     <form v-if="step === 1" @submit.prevent="handleChangePassword">
-      <div class="form-group">
-        <label for="login">E-mail address</label>
-        <input
-          type="text"
-          id="username"
-          v-model="form.username"
-          :disabled="store.isLoading"
-        />
-        <span v-if="errors.username" class="error">{{ errors.username }}</span>
-      </div>
-      <ButtonAPI :disabled="store.isLoading" class="btn-red standard-button">
-        Next
-      </ButtonAPI>
+      <fieldset :disabled="store.isLoading">
+        <div class="form-group">
+          <label for="login">E-mail address</label>
+          <input type="text" id="username" v-model="form.username" />
+          <span v-if="errors.username" class="error">{{
+            errors.username
+          }}</span>
+        </div>
+        <ButtonAPI class="btn-red standard-button"> Next </ButtonAPI>
+      </fieldset>
     </form>
 
+    <!-- Step 2: Set New Password Form -->
     <form v-if="step === 2" @submit.prevent="handleSetNewPassword">
-      <div class="remark">
-        We have sent the temporary password to your email. Did not receive?
-        <ButtonAPI
-          @click="handleSendAgain"
-          :disabled="store.isResendLoading || store.resendTime > 0"
-          :showLoader="false"
-          class="btn-timer"
-        >
-          Send again {{ store.resendTime > 0 ? `(${store.resendTime}s)` : "" }}
-        </ButtonAPI>
-      </div>
-      <div class="form-group">
-        <label for="code">Temporary password</label>
-        <input
-          type="text"
-          id="code"
-          v-model="form.code"
-          :disabled="store.isLoading"
-        />
-        <span v-if="errors.code" class="error">{{ errors.code }}</span>
-      </div>
-      <div class="form-group">
-        <label for="newPassword">New password</label>
-        <input
-          :type="showPassword ? 'text' : 'password'"
-          id="newPassword"
-          v-model="form.newPassword"
-          :disabled="store.isLoading"
-        />
-        <span v-if="errors.newPassword" class="error">{{
-          errors.newPassword
-        }}</span>
-      </div>
-      <div class="form-group">
-        <label for="confirmNewPassword">Confirm new password</label>
-        <input
-          :type="showPassword ? 'text' : 'password'"
-          id="confirmNewPassword"
-          v-model="confirmNewPassword"
-          :disabled="store.isLoading"
-        />
-        <div class="checkbox-group">
-          <div class="item" @click="togglePassword">
-            <input type="checkbox" id="showPassword" v-model="showPassword" />
-            <svg
-              v-if="showPassword"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 448 512"
-            >
-              <path
-                d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"
-              />
-            </svg>
+      <fieldset :disabled="store.isLoading">
+        <div class="remark">
+          We have sent the temporary password to your email. Did not receive?
+          <ButtonAPI
+            @click="handleSendAgain"
+            :disabled="store.isResendLoading || store.resendTime > 0"
+            :showLoader="false"
+            class="btn-timer"
+          >
+            Send again
+            {{ store.resendTime > 0 ? `(${store.resendTime}s)` : "" }}
+          </ButtonAPI>
+        </div>
+        <div class="form-group">
+          <label for="code">Temporary password</label>
+          <input type="text" id="code" v-model="form.code" />
+          <span v-if="errors.code" class="error">{{ errors.code }}</span>
+        </div>
+        <div class="form-group">
+          <label for="newPassword">New password</label>
+          <input
+            :type="showPassword ? 'text' : 'password'"
+            id="newPassword"
+            v-model="form.newPassword"
+          />
+          <span v-if="errors.newPassword" class="error">{{
+            errors.newPassword
+          }}</span>
+        </div>
+        <div class="form-group">
+          <label for="confirmNewPassword">Confirm new password</label>
+          <input
+            :type="showPassword ? 'text' : 'password'"
+            id="confirmNewPassword"
+            v-model="confirmNewPassword"
+          />
+          <div class="checkbox-group">
+            <div class="item" @click="togglePassword">
+              <input type="checkbox" id="showPassword" v-model="showPassword" />
+              <svg
+                v-if="showPassword"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 448 512"
+              >
+                <path
+                  d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"
+                />
+              </svg>
+            </div>
+            <label for="showPassword">Show password</label>
           </div>
-          <label for="showPassword">Show password</label>
+          <div v-if="errors.confirmNewPassword" class="error">
+            {{ errors.confirmNewPassword }}
+          </div>
         </div>
-        <div v-if="errors.confirmNewPassword" class="error">
-          {{ errors.confirmNewPassword }}
+        <div class="button-group">
+          <ButtonAPI class="btn-red standard-button"> Submit </ButtonAPI>
+          <button
+            type="button"
+            class="btn-back standard-button"
+            @click="goBack"
+          >
+            Back
+          </button>
         </div>
-      </div>
-      <div class="button-group">
-        <ButtonAPI :disabled="store.isLoading" class="btn-red standard-button">
-          Submit
-        </ButtonAPI>
-        <button type="button" class="btn-back standard-button" @click="goBack">
-          Back
-        </button>
-      </div>
+      </fieldset>
     </form>
 
     <div v-show="forgotPasswordStore.error" class="error">
@@ -100,12 +97,12 @@
     <footer>
       <router-link to="/">Go back to login</router-link>
     </footer>
+
     <Modal
       :isModalOpen="store.isModalOpen"
       title="Reset successfully"
       :redirectToLogin="true"
-    >
-    </Modal>
+    />
   </div>
 </template>
 
@@ -116,7 +113,7 @@ import { useForgotPasswordStore } from "@/stores/forgotPasswordStore";
 import { useStore } from "@/stores/useStore";
 import Modal from "@/components/Modal.vue";
 import ButtonAPI from "@/components/ButtonAPI.vue";
-import { validationService } from "@/services/validationService.js";
+import { validationService } from "@/services/validationUserService.js";
 
 const forgotPasswordStore = useForgotPasswordStore();
 const store = useStore();
@@ -182,7 +179,7 @@ const handleSetNewPassword = async () => {
     confirmNewPassword.value
   );
 
-  const validationErrors = validationService.validateStep2(form);
+  const validationErrors = validationService.validateForgotPassword(form);
   Object.assign(errors, validationErrors);
 
   // Check if confirmNewPassword is empty

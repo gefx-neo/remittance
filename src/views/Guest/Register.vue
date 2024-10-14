@@ -7,94 +7,77 @@
         <router-link to="/">Login here</router-link>
       </div>
     </div>
+
     <form @submit.prevent="handleRegister">
-      <div class="form-group">
-        <label for="surname">Surname</label>
-        <input
-          type="text"
-          id="surname"
-          v-model="form.surname"
-          :disabled="store.isLoading"
-        />
-        <span v-if="errors.surname" class="error">{{ errors.surname }}</span>
-      </div>
-      <div class="form-group">
-        <label for="givenName">Given name</label>
-        <input
-          type="text"
-          id="givenName"
-          v-model="form.givenName"
-          :disabled="store.isLoading"
-        />
-        <span v-if="errors.givenName" class="error">{{
-          errors.givenName
-        }}</span>
-      </div>
-      <div class="form-group">
-        <label for="emailAddress">E-mail address</label>
-        <input
-          type="text"
-          id="emailAddress"
-          v-model="form.emailAddress"
-          :disabled="store.isLoading"
-        />
-        <span v-if="errors.emailAddress" class="error">
-          {{ errors.emailAddress }}
-        </span>
-      </div>
-
-      <div class="form-group">
-        <label>Account type</label>
-        <div class="radio-group">
-          <div class="item">
-            <input
-              type="radio"
-              id="individual"
-              name="accountType"
-              value="Natural Person"
-              v-model="form.accountType"
-              :disabled="store.isLoading"
-            />
-            <label for="individual">Individual</label>
-          </div>
-          <div class="item">
-            <input
-              type="radio"
-              id="business"
-              name="accountType"
-              value="Corporate & Trading Company"
-              v-model="form.accountType"
-            />
-            <label for="business">Business</label>
-          </div>
+      <fieldset :disabled="store.isLoading">
+        <div class="form-group">
+          <label for="surname">Surname</label>
+          <input type="text" id="surname" v-model="form.surname" />
+          <span v-if="errors.surname" class="error">{{ errors.surname }}</span>
         </div>
-        <span v-if="errors.accountType" class="error">
-          {{ errors.accountType }}
-        </span>
-      </div>
+        <div class="form-group">
+          <label for="givenName">Given name</label>
+          <input type="text" id="givenName" v-model="form.givenName" />
+          <span v-if="errors.givenName" class="error">{{
+            errors.givenName
+          }}</span>
+        </div>
+        <div class="form-group">
+          <label for="emailAddress">E-mail address</label>
+          <input type="text" id="emailAddress" v-model="form.emailAddress" />
+          <span v-if="errors.emailAddress" class="error">
+            {{ errors.emailAddress }}
+          </span>
+        </div>
 
-      <div
-        class="form-group"
-        v-if="form.accountType === 'Corporate & Trading Company'"
-      >
-        <label for="companyName">Registered company name</label>
-        <input
-          type="text"
-          id="companyName"
-          v-model="form.companyName"
-          :disabled="store.isLoading"
-        />
-        <span v-if="errors.companyName" class="error">
-          {{ errors.companyName }}
-        </span>
-      </div>
-      <ButtonAPI :disabled="store.isLoading" class="btn-red standard-button">
-        Register
-      </ButtonAPI>
+        <div class="form-group">
+          <label>Account type</label>
+          <div class="radio-group">
+            <div class="item">
+              <input
+                type="radio"
+                id="individual"
+                name="accountType"
+                value="Natural Person"
+                v-model="form.accountType"
+              />
+              <label for="individual">Individual</label>
+            </div>
+            <div class="item">
+              <input
+                type="radio"
+                id="business"
+                name="accountType"
+                value="Corporate & Trading Company"
+                v-model="form.accountType"
+              />
+              <label for="business">Business</label>
+            </div>
+          </div>
+          <span v-if="errors.accountType" class="error">
+            {{ errors.accountType }}
+          </span>
+        </div>
+
+        <div
+          class="form-group"
+          v-if="form.accountType === 'Corporate & Trading Company'"
+        >
+          <label for="companyName">Registered company name</label>
+          <input type="text" id="companyName" v-model="form.companyName" />
+          <span v-if="errors.companyName" class="error">
+            {{ errors.companyName }}
+          </span>
+        </div>
+
+        <ButtonAPI class="btn-red standard-button"> Register </ButtonAPI>
+      </fieldset>
     </form>
+
     <div v-if="registerStore.error" class="error">
       {{ registerStore.error }}
     </div>
+
     <Modal
       :isModalOpen="store.isModalOpen"
       title="Account created"
@@ -108,7 +91,7 @@ import { onBeforeRouteLeave } from "vue-router";
 import { reactive } from "vue";
 import { useRegisterStore } from "@/stores/registerStore";
 import { useStore } from "@/stores/useStore";
-import { validationService } from "@/services/validationService.js";
+import { validationService } from "@/services/validationUserService.js";
 import Modal from "@/components/Modal.vue";
 import ButtonAPI from "@/components/ButtonAPI.vue";
 

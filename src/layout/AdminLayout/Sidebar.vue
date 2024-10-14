@@ -15,7 +15,11 @@
     </div>
 
     <div class="navigation">
-      <h2>Remittance</h2>
+      <div class="title">
+        <h3>Remittance</h3>
+        <font-awesome-icon :icon="['fa', 'chevron-down']" />
+      </div>
+
       <RouterLink v-for="route in routes" :key="route.label" :to="route.to">
         <span class="icon">
           <font-awesome-icon :icon="route.icon" size="1x" />
@@ -29,14 +33,14 @@
     class="backdrop"
     :class="{ open: store.isSidebarOpen }"
   ></div>
-  <div class="mobile-footer-container">
+  <!-- <div class="mobile-footer-container">
     <RouterLink v-for="route in routes" :key="route.label" :to="route.to">
       <span class="icon">
         <font-awesome-icon :icon="route.icon" size="1x" />
       </span>
       <span class="label">{{ route.label }}</span>
     </RouterLink>
-  </div>
+  </div> -->
 </template>
 
 <script setup>
@@ -105,21 +109,37 @@ router.afterEach(() => {
 .navigation {
   display: flex;
   flex-direction: column;
-  margin-left: var(--size-24);
+  margin: 0 var(--size-8);
   border: 1px solid var(--light-grey);
   border-radius: var(--border-md);
 }
 
-.navigation h2 {
-  padding: var(--size-dropdown-item);
+.navigation .title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--sky-blue);
+  padding: var(--size-12) var(--size-4);
   border-bottom: 1px solid var(--light-grey);
+  border-radius: var(--border-md);
+  border-bottom-left-radius: 0px;
+  border-bottom-right-radius: 0px;
+  cursor: pointer;
+}
+
+.navigation .title svg {
+  min-width: var(--size-16);
+  max-width: var(--size-16);
+  min-height: var(--size-16);
+  max-height: var(--size-16);
+  color: var(--slate-blue);
 }
 
 .navigation a {
   display: flex;
   align-items: center;
   gap: var(--size-12);
-  padding: var(--size-dropdown-item);
+  padding: var(--size-12) var(--size-4);
   color: var(--cool-blue);
   text-decoration: none;
   border-bottom: 1px solid var(--light-grey);
@@ -171,6 +191,7 @@ router.afterEach(() => {
     max-height: 100dvh;
     overflow-y: auto;
     z-index: 1060;
+    transition: visibility 0.3s, transform 0.3s;
   }
 
   .sidebar-container:not(.open) {
@@ -189,7 +210,20 @@ router.afterEach(() => {
   }
 
   .navigation {
-    padding-right: var(--size-24);
+    border: none;
+    margin: 0px;
+  }
+
+  .navigation .title {
+    background: none;
+    border-bottom: none;
+    padding: var(--size-12) var(--size-8);
+  }
+
+  .navigation a {
+    border-bottom: none;
+    padding-right: 0;
+    padding: var(--size-12) var(--size-8);
   }
 }
 

@@ -186,8 +186,8 @@
 
 .btn-delete {
   background: var(--white);
-  border: 1px solid var(--crimson-red);
   color: var(--crimson-red);
+  border: 1px solid var(--crimson-red);
   font-weight: var(--semi-bold);
 }
 
@@ -224,22 +224,22 @@
 }
 
 .btn-back:hover {
-  border: 1px solid var(--grey);
-  color: var(--grey);
+  border: 1px solid var(--darkest-grey);
+  color: var(--darkest-grey);
 }
 
 .btn-back:focus {
   border: 1px solid var(--darker-grey);
-  color: var(--darker-grey);
 }
 
 .btn-back:focus:not(:focus-visible) {
-  border: 1px solid #666666;
+  border: 1px solid var(--black);
+  color: var(--black);
 }
 
 .btn-back:focus:hover {
-  border: 1px solid var(--grey);
-  color: var(--grey);
+  border: 1px solid var(--darkest-grey);
+  color: var(--darkest-grey);
 }
 
 .btn-back:focus:active {

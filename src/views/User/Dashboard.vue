@@ -5,7 +5,7 @@
         <div class="form-group">
           <label>Sending amount</label>
           <div class="input-group">
-            <input type="text" />
+            <input type="text" v-model="sendingAmount" />
             <div class="dropdown">
               <button @click="currencyStore.toggleSenderDropdown">
                 <img
@@ -26,7 +26,7 @@
         <div class="form-group">
           <label>Receiving amount</label>
           <div class="input-group">
-            <input type="text" />
+            <input type="text" v-model="receivingAmount" />
             <div class="dropdown">
               <button @click="currencyStore.toggleBeneficiaryDropdown">
                 <img
@@ -58,7 +58,9 @@
       </div>
 
       <div class="button-group">
-        <button class="btn-red standard-button">Calculate</button>
+        <button class="btn-red standard-button" @click="submitForm">
+          Calculate
+        </button>
       </div>
     </div>
 
@@ -114,24 +116,6 @@
           </div>
         </div>
       </div>
-      <!-- <div class="beneficiary">
-        <div class="title">
-          <h3>Popular Beneficiary</h3>
-          <router-link to="/history">
-            <font-awesome-icon :icon="['fa', 'plus']" />
-          </router-link>
-        </div>
-        <div class="item-section">
-          <div
-            v-for="(beneficiary, index) in beneficiaries.slice(0, 3)"
-            :key="index"
-            class="item"
-          >
-            <div class="icon-round">{{ beneficiary.initials }}</div>
-            <span>{{ beneficiary.name }}</span>
-          </div>
-        </div>
-      </div> -->
       <div class="currency">
         <div class="title">
           <h3>Current Rates</h3>
@@ -155,18 +139,10 @@
       </div>
     </div>
   </div>
-  <div
-    class="backdrop"
-    :class="{
-      open:
-        currencyStore.isBeneficiaryDropdownOpen ||
-        currencyStore.isSenderDropdownOpen,
-    }"
-  ></div>
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, watch } from "vue";
+import { ref, onMounted, onUnmounted, watch } from "vue";
 import CurrencyDropdown from "@/components/CurrencyDropdown.vue";
 import { useCurrencyStore } from "@/stores/currencyStore";
 import { useTransactionStore } from "@/stores/transactionStore";
@@ -178,6 +154,10 @@ const transactionStore = useTransactionStore();
 const beneficiaryStore = useBeneficiaryStore();
 const { transactions } = storeToRefs(transactionStore);
 const { beneficiaries } = storeToRefs(beneficiaryStore);
+
+// Ref for input values
+const sendingAmount = ref("");
+const receivingAmount = ref("");
 
 const updateSenderCurrency = (currency) => {
   currencyStore.setSenderCurrency(currency);
@@ -200,32 +180,13 @@ const currencies = [
   { icon: "src/assets/currency/myr.svg", code: "MYR", rate: "SGD 0.30" },
 ];
 
-const handleClickOutside = (event) => {
-  if (!event.target.closest(".dropdown")) {
-    currencyStore.closeAllDropdowns();
-  }
+// Method to handle form submission
+const submitForm = () => {
+  console.log("Sending Amount:", sendingAmount.value);
+  console.log("Sending Currency:", currencyStore.senderCurrency.code);
+  console.log("Receiving Amount:", receivingAmount.value);
+  console.log("Receiving Currency:", currencyStore.beneficiaryCurrency.code);
 };
-
-watch(
-  () =>
-    currencyStore.isSenderDropdownOpen ||
-    currencyStore.isBeneficiaryDropdownOpen,
-  (newValue) => {
-    if (newValue) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-  }
-);
-
-onMounted(() => {
-  document.addEventListener("click", handleClickOutside);
-});
-
-onUnmounted(() => {
-  document.removeEventListener("click", handleClickOutside);
-});
 </script>
 
 <style scoped>

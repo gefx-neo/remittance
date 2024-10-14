@@ -71,7 +71,7 @@ import { onBeforeRouteLeave } from "vue-router";
 import { ref, reactive } from "vue";
 import { useAuthStore } from "@/stores/authStore";
 import { useStore } from "@/stores/useStore";
-import { validationService } from "@/services/validationService.js";
+import { validationService } from "@/services/validationUserService.js";
 import ButtonAPI from "@/components/ButtonAPI.vue";
 
 const authStore = useAuthStore();

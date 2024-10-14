@@ -5,6 +5,7 @@
         :title="'Transaction Management'"
         :data="tableData"
         :headers="headers"
+        :actions="true"
         :bordered="true"
         :totalRows="totalRows"
         :offset="pagination.offset"

@@ -199,4 +199,13 @@ const router = createRouter({
   routes,
 });
 
+// Global beforeEach to check session
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore();
+
+  authStore.checkSession();
+
+  next();
+});
+
 export default router;

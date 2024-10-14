@@ -58,6 +58,7 @@
               </span>
             </div>
           </th>
+          <th v-if="actions">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -74,13 +75,41 @@
                   >{{ row[header.key] }}</a
                 >
                 <span class="tooltip">
-                  Please login at OMS for full access.
+                  Please log in OMS first to access more details
                 </span>
+              </div>
+            </template>
+            <template v-else-if="header.key === 'status'">
+              <div
+                :class="[
+                  'status',
+                  row.status === 'Active' ? 'active' : 'suspended',
+                ]"
+              >
+                {{ row.status }}
               </div>
             </template>
             <template v-else>
               {{ row[header.key] }}
             </template>
+          </td>
+          <td v-if="actions">
+            <button v-if="hasSuspend" @click="deleteItem(row)">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                <path
+                  d="M367.2 412.5L99.5 144.8C77.1 176.1 64 214.5 64 256c0 106 86 192 192 192c41.5 0 79.9-13.1 111.2-35.5zm45.3-45.3C434.9 335.9 448 297.5 448 256c0-106-86-192-192-192c-41.5 0-79.9 13.1-111.2 35.5L412.5 367.2zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256z"
+                />
+              </svg>
+              <span class="tooltip"> Suspend </span>
+            </button>
+            <button v-if="hasDelete" @click="deleteItem(row)">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                <path
+                  d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z"
+                />
+              </svg>
+              <span class="tooltip"> Delete </span>
+            </button>
           </td>
         </tr>
       </tbody>
@@ -158,6 +187,18 @@ const props = defineProps({
     type: Array,
     required: true,
   },
+  actions: {
+    type: Boolean,
+    required: true,
+  },
+  hasSuspend: {
+    type: Boolean,
+    default: false,
+  },
+  hasDelete: {
+    type: Boolean,
+    default: false,
+  },
   bordered: {
     type: Boolean,
     default: false,
@@ -176,7 +217,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["sort", "pagination"]);
+const emit = defineEmits(["sort", "pagination", "delete"]);
 const sortKey = ref(""); // To track which header is being sorted
 const sortOrder = ref("asc");
 const currentPage = ref(1);
@@ -204,8 +245,8 @@ const sort = (key) => {
   if (sortKey.value === key) {
     sortOrder.value = sortOrder.value === "asc" ? "desc" : "asc";
   } else {
-    sortKey.value = key; // Set the newly clicked column as sort key
-    sortOrder.value = "asc"; // Reset the sort order when a new column is sorted
+    sortKey.value = key;
+    sortOrder.value = "asc";
   }
   emit("sort", { key, order: sortOrder.value });
 };
@@ -214,6 +255,11 @@ const changePage = (page) => {
   if (page < 1 || page > totalPages.value) return;
   currentPage.value = page;
   emit("pagination", { offset: (page - 1) * props.limit, limit: props.limit });
+};
+
+const deleteItem = (item) => {
+  console.log("Delete", item);
+  emit("delete", item);
 };
 
 const exportToExcel = () => {
@@ -311,11 +357,12 @@ thead tr th .sort-item {
   justify-content: center;
   align-items: center;
   gap: var(--size-4);
-  cursor: pointer;
+  font-weight: var(--semi-bold);
 }
 
 thead tr th .sort-item span {
   display: flex;
+  cursor: pointer;
 }
 
 thead tr th .sort-item svg {
@@ -337,7 +384,8 @@ tbody tr td a {
 }
 
 tbody tr td button {
-  padding: 0 var(--size-4);
+  padding: var(--size-4) var(--size-8);
+  position: relative;
 }
 
 tbody tr td button svg {
@@ -345,19 +393,23 @@ tbody tr td button svg {
   max-width: var(--size-16);
   min-height: var(--size-16);
   max-height: var(--size-16);
+  fill: var(--darker-crimson-red);
 }
-
-tbody tr td button:nth-child(2) svg {
-  fill: var(--crimson-red);
+tbody tr td button:hover .tooltip {
+  opacity: 1;
 }
 
 tbody tr td .tooltip {
   opacity: 0;
   position: absolute;
-  bottom: 100%;
+  /* bottom: 100%;
   left: 50%;
   width: max-content;
-  transform: translateX(-50%);
+  transform: translateX(-50%); */
+  top: 0%;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  width: max-content;
   background: var(--grey);
   color: var(--white);
   padding: var(--size-8);
@@ -370,7 +422,24 @@ tbody tr td .tooltip {
 
 tbody tr td .fullname:hover .tooltip {
   opacity: 1;
-  z-index: 10;
+}
+
+tbody tr td .status {
+  font-size: var(--text-sm);
+  border-radius: var(--border-sm);
+  max-width: min-content;
+  margin: auto;
+  padding: var(--size-4) var(--size-8);
+}
+
+tbody tr td .status.active {
+  background: var(--pastel-green);
+  color: white;
+}
+
+tbody tr td .status.suspended {
+  background: var(--darker-crimson-red);
+  color: white;
 }
 
 .pagination-section {

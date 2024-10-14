@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useAuthStore } from "@/stores/authStore"; // import authStore to handle logout
 import cookieService from "../services/cookieService";
 
 // Set the default base URL for all axios requests
@@ -10,6 +11,7 @@ const axiosInstance = axios.create({
   },
 });
 
+// Request interceptor to append the Authorization header
 axiosInstance.interceptors.request.use(
   (config) => {
     // Retrieve token from the cookie if it exists
@@ -25,6 +27,24 @@ axiosInstance.interceptors.request.use(
     return config;
   },
   (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor to handle 401 errors
+axiosInstance.interceptors.response.use(
+  (response) => {
+    // Any status code within the range of 2xx triggers this function
+    return response;
+  },
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      console.log("401 Unauthorized detected, logging out...");
+
+      // Unauthorized access, log the user out
+      const authStore = useAuthStore();
+      authStore.logout();
+    }
     return Promise.reject(error);
   }
 );

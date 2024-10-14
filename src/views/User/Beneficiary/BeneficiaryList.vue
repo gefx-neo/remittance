@@ -16,8 +16,8 @@
         </div>
         <div class="button-group">
           <button
-            class="btn-blue standard-button"
             @click="navigateToAddBeneficiary"
+            class="btn-blue standard-button"
           >
             <span class="desktop">New Beneficiary</span>
             <span class="mobile">

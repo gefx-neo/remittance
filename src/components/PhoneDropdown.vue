@@ -1,7 +1,7 @@
 <template>
   <div class="dropdown-menu" :class="{ open: isDropdownOpen }">
     <div class="header">
-      <div class="btn-close" @click="currencyStore.closeAllDropdowns">
+      <div class="btn-close" @click="countryStore.closeDropdown">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
           <path
             d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"
@@ -10,27 +10,26 @@
       </div>
     </div>
     <div class="body">
-      <div class="title">Selected currency</div>
-      <div class="item" @click="currencyStore.closeAllDropdowns">
-        <div class="currency">
-          <img :src="`/assets/currency/${selectedCurrency.code}.svg`" />
-          <span class="code">{{ selectedCurrency.code }}</span>
-          <span class="name">{{ selectedCurrency.name }}</span>
+      <div class="title">Selected country code</div>
+      <div class="item" @click="countryStore.closeDropdown">
+        <div class="country">
+          <span class="name">{{ selectedCountry.Name }}</span>
+          <span class="code">{{ selectedCountry.Code }}</span>
         </div>
         <font-awesome-icon :icon="['fas', 'check']" class="icon-check" />
       </div>
-      <div class="title">All currencies</div>
+
+      <div class="title">All country code</div>
       <div
-        v-for="item in currencies"
-        :key="item.code"
-        @click="selectCurrency(item)"
+        v-for="item in countryStore.countryCodes"
+        :key="item.Code"
+        @click="selectCountry(item)"
         class="item"
         :class="{ active: isActive(item) }"
       >
-        <div class="currency">
-          <img :src="`/assets/currency/${item.code}.svg`" />
-          <span class="code">{{ item.code }}</span>
-          <span class="name">{{ item.name }}</span>
+        <div class="country">
+          <span class="name">{{ item.Name }}</span>
+          <span class="code">{{ item.Code }}</span>
         </div>
         <font-awesome-icon
           v-if="isActive(item)"
@@ -40,62 +39,65 @@
       </div>
     </div>
   </div>
-
   <div
     class="backdrop"
-    @click="currencyStore.closeAllDropdowns"
+    @click="countryStore.isDropdownOpen = false"
     :class="{
-      open:
-        currencyStore.isBeneficiaryDropdownOpen ||
-        currencyStore.isSenderDropdownOpen,
+      open: countryStore.isDropdownOpen,
     }"
   ></div>
 </template>
 
 <script setup>
-import { computed } from "vue";
-import { useCurrencyStore } from "@/stores/currencyStore";
+import { computed, onMounted, onUnmounted, watch } from "vue";
+import { useCountryStore } from "@/stores/countryStore";
 
 const props = defineProps({
-  currencyType: {
-    type: String,
-    required: true,
-  },
-  isDropdownOpen: {
-    type: Boolean,
-    required: true,
-  },
+  isDropdownOpen: Boolean,
 });
 
-const emit = defineEmits(["updateCurrency"]);
+const emit = defineEmits(["updateTelCode"]);
+const countryStore = useCountryStore();
 
-const currencyStore = useCurrencyStore();
+// Track the selected country from the store
+const selectedCountry = computed(() => {
+  return countryStore.countryCodes.find(
+    (country) => country.Code === countryStore.selectedCode
+  );
+});
 
-const currencies = computed(() => currencyStore.currencies);
+const isActive = (item) => item.Code === countryStore.selectedCode;
 
-const selectedCurrency = computed({
-  get() {
-    return props.currencyType === "sender"
-      ? currencyStore.senderCurrency
-      : currencyStore.beneficiaryCurrency;
-  },
-  set(value) {
-    if (props.currencyType === "sender") {
-      currencyStore.setSenderCurrency(value);
+// Select country and emit the change
+const selectCountry = (item) => {
+  countryStore.setSelectedCode(item.Code);
+  emit("updateTelCode", item.Code);
+};
+
+const handleClickOutside = (event) => {
+  if (!event.target.closest(".dropdown")) {
+    countryStore.closeDropdown();
+  }
+};
+
+watch(
+  () => countryStore.isDropdownOpen,
+  (newValue) => {
+    if (newValue) {
+      document.body.style.overflow = "hidden";
     } else {
-      currencyStore.setBeneficiaryCurrency(value);
+      document.body.style.overflow = "";
     }
-  },
+  }
+);
+
+onMounted(() => {
+  document.addEventListener("click", handleClickOutside);
 });
 
-const isActive = (item) => {
-  return item.code === selectedCurrency.value.code;
-};
-
-const selectCurrency = (item) => {
-  selectedCurrency.value = item;
-  emit("updateCurrency", item);
-};
+onUnmounted(() => {
+  document.removeEventListener("click", handleClickOutside);
+});
 </script>
 
 <style scoped>
@@ -103,7 +105,7 @@ const selectCurrency = (item) => {
   visibility: hidden;
   position: absolute;
   top: 100%;
-  right: 0;
+  left: 0;
   z-index: 1056;
   margin: 0;
   width: 330px;
@@ -158,7 +160,7 @@ const selectCurrency = (item) => {
   border: 1px solid var(--slate-blue);
 }
 
-.dropdown-menu .item .currency {
+.dropdown-menu .item .country {
   display: flex;
   align-items: center;
   gap: var(--size-8);
@@ -171,12 +173,12 @@ const selectCurrency = (item) => {
   max-height: var(--size-24);
 }
 
-.dropdown-menu .item .code {
+.dropdown-menu .item .name {
   color: var(--slate-blue);
   font-weight: var(--semi-bold);
 }
 
-.dropdown-menu .item .name {
+.dropdown-menu .item .code {
   font-size: var(--text-sm);
 }
 

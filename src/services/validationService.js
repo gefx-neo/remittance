@@ -1,7 +1,6 @@
 export const validationService = {
-  // Helper to trim the value before any validation
   trimValue(value) {
-    return value ? value.trim() : "";
+    return value ? value.trim() : value;
   },
 
   // Trims all form fields before validation
@@ -13,113 +12,54 @@ export const validationService = {
     });
   },
 
-  // Common validation methods
-  isRequired(value, fieldName) {
-    if (!value) {
-      return `${fieldName} is required.`;
-    }
-    return null;
+  // Generic validation to check required fields with the field label
+  isRequired(value, label) {
+    return value && value !== "" ? null : `${label} is required.`;
   },
 
-  isValidEmail(value) {
+  // Email validation
+  isEmail(value) {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailPattern.test(value)) {
-      return "Invalid e-mail address.";
+    return emailPattern.test(value) ? null : "Invalid email format.";
+  },
+
+  // Phone number validation
+  isPhoneNumber(value, label) {
+    const phonePattern = /^[0-9\s\-+()]*$/;
+    if (!phonePattern.test(value)) {
+      return `Invalid ${label.toLowerCase()} format.`;
     }
-    return null;
   },
 
-  isAccountTypeSelected(value) {
-    if (!value) {
-      return "Please select an account type.";
-    }
-    return null;
-  },
+  // Validate form based on a schema
+  validateForm(validationSchema) {
+    const errors = {};
 
-  isCompanyName(value, accountType) {
-    if (accountType === "Corporate & Trading Company" && !value) {
-      return "Registered company name is required for Business accounts.";
-    }
-    return null;
-  },
+    // Trim all values in the schema
+    const trimmedSchema = Object.keys(validationSchema).reduce((acc, field) => {
+      acc[field] = {
+        ...validationSchema[field],
+        value: this.trimValue(validationSchema[field].value),
+      };
+      return acc;
+    }, {});
 
-  // Validation for Step 1: Username (Email) input
-  validateUsername(form) {
-    this.trimFormFields(form);
+    Object.keys(trimmedSchema).forEach((field) => {
+      const { value, label, rules } = trimmedSchema[field];
 
-    let errors = {};
+      if (!rules || !Array.isArray(rules)) {
+        console.warn(`No rules defined for field: ${field}`);
+        return;
+      }
 
-    const usernameError =
-      this.isRequired(form.username, "E-mail address") ||
-      this.isValidEmail(form.username);
-    if (usernameError) errors.username = usernameError;
-
-    return errors;
-  },
-
-  validatePassword(form) {
-    this.trimFormFields(form);
-
-    let errors = {};
-
-    const passwordError = this.isRequired(form.password, "Password");
-    if (passwordError) errors.password = passwordError;
-
-    return errors;
-  },
-
-  // Renamed from validatePasswordRules to isPasswordRules
-  isPasswordRules(value) {
-    const passwordPattern = /^(?=.*[A-Z])(?=.*[!@#$&*]).{8,12}$/;
-    if (!passwordPattern.test(value)) {
-      return "Password must be 8 to 12 characters long, include at least one capital letter and one special character.";
-    }
-    return null;
-  },
-
-  // Validation for Step 2: Code and New Password
-  validateStep2(form) {
-    this.trimFormFields(form);
-
-    let errors = {};
-
-    const codeError = this.isRequired(form.code, "Temporary password");
-    if (codeError) errors.code = codeError;
-
-    const passwordError =
-      this.isRequired(form.newPassword, "New password") ||
-      this.isPasswordRules(form.newPassword);
-    if (passwordError) errors.newPassword = passwordError;
-
-    return errors;
-  },
-
-  // Validation for the entire Registration form
-  validateRegister(form) {
-    this.trimFormFields(form);
-
-    let errors = {};
-
-    const surnameError = this.isRequired(form.surname, "Surname");
-    if (surnameError) errors.surname = surnameError;
-
-    const givenNameError = this.isRequired(form.givenName, "Given name");
-    if (givenNameError) errors.givenName = givenNameError;
-
-    const emailError =
-      this.isRequired(form.emailAddress, "E-mail address") ||
-      this.isValidEmail(form.emailAddress);
-    if (emailError) errors.emailAddress = emailError;
-
-    const accountTypeError = this.isAccountTypeSelected(form.accountType);
-    if (accountTypeError) errors.accountType = accountTypeError;
-
-    const companyNameError = this.isCompanyName(
-      form.companyName,
-      form.accountType
-    );
-    if (companyNameError) errors.companyName = companyNameError;
-
+      for (const rule of rules) {
+        const error = rule(value, label);
+        if (error) {
+          errors[field] = error;
+          break; // Stop at the first error
+        }
+      }
+    });
     return errors;
   },
 };

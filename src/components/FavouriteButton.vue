@@ -11,14 +11,16 @@
       />
     </svg>
 
-    <span class="tooltip">
-      {{ tooltipContent }}
-    </span>
+    <transition name="fade">
+      <span class="tooltip">
+        {{ tooltipContent }}
+      </span>
+    </transition>
   </button>
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { useBeneficiaryStore } from "@/stores/beneficiaryStore";
 
 const props = defineProps({
@@ -30,27 +32,26 @@ const props = defineProps({
 
 const beneficiaryStore = useBeneficiaryStore();
 
-// Get the beneficiary using the ID passed via props
 const beneficiary = computed(() =>
   beneficiaryStore.beneficiaries.find((b) => b.id === props.beneficiaryId)
 );
 
 const isFavourite = computed(() => beneficiary.value?.favouriteStatus);
-
 const tooltipContent = ref("");
 
-// Method to toggle the favorite status and update tooltip content
 const toggleFavourite = () => {
   beneficiaryStore.toggleFavourite(props.beneficiaryId);
   updateTooltipContent();
 };
 
-// Update the tooltip content based on the favorite status
 const updateTooltipContent = () => {
   tooltipContent.value = isFavourite.value
     ? "Remove favourite"
     : "Add favourite";
 };
+
+// Watch for changes in the favourite status to update the tooltip
+watch(isFavourite, updateTooltipContent);
 
 updateTooltipContent();
 </script>
@@ -81,11 +82,19 @@ updateTooltipContent();
   white-space: nowrap;
   overflow: hidden;
   font-size: var(--text-sm);
-  transition: opacity 0.3s ease-in-out;
-  pointer-events: none; /* Prevent tooltip from affecting pointer events */
+  pointer-events: none;
 }
 
 .favourite:hover .tooltip {
   opacity: 1;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease-in-out;
+}
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

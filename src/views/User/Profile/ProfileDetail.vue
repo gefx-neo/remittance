@@ -8,7 +8,9 @@
             >{{ profileDetails.givenName }} {{ profileDetails.surname }}</span
           >
         </div>
-        <button class="btn-blue">Verify account</button>
+        <button @click="navigateToAccountVerification" class="btn-blue">
+          Verify account
+        </button>
       </div>
 
       <div class="item-section">
@@ -41,9 +43,12 @@
 </template>
 
 <script setup>
+import { useRouter } from "vue-router";
 import { ref, computed, onMounted, reactive } from "vue";
 import { useProfileStore } from "@/stores/profileStore";
 import { getLocalStorageWithExpiry } from "@/services/localStorageService.js";
+
+const router = useRouter();
 
 const profileStore = useProfileStore();
 
@@ -70,6 +75,10 @@ onMounted(async () => {
   Object.assign(profileDetails, profileStore.profileDetails); // Assign store data to reactive object
   username.value = getLocalStorageWithExpiry("username");
 });
+
+const navigateToAccountVerification = () => {
+  router.push({ name: "accountverification" });
+};
 </script>
 
 <style scoped>

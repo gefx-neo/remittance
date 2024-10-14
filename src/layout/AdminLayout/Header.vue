@@ -19,13 +19,14 @@
       ref="profileDropdown"
     >
       <button class="user" @click="store.toggleDropdown">
-        <font-awesome-icon :icon="['fas', 'user']" />
+        <font-awesome-icon :icon="['fas', 'user']" class="desktop" />
+        <font-awesome-icon :icon="['fas', 'bars']" class="mobile" />
         <span class="name">{{ username }}</span>
-        <font-awesome-icon
+        <!-- <font-awesome-icon
           :icon="['fa', 'chevron-down']"
           class="arrow-down"
           :class="{ open: store.isDropdownOpen }"
-        />
+        /> -->
       </button>
       <div class="dropdown-menu" :class="{ open: store.isDropdownOpen }">
         <div class="btn-close" @click="store.closeDropdown">
@@ -45,7 +46,15 @@
           </span>
           <span>Setting</span>
         </RouterLink> -->
-        <button class="logout" @click="logout">
+        <div class="mobile">
+          <RouterLink v-for="route in routes" :key="route.label" :to="route.to">
+            <span class="icon">
+              <font-awesome-icon :icon="route.icon" size="1x" />
+            </span>
+            <span class="label">{{ route.label }}</span>
+          </RouterLink>
+        </div>
+        <button type="submit" class="logout" @click="logout">
           <span class="icon">
             <font-awesome-icon :icon="['fas', 'sign-out-alt']" size="1x" />
           </span>
@@ -58,7 +67,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
-import { useRouter, RouterLink } from "vue-router";
+import { useRouter } from "vue-router";
 import { useAuthStore } from "../../stores/authStore.js";
 import { useStore } from "@/stores/useStore";
 import { getLocalStorageWithExpiry } from "@/services/localStorageService.js";
@@ -75,6 +84,29 @@ const logout = async () => {
     console.error("Failed to get username to logout:", error);
   }
 };
+
+const routes = [
+  {
+    to: "/admin/remittance/customermanagement",
+    icon: ["fas", "user"],
+    label: "Customer Management",
+  },
+  {
+    to: "/admin/remittance/transactionmanagement",
+    icon: ["fas", "money-bill"],
+    label: "Transaction Management",
+  },
+  {
+    to: "/admin/remittance/beneficiarymanagement",
+    icon: ["fas", "user"],
+    label: "Beneficiary Management",
+  },
+  // {
+  //   to: "/admin/remittance/auditlog",
+  //   icon: ["fas", "file"],
+  //   label: "Audit Log",
+  // },
+];
 
 onMounted(async () => {
   username.value = getLocalStorageWithExpiry("username");
@@ -107,6 +139,14 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.desktop {
+  display: block;
+}
+
+.mobile {
+  display: none;
+}
+
 .header-area {
   height: 100px;
   display: flex;
@@ -147,9 +187,11 @@ onUnmounted(() => {
 
 .profile .user {
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: var(--size-8);
   padding: var(--size-8) var(--size-4);
+  min-width: var(--size-48);
+  max-width: var(--size-48);
   min-height: var(--size-48);
   max-height: var(--size-48);
   border-radius: var(--border-md);
@@ -209,7 +251,7 @@ svg {
   padding: 8px;
   margin: 0;
   width: 320px;
-  max-height: 200px;
+  /* max-height: 200px; */
   background: var(--white);
   border-radius: var(--border-lg);
   box-shadow: 0 0 40px rgba(69, 71, 69, 0.2);
@@ -241,7 +283,7 @@ svg {
 
 .dropdown-menu a:hover,
 .dropdown-menu button:hover {
-  background: var(--sky-blue);
+  border: 1px solid var(--slate-blue);
   color: var(--slate-blue);
   fill: var(--slate-blue);
 }
@@ -284,6 +326,14 @@ svg {
   }
 }
 @media (max-width: 767px) {
+  .desktop {
+    display: none;
+  }
+
+  .mobile {
+    display: block;
+  }
+
   .header-area {
     height: 80px;
   }

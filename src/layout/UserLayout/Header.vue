@@ -247,7 +247,7 @@ svg {
 
 .dropdown-menu a:hover,
 .dropdown-menu button:hover {
-  background: var(--sky-blue);
+  border: 1px solid var(--slate-blue);
   color: var(--slate-blue);
   fill: var(--slate-blue);
 }
