@@ -1,6 +1,7 @@
 import { createRouter, createWebHashHistory } from "vue-router";
 import GuestLayout from "../layout/GuestLayout/GuestLayout.vue";
 import UserLayout from "../layout/UserLayout/UserLayout.vue";
+import ProcessLayout from "../layout/ProcessLayout/ProcessLayout.vue";
 import AdminLayout from "../layout/AdminLayout/AdminLayout.vue"; // Admin layout
 import ErrorLayout from "../layout/ErrorLayout/ErrorLayout.vue";
 import Login from "../views/Guest/Login.vue"; // Static import
@@ -127,18 +128,27 @@ const routes = [
             name: "profiledetail",
             component: () => import("../views/User/Profile/ProfileDetail.vue"),
           },
-          {
-            path: "accountverification",
-            name: "accountverification",
-            component: () =>
-              import("../views/User/Profile/AccountVerification.vue"), // Nested AccountVerification view
-          },
         ],
       },
       {
         path: "setting",
         name: "setting",
         component: () => import("../views/User/Setting.vue"),
+      },
+    ],
+  },
+
+  // Account Verification with ProcessLayout
+  {
+    path: "/profile",
+    component: ProcessLayout, // Use ProcessLayout here
+    beforeEnter: authGuard, // You can still protect this route with auth guard
+    children: [
+      {
+        path: "accountverification",
+        name: "accountverification",
+        component: () =>
+          import("../views/User/Profile/AccountVerification.vue"),
       },
     ],
   },

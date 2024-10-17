@@ -312,7 +312,7 @@ input[type="radio"]:checked + label {
 .select-item svg {
   position: absolute;
   top: 50%;
-  right: 10px;
+  right: var(--size-8);
   transform: translate(-50%, -50%);
   min-width: var(--size-16);
   max-width: var(--size-16);
@@ -325,19 +325,6 @@ input[type="radio"]:checked + label {
 .select-item select:focus + svg {
   color: var(--slate-blue);
   transition: color 0.3s ease-in-out;
-}
-
-input[type="file"] {
-  cursor: pointer;
-}
-
-input[type="file"]::file-selector-button {
-  background: var(--light-grey);
-  border: none;
-  border-radius: var(--border-md);
-  padding: var(--size-dropdown-item);
-  margin-right: var(--size-8);
-  cursor: pointer;
 }
 
 /* input:-webkit-autofill {

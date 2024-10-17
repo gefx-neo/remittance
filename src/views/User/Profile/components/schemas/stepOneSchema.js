@@ -98,7 +98,7 @@ export const corporateValidation = (corporateForm) => ({
   },
 });
 
-export const personValidation = (individualForm) => ({
+export const individualValidation = (individualForm) => ({
   name: {
     value: individualForm?.name || "",
     label: "Name",

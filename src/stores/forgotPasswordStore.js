@@ -73,7 +73,7 @@ export const useForgotPasswordStore = defineStore("forgotPasswordstore", {
         const response = await apiService.postRequest(
           "/User/setNewPassword",
           payload,
-          true
+          { format: "raw" }
         );
 
         if (response.status === 1) {

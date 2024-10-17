@@ -27,7 +27,7 @@ export const useRegisterStore = defineStore("registerStore", {
         const response = await apiService.postRequest(
           "User/register",
           payload,
-          true
+          { format: "raw" }
         );
 
         if (response.status === 1) {

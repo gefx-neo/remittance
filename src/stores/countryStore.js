@@ -1,16 +1,16 @@
 import { defineStore } from "pinia";
-import { countryCodes } from "@/data/data";
+import { countries } from "@/data/data";
 
 export const useCountryStore = defineStore("countryStore", {
   state: () => ({
-    countryCodes: countryCodes,
-    selectedCode: countryCodes.find((country) => country.Name === "Singapore")
-      .Code, // Default to Singapore's code
+    countries: countries,
+    selectedCountry: countries.find((country) => country.name === "Singapore")
+      .value, // Default to Singapore's value
     isDropdownOpen: false,
   }),
   actions: {
-    setSelectedCode(code) {
-      this.selectedCode = code;
+    setSelectedCountry(value) {
+      this.selectedCountry = value;
       this.isDropdownOpen = false;
     },
     toggleDropdown() {

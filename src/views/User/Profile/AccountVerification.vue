@@ -4,6 +4,11 @@
       <div class="title">
         <h3>Account Verification</h3>
       </div>
+      <!-- <StepBullets
+        :currentStep="currentStep"
+        :steps="['Account', 'Compliance', 'Document']"
+        @step-clicked="setStep"
+      /> -->
       <form
         :class="{
           'step-one': currentStep === 1,
@@ -12,7 +17,7 @@
         }"
       >
         <StepOne
-          v-if="currentStep === 1"
+          v-if="stepStore.currentStep === 1"
           :corporate-form="corporateForm"
           :individual-form="individualForm"
           :profile-details="profileDetails"
@@ -21,26 +26,25 @@
           @updateCustomerType="updateCustomerType"
         />
         <StepTwo
-          v-if="currentStep === 2"
+          v-if="stepStore.currentStep === 2"
           :corporate-form="corporateForm"
           :individual-form="individualForm"
           :profile-details="profileDetails"
           :selected-customer-type="selectedCustomerType"
+          :is-agent="isAgent"
+          @updateAgent="isAgent = $event"
           @nextStep="nextStep"
           @prevStep="prevStep"
         />
-        <!-- <StepThree v-if="currentStep === 3" v-model:form="form" /> -->
-
-        <div class="footer">
-          <button
-            v-if="currentStep === 3"
-            type="submit"
-            class="btn-red standard-button"
-            @click="handleSubmit"
-          >
-            Submit
-          </button>
-        </div>
+        <StepThree
+          v-if="stepStore.currentStep === 3"
+          :corporate-form="corporateForm"
+          :individual-form="individualForm"
+          :profile-details="profileDetails"
+          :selected-customer-type="selectedCustomerType"
+          @submit="handleSubmit"
+          @prevStep="prevStep"
+        />
       </form>
     </div>
   </div>
@@ -50,8 +54,11 @@
 import { ref, reactive, watch, onMounted } from "vue";
 import StepOne from "./components/StepOne.vue";
 import StepTwo from "./components/StepTwo.vue";
+import StepThree from "./components/StepThree.vue";
+import { useCountryCodeStore } from "@/stores/countryCodeStore";
 import { useCountryStore } from "@/stores/countryStore";
 import { useProfileStore } from "@/stores/profileStore";
+import { useStepStore } from "@/stores/stepStore";
 import {
   entityTypes,
   fundSource,
@@ -59,11 +66,14 @@ import {
   titles,
   hearAboutUs,
 } from "@/data/data";
-import { scrollToTop } from "@/utils/scrollUtil";
+import { getLocalStorageWithExpiry } from "@/services/localStorageService.js";
+import { useValidation } from "@/composables/useValidation";
 
+const countryCodeStore = useCountryCodeStore();
 const countryStore = useCountryStore();
 
 const profileStore = useProfileStore();
+const stepStore = useStepStore();
 
 const profileDetails = reactive({
   givenName: "",
@@ -74,10 +84,13 @@ const profileDetails = reactive({
   companyName: "",
 });
 
-const currentStep = ref(1);
+const { scrollToTop } = useValidation();
 
-// Corporate form with all fields explicitly declared
+const isAgent = ref("No"); // Store isAgent in the parent as a local ref
+const username = ref("");
+
 const corporateForm = reactive({
+  username: "",
   customerType: "Corporate & Trading Comp",
   registeredName: profileDetails.companyName,
   businessAddress: "",
@@ -86,20 +99,19 @@ const corporateForm = reactive({
   mailPostalCode: "",
   contactName: "",
   operationCountry: "",
-  countryCode: countryStore.selectedCode,
+  countryCode: countryCodeStore.selectedCode,
   telNum: "",
   contactHome: "",
   contactOffice: "",
   contactMobile: "",
   ic: "",
   jobTitle: "",
-  nationality: "",
+  nationality: countryStore.selectedCountry,
   dob: "",
   registrationPlace: "",
   registrationDate: "",
   registrationNo: "",
   entityType: entityTypes[0].value,
-  otherEntity: "",
   title: titles[0].value,
   surname: profileDetails.surname,
   givenName: profileDetails.givenName,
@@ -108,13 +120,19 @@ const corporateForm = reactive({
   fundSource: fundSource[0].value,
   purposeOfIntendedTransactions: purposeOfIntendedTransactions[0].value,
   hearAboutUs: hearAboutUs[0].value,
-  beneficiaryInvolvement: false,
-  beneficiaryFamilyInvolvement: false,
-  beneficiaryConnectionInvolvement: false,
+  beneficiaryInvolvement: "0",
+  beneficiaryFamilyInvolvement: "0",
+  beneficiaryConnectionInvolvement: "1",
+  docAccOpening: null, // Ensure file fields are declared
+  docPhotoID: null,
+  docSelfie: null,
+  docDirectorIC: null,
+  docAcra: null,
 });
 
 // Individual (Natural Person) form with all fields explicitly declared
 const individualForm = reactive({
+  username: "",
   customerType: "Natural Person",
   name: "",
   address: "",
@@ -131,6 +149,16 @@ const individualForm = reactive({
   surname: profileDetails.surname,
   givenName: profileDetails.givenName,
   naturalEmploymentType: "employed",
+  fundSource: fundSource[0].value,
+  purposeOfIntendedTransactions: purposeOfIntendedTransactions[0].value,
+  hearAboutUs: hearAboutUs[0].value,
+  beneficiaryInvolvement: "0",
+  beneficiaryFamilyInvolvement: "0",
+  beneficiaryConnectionInvolvement: "1",
+  docIC: null,
+  docSelfie: null,
+  docCard: null,
+  docKYC: null,
 });
 
 // Centralized customer type selection
@@ -141,47 +169,191 @@ const updateCustomerType = (newCustomerType) => {
   selectedCustomerType.value = newCustomerType;
 };
 
-// Handle form submission
-const handleSubmit = () => {
+// const handleSubmit = async () => {
+//   const formData = new FormData();
+
+//   // Ensure each file is paired with its corresponding folder
+//   const appendFilesWithFolder = (files, folderName) => {
+//     if (Array.isArray(files)) {
+//       files.forEach((file) => {
+//         formData.append("file", file); // Add file
+//         formData.append("folder", folderName); // Add folder name as text
+//       });
+//     } else if (files) {
+//       formData.append("file", files[0]); // Add single file
+//       formData.append("folder", folderName); // Add folder name as text
+//     }
+//   };
+
+//   // Example for corporate form
+//   if (selectedCustomerType.value === "Corporate & Trading Comp") {
+//     appendFilesWithFolder(corporateForm.docAccOpening, "AccountOpening");
+//     appendFilesWithFolder(corporateForm.docPhotoID, "BusinessAcra");
+//     appendFilesWithFolder(corporateForm.docSelfie, "CompanySelfiePhoto");
+//     appendFilesWithFolder(corporateForm.docDirectorIC, "ICWithDirector");
+//     appendFilesWithFolder(corporateForm.docAcra, "BusinessAcra");
+
+//     // Append agent files if isAgent is "Yes"
+//     if (isAgent.value === "Yes") {
+//       appendFilesWithFolder(corporateForm.agentBasisAuth, "BasisOfAuthority");
+//     }
+//   } else if (selectedCustomerType.value === "Natural Person") {
+//     // Individual customer
+//     appendFilesWithFolder(individualForm.docIC, "ICOfCustomer");
+//     appendFilesWithFolder(individualForm.docSelfie, "NaturalSelfiePhoto");
+//     appendFilesWithFolder(individualForm.docCard, "BusinessNameCard");
+//     appendFilesWithFolder(individualForm.docKYC, "KYCForm");
+//   }
+
+//   try {
+//     const uploadResponse = await profileStore.uploadFiles(formData);
+//     console.log("Upload Response:", uploadResponse);
+//   } catch (error) {
+//     console.error("File upload failed:", error);
+//   }
+// };
+
+const handleSubmit = async () => {
+  const formData = new FormData();
+
+  // Helper function to append and upload each file individually
+  const appendAndUploadFile = async (file, folderName) => {
+    const fileFormData = new FormData();
+    fileFormData.append("file", file); // Add file
+    fileFormData.append("folder", folderName); // Add folder name as text
+
+    // Log the time before the upload starts
+    const fileStartTime = new Date();
+    console.log(
+      `Uploading ${file.name} started at: ${fileStartTime.toLocaleTimeString()}`
+    );
+
+    // Upload the file
+    await profileStore.uploadFiles(fileFormData);
+
+    // Log the time after the upload finishes
+    const fileEndTime = new Date();
+    console.log(
+      `Finished uploading ${file.name} at: ${fileEndTime.toLocaleTimeString()}`
+    );
+    console.log(
+      `Time taken to upload ${file.name}: ${
+        (fileEndTime - fileStartTime) / 1000
+      } seconds`
+    );
+  };
+
+  // Helper function to gather all file upload promises
+  const appendFilesWithFolder = (files, folderName) => {
+    const uploadPromises = [];
+
+    if (Array.isArray(files)) {
+      files.forEach((file) => {
+        uploadPromises.push(appendAndUploadFile(file, folderName));
+      });
+    } else if (files) {
+      uploadPromises.push(appendAndUploadFile(files[0], folderName)); // Single file upload
+    }
+
+    return uploadPromises;
+  };
+
+  // Array to store all upload promises
+  let allUploadPromises = [];
+
+  // Append files for corporate or individual form and gather upload promises
   if (selectedCustomerType.value === "Corporate & Trading Comp") {
-    console.log("Submitting Corporate form:", corporateForm);
-    // Submission logic for corporate form
+    allUploadPromises = [
+      ...appendFilesWithFolder(corporateForm.docAccOpening, "AccountOpening"),
+      ...appendFilesWithFolder(corporateForm.docPhotoID, "BusinessAcra"),
+      ...appendFilesWithFolder(corporateForm.docSelfie, "CompanySelfiePhoto"),
+      ...appendFilesWithFolder(corporateForm.docDirectorIC, "ICWithDirector"),
+      ...appendFilesWithFolder(corporateForm.docAcra, "BusinessAcra"),
+    ];
+
+    // Append agent files if isAgent is "Yes"
+    if (isAgent.value === "Yes") {
+      allUploadPromises.push(
+        ...appendFilesWithFolder(
+          corporateForm.agentBasisAuth,
+          "BasisOfAuthority"
+        )
+      );
+    }
   } else if (selectedCustomerType.value === "Natural Person") {
-    console.log("Submitting Individual form:", individualForm);
+    allUploadPromises = [
+      ...appendFilesWithFolder(individualForm.docIC, "ICOfCustomer"),
+      ...appendFilesWithFolder(individualForm.docSelfie, "NaturalSelfiePhoto"),
+      ...appendFilesWithFolder(individualForm.docCard, "BusinessNameCard"),
+      ...appendFilesWithFolder(individualForm.docKYC, "KYCForm"),
+    ];
+  }
+
+  try {
+    // Upload all files in parallel
+    console.log("Starting file uploads in parallel...");
+    await Promise.all(allUploadPromises);
+    console.log("All files uploaded successfully.");
+
+    // After file upload completes, proceed with account verification
+    const verificationForm =
+      selectedCustomerType.value === "Corporate & Trading Comp"
+        ? corporateForm
+        : individualForm;
+
+    const verifyResponse = await profileStore.verifyAccount(verificationForm);
+
+    if (verifyResponse.status === 1) {
+      console.log("Account verification successful!");
+    } else {
+      console.error("Account verification failed:", verifyResponse.message);
+    }
+  } catch (error) {
+    console.error("An error occurred:", error);
   }
 };
 
+onMounted(() => {
+  stepStore.setSteps(["Account", "Compliance", "Document"]);
+  stepStore.setCurrentStep(1);
+});
+
 const nextStep = () => {
-  currentStep.value++;
+  stepStore.nextStep();
   scrollToTop();
 };
 
 const prevStep = () => {
-  currentStep.value > 1 && currentStep.value--;
+  stepStore.prevStep();
   scrollToTop();
 };
+
+//   currentStep.value++;
+//   scrollToTop();
+// };
+
+// const prevStep = () => {
+//   currentStep.value > 1 && currentStep.value--;
+//   scrollToTop();
+// };
 
 // Sync profileDetails with forms
 watch(
   () => profileDetails,
   (newProfileDetails) => {
     selectedCustomerType.value = newProfileDetails.accountType;
-
-    if (selectedCustomerType.value === "Corporate & Trading Comp") {
-      corporateForm.registeredName = newProfileDetails.companyName;
-      corporateForm.surname = newProfileDetails.surname;
-      corporateForm.givenName = newProfileDetails.givenName;
-    } else if (selectedCustomerType.value === "Natural Person") {
-      individualForm.surname = newProfileDetails.surname;
-      individualForm.givenName = newProfileDetails.givenName;
-    }
+    corporateForm.registeredName = newProfileDetails.companyName;
+    corporateForm.surname = newProfileDetails.surname;
+    corporateForm.givenName = newProfileDetails.givenName;
+    individualForm.surname = newProfileDetails.surname;
+    individualForm.givenName = newProfileDetails.givenName;
   },
   { deep: true }
 );
 
 // Sync country code with forms
 watch(
-  () => countryStore.selectedCode,
+  () => countryCodeStore.selectedCode,
   (newCode) => {
     if (selectedCustomerType.value === "Corporate & Trading Comp") {
       corporateForm.countryCode = newCode;
@@ -191,9 +363,23 @@ watch(
   }
 );
 
+watch(
+  () => countryStore.selectedCountry,
+  (newCountry) => {
+    if (selectedCustomerType.value === "Corporate & Trading Comp") {
+      corporateForm.nationality = newCountry;
+    } else if (selectedCustomerType.value === "Natural Person") {
+      individualForm.nationality = newCountry;
+    }
+  }
+);
+
 onMounted(async () => {
   await profileStore.getProfileDetail();
   Object.assign(profileDetails, profileStore.profileDetails);
+  username.value = getLocalStorageWithExpiry("username");
+  corporateForm.username = username.value;
+  individualForm.username = username.value;
   selectedCustomerType.value = profileDetails.accountType;
 });
 </script>

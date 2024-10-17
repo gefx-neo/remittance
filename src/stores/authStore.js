@@ -83,11 +83,9 @@ export const useAuthStore = defineStore("auth", {
         };
 
         // Send the login request
-        const response = await apiService.postRequest(
-          "/User/login",
-          payload,
-          true
-        );
+        const response = await apiService.postRequest("/User/login", payload, {
+          format: "raw",
+        });
 
         if (response.status === 1) {
           this.user = true;

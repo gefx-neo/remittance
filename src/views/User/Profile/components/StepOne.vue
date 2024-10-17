@@ -103,7 +103,7 @@
         :error="errors.jobTitle"
       />
 
-      <Input
+      <InputCountry
         label="Nationality"
         id="nationality"
         v-model="corporateForm.nationality"
@@ -358,21 +358,28 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch } from "vue";
-import { useStore } from "@/stores/useStore";
-import { useAlertStore } from "@/stores/alertStore"; // Import the alert store
-import { Input, InputPhone, Select, RadioGroup } from "@/components/Form";
-
+import { ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { corporateValidation, personValidation } from "./schemas/stepOneSchema";
-import { validationService } from "@/services/validationService";
+import { useStore } from "@/stores/useStore";
+import { useAlertStore } from "@/stores/alertStore";
+import {
+  Input,
+  InputPhone,
+  InputCountry,
+  Select,
+  RadioGroup,
+} from "@/components/Form";
 import {
   customerTypes,
   entityTypes,
   employmentTypes,
   titles,
 } from "@/data/data";
-import { scrollToFirstError } from "@/utils/scrollUtil";
+import { useValidation } from "@/composables/useValidation";
+import {
+  corporateValidation,
+  individualValidation,
+} from "./schemas/stepOneSchema";
 
 const props = defineProps({
   corporateForm: Object,
@@ -382,83 +389,27 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["nextStep", "updateCustomerType"]);
-
 const router = useRouter();
 const store = useStore();
 const alertStore = useAlertStore();
-const errors = reactive({});
 
-// To notify parent which form to submit
+// Composable for form validation
+const { errors, validateForm, clearErrors, scrollToErrors } = useValidation();
+
+// Initialize with the value passed from parent
+const selectedCustomerType = ref(props.selectedCustomerType);
+
+// Notify parent about customer type change
 const emitCustomerType = () => {
   emit("updateCustomerType", selectedCustomerType.value);
 };
 
-const handleNext = () => {
-  validateForm();
-
-  if (!Object.values(errors).some((error) => error)) {
-    emit("nextStep");
-  } else {
-    alertStore.alert("error", "Please fill in all the required inputs.");
-    scrollToFirstError(errors);
-    console.log("Form has errors", errors);
-  }
-};
-
-const validateForm = () => {
-  clearErrors();
-
-  // Trim form fields using the computed selectedCustomerType value
-  validationService.trimFormFields(
-    selectedCustomerType.value === "Corporate & Trading Comp"
-      ? props.corporateForm
-      : props.individualForm
-  );
-
-  // Dynamically set the validation schema based on selectedCustomerType
-  const schemas =
-    selectedCustomerType.value === "Corporate & Trading Comp"
-      ? corporateValidation(props.corporateForm)
-      : personValidation(props.individualForm);
-
-  // Hide validation for 'Other Entity' if not displayed with v-if
-  if (props.corporateForm.entityType !== "Others") {
-    delete schemas.otherEntity;
-  }
-
-  // Conditionally validate 'employed' and 'Self Employed' based on naturalEmploymentType
-  if (selectedCustomerType.value === "Natural Person") {
-    if (props.individualForm.naturalEmploymentType === "employed") {
-      delete schemas.businessName;
-      delete schemas.businessRegistrationNo;
-      delete schemas.businessAddress;
-      delete schemas.businessPlace;
-    } else if (props.individualForm.naturalEmploymentType === "selfEmployed") {
-      delete schemas.employerName;
-      delete schemas.employerJobTitle;
-      delete schemas.employerAddress;
-    }
-  }
-
-  const validationErrors = validationService.validateForm(schemas);
-
-  // Clear errors if validation passes for the field
-  Object.keys(schemas).forEach((field) => {
-    if (!validationErrors[field]) errors[field] = ""; // Clear if no error
-  });
-  Object.assign(errors, validationErrors);
-};
-
-const clearErrors = () =>
-  Object.keys(errors).forEach((key) => (errors[key] = ""));
-
-const selectedCustomerType = ref(props.selectedCustomerType); // Initialize with the value passed from parent
-
-// Watch for changes to selectedCustomerType and emit to parent
+// Watch for changes in selectedCustomerType and emit to parent
 watch(
   () => selectedCustomerType.value,
   (newValue) => {
-    emit("updateCustomerType", newValue); // Emit changes to parent
+    emit("updateCustomerType", newValue);
+    clearErrors(); // Clear errors when the customer type changes
   }
 );
 
@@ -467,16 +418,13 @@ watch(
   () => props.selectedCustomerType,
   (newVal) => {
     if (!selectedCustomerType.value || selectedCustomerType.value === "") {
-      selectedCustomerType.value = newVal; // Set it only if it's empty
+      selectedCustomerType.value = newVal;
     }
   },
-  { immediate: true } // Run on mount
+  { immediate: true }
 );
 
-watch(selectedCustomerType, () => {
-  clearErrors(); // Clear errors when customer type changes
-});
-
+// Watch the employment type in the individual form to conditionally clear errors
 watch(
   () => props.individualForm.naturalEmploymentType,
   (newVal) => {
@@ -494,8 +442,65 @@ watch(
   { immediate: true }
 );
 
-const handleCancel = () => {
-  router.go(-1);
+const handleNext = () => {
+  const form =
+    selectedCustomerType.value === "Corporate & Trading Comp"
+      ? props.corporateForm
+      : props.individualForm;
+
+  // Set the correct validation schema based on selectedCustomerType
+  const schema =
+    selectedCustomerType.value === "Corporate & Trading Comp"
+      ? corporateValidation(form)
+      : individualValidation(form);
+
+  // Conditionally remove validation for fields that are hidden (like "Other Entity")
+  if (
+    selectedCustomerType.value === "Corporate & Trading Comp" &&
+    props.corporateForm.entityType !== "Others"
+  ) {
+    delete schema.otherEntity;
+  }
+
+  // If employment type is "employed", remove self-employed fields
+  if (form.naturalEmploymentType === "employed") {
+    delete form.businessName;
+    delete form.businessRegistrationNo;
+    delete form.businessAddress;
+    delete form.businessPlace;
+  }
+
+  // If employment type is "selfEmployed", remove employed fields
+  if (form.naturalEmploymentType === "selfEmployed") {
+    delete form.employerName;
+    delete form.employerJobTitle;
+    delete form.employerAddress;
+  }
+
+  // Conditionally remove validation for employment types
+  if (selectedCustomerType.value === "Natural Person") {
+    if (props.individualForm.naturalEmploymentType === "employed") {
+      delete schema.businessName;
+      delete schema.businessRegistrationNo;
+      delete schema.businessAddress;
+      delete schema.businessPlace;
+    } else if (props.individualForm.naturalEmploymentType === "selfEmployed") {
+      delete schema.employerName;
+      delete schema.employerJobTitle;
+      delete schema.employerAddress;
+    }
+  }
+
+  // Validate the form
+  const isValid = validateForm(form, schema);
+  console.log("Validation Errors:", errors);
+
+  if (isValid) {
+    emit("nextStep");
+  } else {
+    alertStore.alert("error", "Please fill in all the required inputs.");
+    scrollToErrors();
+  }
 };
 </script>
 

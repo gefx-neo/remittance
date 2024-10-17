@@ -5,20 +5,20 @@
       <div class="phone-item">
         <div class="dropdown">
           <button
-            @click="countryStore.toggleDropdown"
-            :class="{ open: countryStore.isDropdownOpen }"
+            @click="countryCodeStore.toggleDropdown"
+            :class="{ open: countryCodeStore.isDropdownOpen }"
           >
             <span>
               {{
-                countryStore.selectedCode.startsWith("+")
-                  ? countryStore.selectedCode
-                  : `+${countryStore.selectedCode}`
+                countryCodeStore.selectedCode.startsWith("+")
+                  ? countryCodeStore.selectedCode
+                  : `+${countryCodeStore.selectedCode}`
               }}
             </span>
             <font-awesome-icon :icon="['fa', 'chevron-down']" />
           </button>
           <PhoneDropdown
-            :isDropdownOpen="countryStore.isDropdownOpen"
+            :isDropdownOpen="countryCodeStore.isDropdownOpen"
             @updateTelCode="updateCountryCode"
           />
         </div>
@@ -37,7 +37,7 @@
 
 <script setup>
 import { ref, watch } from "vue";
-import { useCountryStore } from "@/stores/countryStore";
+import { useCountryCodeStore } from "@/stores/countryCodeStore";
 import PhoneDropdown from "@/components/PhoneDropdown.vue";
 
 const props = defineProps({
@@ -51,7 +51,7 @@ const props = defineProps({
 const emit = defineEmits(["update:modelValue", "update:countryCode"]);
 
 // Access country store for managing country code
-const countryStore = useCountryStore();
+const countryCodeStore = useCountryCodeStore();
 
 // Ref for phone number input
 const phoneNumber = ref(props.modelValue);
@@ -63,7 +63,7 @@ const emitPhoneNumber = () => {
 
 // Update country code separately
 const updateCountryCode = (code) => {
-  countryStore.setSelectedCode(code);
+  countryCodeStore.setSelectedCode(code);
   emit("update:countryCode", code); // Emit only the country code
 };
 
@@ -79,7 +79,7 @@ watch(
 watch(
   () => props.countryCode,
   (newCode) => {
-    countryStore.setSelectedCode(newCode); // Update the country code
+    countryCodeStore.setSelectedCode(newCode); // Update the country code
   }
 );
 </script>

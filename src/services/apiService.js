@@ -50,18 +50,43 @@ axiosInstance.interceptors.response.use(
 );
 
 const apiService = {
-  async postRequest(url, data, useRawFormat = false) {
+  async postRequest(url, data, options = { format: "json" }) {
     let requestData;
+    const headers = {};
 
-    // Apply JSON.stringify or the escaped format based on the flag
-    if (useRawFormat) {
-      requestData = `"${JSON.stringify(data).replace(/"/g, '\\"')}"`;
-    } else {
-      requestData = JSON.stringify(data);
+    // Apply formatting based on the options.format value
+    switch (options.format) {
+      case "raw":
+        // Use your specific raw format with escaped double quotes
+        requestData = `"${JSON.stringify(data).replace(/"/g, '\\"')}"`;
+        headers["Content-Type"] = "application/json"; // Still JSON, but formatted as raw
+        break;
+
+      case "form-url-encoded":
+        const formData = new URLSearchParams();
+        for (const key in data) {
+          formData.append(key, data[key]);
+        }
+        requestData = formData;
+        headers["Content-Type"] = "application/x-www-form-urlencoded"; // Form-encoded
+        break;
+
+      case "multipart/form-data": // New case for file uploads
+        requestData = data; // Directly use the FormData object
+        headers["Content-Type"] = "multipart/form-data";
+
+        break;
+
+      default:
+        requestData = JSON.stringify(data); // Default to JSON string
+        headers["Content-Type"] = "application/json";
+        break;
     }
 
     try {
-      const response = await axiosInstance.post(url, requestData);
+      const response = await axiosInstance.post(url, requestData, {
+        headers: { ...axiosInstance.defaults.headers, ...headers },
+      });
       return response.data;
     } catch (error) {
       console.error("API request failed:", error);

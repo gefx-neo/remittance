@@ -22,39 +22,36 @@
 
 <script setup>
 import { ref, watch } from "vue";
+
 const props = defineProps({
   label: String,
   id: String,
   content: String,
   error: String,
-  modelValue: Boolean,
+  modelValue: String, // '0' or '1'
 });
 
 const emit = defineEmits(["update:modelValue"]);
 
-const checked = ref(props.modelValue);
+// Local state as a boolean
+const checked = ref(props.modelValue === "1"); // Initialize based on '0' or '1'
 
-// Emit change and log the new value
+// Emit '1' for true and '0' for false
 const emitChange = () => {
-  console.log("Switch toggled, new value:", checked.value); // Log new value when switch is toggled
-  emit("update:modelValue", checked.value);
+  const newValue = checked.value ? "1" : "0"; // Convert to '1'/'0'
+  emit("update:modelValue", newValue); // Emit the new value
 };
 
-// Watch for changes to the prop value and log it
+// Watch for changes to the prop value and update local state
 watch(
   () => props.modelValue,
   (newVal) => {
-    console.log("Received new modelValue:", newVal); // Log received modelValue
-    checked.value = newVal;
+    checked.value = newVal === "1"; // Convert '1'/'0' to true/false
   }
 );
 </script>
 
 <style scoped>
-.form-group {
-  margin-bottom: var(--size-24);
-}
-
 .switch-group {
   display: flex;
   justify-content: space-between;

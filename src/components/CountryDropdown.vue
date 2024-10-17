@@ -1,7 +1,7 @@
 <template>
   <div class="dropdown-menu" :class="{ open: isDropdownOpen }">
     <div class="header">
-      <div class="btn-close" @click="countryCodeStore.closeDropdown">
+      <div class="btn-close" @click="countryStore.closeDropdown">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
           <path
             d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"
@@ -10,26 +10,26 @@
       </div>
     </div>
     <div class="body">
-      <div class="title">Selected country code</div>
-      <div class="item" @click="countryCodeStore.closeDropdown">
+      <div class="title">Selected country</div>
+      <div class="item" @click="countryStore.closeDropdown">
         <div class="country">
-          <span class="name">{{ selectedCountry.Name }}</span>
-          <span class="code">{{ selectedCountry.Code }}</span>
+          <span class="name">{{ selectedCountry.name }}</span>
+          <!-- <span class="code">{{ selectedCountry.value }}</span> -->
         </div>
         <font-awesome-icon :icon="['fas', 'check']" class="icon-check" />
       </div>
 
-      <div class="title">All country code</div>
+      <div class="title">All countries</div>
       <div
-        v-for="item in countryCodeStore.countryCodes"
-        :key="item.Code"
+        v-for="item in countryStore.countries"
+        :key="item.value"
         @click="selectCountry(item)"
         class="item"
         :class="{ active: isActive(item) }"
       >
         <div class="country">
-          <span class="name">{{ item.Name }}</span>
-          <span class="code">{{ item.Code }}</span>
+          <span class="name">{{ item.name }}</span>
+          <!-- <span class="code">{{ item.value }}</span> -->
         </div>
         <font-awesome-icon
           v-if="isActive(item)"
@@ -41,47 +41,47 @@
   </div>
   <div
     class="backdrop"
-    @click="countryCodeStore.isDropdownOpen = false"
+    @click="countryStore.isDropdownOpen = false"
     :class="{
-      open: countryCodeStore.isDropdownOpen,
+      open: countryStore.isDropdownOpen,
     }"
   ></div>
 </template>
 
 <script setup>
 import { computed, onMounted, onUnmounted, watch } from "vue";
-import { useCountryCodeStore } from "@/stores/countryCodeStore";
+import { useCountryStore } from "@/stores/countryStore";
 
 const props = defineProps({
   isDropdownOpen: Boolean,
 });
 
-const emit = defineEmits(["updateTelCode"]);
-const countryCodeStore = useCountryCodeStore();
+const emit = defineEmits(["updateCountry"]);
+const countryStore = useCountryStore();
 
 // Track the selected country from the store
 const selectedCountry = computed(() => {
-  return countryCodeStore.countryCodes.find(
-    (country) => country.Code === countryCodeStore.selectedCode
+  return countryStore.countries.find(
+    (country) => country.value === countryStore.selectedCountry
   );
 });
 
-const isActive = (item) => item.Code === countryCodeStore.selectedCode;
+const isActive = (item) => item.value === countryStore.selectedCountry;
 
 // Select country and emit the change
 const selectCountry = (item) => {
-  countryCodeStore.setSelectedCode(item.Code);
-  emit("updateTelCode", item.Code);
+  countryStore.setSelectedCountry(item.value);
+  emit("updateCountry", item.value);
 };
 
 const handleClickOutside = (event) => {
   if (!event.target.closest(".dropdown")) {
-    countryCodeStore.closeDropdown();
+    countryStore.closeDropdown();
   }
 };
 
 watch(
-  () => countryCodeStore.isDropdownOpen,
+  () => countryStore.isDropdownOpen,
   (newValue) => {
     if (newValue) {
       document.body.style.overflow = "hidden";

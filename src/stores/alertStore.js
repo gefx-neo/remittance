@@ -15,7 +15,7 @@ export const useAlertStore = defineStore("alert", {
       // Automatically hide the alert after a few seconds
       setTimeout(() => {
         this.clearAlert();
-      }, 300000); // Display alert for 3 seconds
+      }, 3000); // Display alert for 3 seconds
     },
     clearAlert() {
       this.message = "";

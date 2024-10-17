@@ -1,6 +1,8 @@
 export const validationService = {
   trimValue(value) {
-    return value ? value.trim() : value;
+    // return value ? value.trim() : value;
+    // Ensure the value is a string and not a File or object before trimming
+    return typeof value === "string" ? value.trim() : value;
   },
 
   // Trims all form fields before validation
@@ -15,6 +17,15 @@ export const validationService = {
   // Generic validation to check required fields with the field label
   isRequired(value, label) {
     return value && value !== "" ? null : `${label} is required.`;
+  },
+
+  // Validation to ensure a file is uploaded
+  isFileRequired(value, label) {
+    // Check if the value is a File or an array of files (for multiple file input)
+    if (value instanceof File || (Array.isArray(value) && value.length > 0)) {
+      return null;
+    }
+    return `${label} is required.`;
   },
 
   // Email validation
