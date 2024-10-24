@@ -62,14 +62,14 @@ const apiService = {
         headers["Content-Type"] = "application/json"; // Still JSON, but formatted as raw
         break;
 
-      case "form-url-encoded":
-        const formData = new URLSearchParams();
-        for (const key in data) {
-          formData.append(key, data[key]);
-        }
-        requestData = formData;
-        headers["Content-Type"] = "application/x-www-form-urlencoded"; // Form-encoded
-        break;
+      // case "form-url-encoded":
+      //   const formData = new URLSearchParams();
+      //   for (const key in data) {
+      //     formData.append(key, data[key]);
+      //   }
+      //   requestData = formData;
+      //   headers["Content-Type"] = "application/x-www-form-urlencoded"; // Form-encoded
+      //   break;
 
       case "multipart/form-data": // New case for file uploads
         requestData = data; // Directly use the FormData object

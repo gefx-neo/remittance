@@ -10,16 +10,18 @@
           >
             <span>
               {{
-                countryCodeStore.selectedCode.startsWith("+")
-                  ? countryCodeStore.selectedCode
-                  : `+${countryCodeStore.selectedCode}`
+                `+${
+                  countryCodeStore.countryCodes.find(
+                    (country) => country.ID === countryCodeStore.selectedID
+                  ).Code
+                }`
               }}
             </span>
             <font-awesome-icon :icon="['fa', 'chevron-down']" />
           </button>
           <PhoneDropdown
             :isDropdownOpen="countryCodeStore.isDropdownOpen"
-            @updateTelCode="updateCountryCode"
+            @updateTelCode="updateCountryID"
           />
         </div>
         <input
@@ -44,11 +46,11 @@ const props = defineProps({
   label: String,
   id: String,
   modelValue: String, // Phone number
-  countryCode: String, // Country code
+  countryID: Number, // Country ID
   error: String, // Error message passed from the parent component
 });
 
-const emit = defineEmits(["update:modelValue", "update:countryCode"]);
+const emit = defineEmits(["update:modelValue", "update:countryID"]);
 
 // Access country store for managing country code
 const countryCodeStore = useCountryCodeStore();
@@ -61,10 +63,10 @@ const emitPhoneNumber = () => {
   emit("update:modelValue", phoneNumber.value); // Emit only the phone number
 };
 
-// Update country code separately
-const updateCountryCode = (code) => {
-  countryCodeStore.setSelectedCode(code);
-  emit("update:countryCode", code); // Emit only the country code
+// Update country ID separately
+const updateCountryID = (id) => {
+  countryCodeStore.setSelectedID(id);
+  emit("update:countryID", id); // Emit only the country ID
 };
 
 // Watch for changes in modelValue (phone number) to update phoneNumber ref
@@ -75,11 +77,11 @@ watch(
   }
 );
 
-// Watch for changes in countryCode to update the country store
+// Watch for changes in countryID to update the country store
 watch(
-  () => props.countryCode,
-  (newCode) => {
-    countryCodeStore.setSelectedCode(newCode); // Update the country code
+  () => props.countryID,
+  (newID) => {
+    countryCodeStore.setSelectedID(newID); // Update the country ID
   }
 );
 </script>

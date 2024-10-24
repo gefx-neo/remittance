@@ -3,19 +3,16 @@
     <div class="profile">
       <div class="title">
         <h3>Account Verification</h3>
+        <button class="btn-round" @click="handleCancel">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
+            <path
+              d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"
+            ></path>
+          </svg>
+        </button>
       </div>
-      <!-- <StepBullets
-        :currentStep="currentStep"
-        :steps="['Account', 'Compliance', 'Document']"
-        @step-clicked="setStep"
-      /> -->
-      <form
-        :class="{
-          'step-one': currentStep === 1,
-          'step-two': currentStep === 2,
-          'step-three': currentStep === 3,
-        }"
-      >
+
+      <form>
         <StepOne
           v-if="stepStore.currentStep === 1"
           :corporate-form="corporateForm"
@@ -44,6 +41,7 @@
           :selected-customer-type="selectedCustomerType"
           @submit="handleSubmit"
           @prevStep="prevStep"
+          :is-loading="store.isLoading"
         />
       </form>
     </div>
@@ -56,24 +54,29 @@ import StepOne from "./components/StepOne.vue";
 import StepTwo from "./components/StepTwo.vue";
 import StepThree from "./components/StepThree.vue";
 import { useCountryCodeStore } from "@/stores/countryCodeStore";
-import { useCountryStore } from "@/stores/countryStore";
 import { useProfileStore } from "@/stores/profileStore";
 import { useStepStore } from "@/stores/stepStore";
+import { useStore } from "@/stores/useStore";
+import { useAlertStore } from "@/stores/alertStore";
 import {
   entityTypes,
   fundSource,
   purposeOfIntendedTransactions,
   titles,
   hearAboutUs,
+  annualIncome,
 } from "@/data/data";
 import { getLocalStorageWithExpiry } from "@/services/localStorageService.js";
 import { useValidation } from "@/composables/useValidation";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
 const countryCodeStore = useCountryCodeStore();
-const countryStore = useCountryStore();
 
 const profileStore = useProfileStore();
 const stepStore = useStepStore();
+const store = useStore();
+const alertStore = useAlertStore();
 
 const profileDetails = reactive({
   givenName: "",
@@ -89,48 +92,50 @@ const { scrollToTop } = useValidation();
 const isAgent = ref("No"); // Store isAgent in the parent as a local ref
 const username = ref("");
 
+// Corporate form with all fields declared except the conditional ones
 const corporateForm = reactive({
   username: "",
-  customerType: "Corporate & Trading Comp",
+  customerType: "Corporate & Trading Company",
   registeredName: profileDetails.companyName,
-  businessAddress: "",
+  address: "",
   postalCode: "",
   mailAddress: "",
   mailPostalCode: "",
-  contactName: "",
+  name: "",
   operationCountry: "",
-  countryCode: countryCodeStore.selectedCode,
+  telCode: countryCodeStore.selectedID,
   telNum: "",
   contactHome: "",
   contactOffice: "",
   contactMobile: "",
   ic: "",
   jobTitle: "",
-  nationality: countryStore.selectedCountry,
+  nationality: "",
   dob: "",
   registrationPlace: "",
   registrationDate: "",
   registrationNo: "",
-  entityType: entityTypes[0].value,
+  entity: entityTypes[0].value,
   title: titles[0].value,
   surname: profileDetails.surname,
   givenName: profileDetails.givenName,
   // agentCorporateCustomerType: agentCorporateCustomerType[0].value,
   // agentAddress: "", // Exclude here because condition to submit
+  purposeAccRel: "",
   fundSource: fundSource[0].value,
   purposeOfIntendedTransactions: purposeOfIntendedTransactions[0].value,
   hearAboutUs: hearAboutUs[0].value,
   beneficiaryInvolvement: "0",
   beneficiaryFamilyInvolvement: "0",
-  beneficiaryConnectionInvolvement: "1",
-  docAccOpening: null, // Ensure file fields are declared
+  beneficiaryConnectionInvolvement: "0",
+  docAccOpening: null,
   docPhotoID: null,
   docSelfie: null,
   docDirectorIC: null,
   docAcra: null,
 });
 
-// Individual (Natural Person) form with all fields explicitly declared
+// Individual (Natural Person) form with all fields declared except the conditional ones
 const individualForm = reactive({
   username: "",
   customerType: "Natural Person",
@@ -152,9 +157,10 @@ const individualForm = reactive({
   fundSource: fundSource[0].value,
   purposeOfIntendedTransactions: purposeOfIntendedTransactions[0].value,
   hearAboutUs: hearAboutUs[0].value,
+  annualIncome: annualIncome[0].value,
   beneficiaryInvolvement: "0",
   beneficiaryFamilyInvolvement: "0",
-  beneficiaryConnectionInvolvement: "1",
+  beneficiaryConnectionInvolvement: "0",
   docIC: null,
   docSelfie: null,
   docCard: null,
@@ -168,50 +174,6 @@ const selectedCustomerType = ref(profileDetails.accountType);
 const updateCustomerType = (newCustomerType) => {
   selectedCustomerType.value = newCustomerType;
 };
-
-// const handleSubmit = async () => {
-//   const formData = new FormData();
-
-//   // Ensure each file is paired with its corresponding folder
-//   const appendFilesWithFolder = (files, folderName) => {
-//     if (Array.isArray(files)) {
-//       files.forEach((file) => {
-//         formData.append("file", file); // Add file
-//         formData.append("folder", folderName); // Add folder name as text
-//       });
-//     } else if (files) {
-//       formData.append("file", files[0]); // Add single file
-//       formData.append("folder", folderName); // Add folder name as text
-//     }
-//   };
-
-//   // Example for corporate form
-//   if (selectedCustomerType.value === "Corporate & Trading Comp") {
-//     appendFilesWithFolder(corporateForm.docAccOpening, "AccountOpening");
-//     appendFilesWithFolder(corporateForm.docPhotoID, "BusinessAcra");
-//     appendFilesWithFolder(corporateForm.docSelfie, "CompanySelfiePhoto");
-//     appendFilesWithFolder(corporateForm.docDirectorIC, "ICWithDirector");
-//     appendFilesWithFolder(corporateForm.docAcra, "BusinessAcra");
-
-//     // Append agent files if isAgent is "Yes"
-//     if (isAgent.value === "Yes") {
-//       appendFilesWithFolder(corporateForm.agentBasisAuth, "BasisOfAuthority");
-//     }
-//   } else if (selectedCustomerType.value === "Natural Person") {
-//     // Individual customer
-//     appendFilesWithFolder(individualForm.docIC, "ICOfCustomer");
-//     appendFilesWithFolder(individualForm.docSelfie, "NaturalSelfiePhoto");
-//     appendFilesWithFolder(individualForm.docCard, "BusinessNameCard");
-//     appendFilesWithFolder(individualForm.docKYC, "KYCForm");
-//   }
-
-//   try {
-//     const uploadResponse = await profileStore.uploadFiles(formData);
-//     console.log("Upload Response:", uploadResponse);
-//   } catch (error) {
-//     console.error("File upload failed:", error);
-//   }
-// };
 
 const handleSubmit = async () => {
   const formData = new FormData();
@@ -243,50 +205,107 @@ const handleSubmit = async () => {
     );
   };
 
-  // Helper function to gather all file upload promises
+  // Helper function to gather all file upload promises and return file names
   const appendFilesWithFolder = (files, folderName) => {
     const uploadPromises = [];
+    const fileNames = [];
 
     if (Array.isArray(files)) {
       files.forEach((file) => {
         uploadPromises.push(appendAndUploadFile(file, folderName));
+        fileNames.push(file.name); // Collect file names
       });
     } else if (files) {
       uploadPromises.push(appendAndUploadFile(files[0], folderName)); // Single file upload
+      fileNames.push(files[0].name); // Collect file name
     }
 
-    return uploadPromises;
+    return { uploadPromises, fileNames };
   };
 
-  // Array to store all upload promises
   let allUploadPromises = [];
+  let fileNames = {};
 
   // Append files for corporate or individual form and gather upload promises
-  if (selectedCustomerType.value === "Corporate & Trading Comp") {
+  if (selectedCustomerType.value === "Corporate & Trading Company") {
+    const accountOpening = appendFilesWithFolder(
+      corporateForm.docAccOpening,
+      "AccountOpening"
+    );
+    const photoID = appendFilesWithFolder(
+      corporateForm.docPhotoID,
+      "BusinessAcra"
+    );
+    const selfie = appendFilesWithFolder(
+      corporateForm.docSelfie,
+      "CompanySelfiePhoto"
+    );
+    const directorIC = appendFilesWithFolder(
+      corporateForm.docDirectorIC,
+      "ICWithDirector"
+    );
+    const acra = appendFilesWithFolder(corporateForm.docAcra, "BusinessAcra");
+
     allUploadPromises = [
-      ...appendFilesWithFolder(corporateForm.docAccOpening, "AccountOpening"),
-      ...appendFilesWithFolder(corporateForm.docPhotoID, "BusinessAcra"),
-      ...appendFilesWithFolder(corporateForm.docSelfie, "CompanySelfiePhoto"),
-      ...appendFilesWithFolder(corporateForm.docDirectorIC, "ICWithDirector"),
-      ...appendFilesWithFolder(corporateForm.docAcra, "BusinessAcra"),
+      ...accountOpening.uploadPromises,
+      ...photoID.uploadPromises,
+      ...selfie.uploadPromises,
+      ...directorIC.uploadPromises,
+      ...acra.uploadPromises,
     ];
 
-    // Append agent files if isAgent is "Yes"
+    fileNames = {
+      docAccOpening: accountOpening.fileNames.join(","),
+      docPhotoID: photoID.fileNames.join(","),
+      docSelfie: selfie.fileNames.join(","),
+      docDirectorIC: directorIC.fileNames.join(","),
+      docAcra: acra.fileNames.join(","),
+    };
+
+    // **Handle agent-related files if `isAgent` is 'Yes'**
     if (isAgent.value === "Yes") {
-      allUploadPromises.push(
-        ...appendFilesWithFolder(
-          corporateForm.agentBasisAuth,
-          "BasisOfAuthority"
-        )
+      const agentBasisAuth = appendFilesWithFolder(
+        corporateForm.agentBasisAuth,
+        "BasisOfAuthority"
       );
+      allUploadPromises.push(...agentBasisAuth.uploadPromises);
+      fileNames.agentBasisAuth = agentBasisAuth.fileNames.join(",");
     }
   } else if (selectedCustomerType.value === "Natural Person") {
+    const ic = appendFilesWithFolder(individualForm.docIC, "ICOfCustomer");
+    const selfie = appendFilesWithFolder(
+      individualForm.docSelfie,
+      "NaturalSelfiePhoto"
+    );
+    const card = appendFilesWithFolder(
+      individualForm.docCard,
+      "BusinessNameCard"
+    );
+    const kyc = appendFilesWithFolder(individualForm.docKYC, "KYCForm");
+
     allUploadPromises = [
-      ...appendFilesWithFolder(individualForm.docIC, "ICOfCustomer"),
-      ...appendFilesWithFolder(individualForm.docSelfie, "NaturalSelfiePhoto"),
-      ...appendFilesWithFolder(individualForm.docCard, "BusinessNameCard"),
-      ...appendFilesWithFolder(individualForm.docKYC, "KYCForm"),
+      ...ic.uploadPromises,
+      ...selfie.uploadPromises,
+      ...card.uploadPromises,
+      ...kyc.uploadPromises,
     ];
+
+    fileNames = {
+      docIC: ic.fileNames.join(","),
+      docSelfie: selfie.fileNames.join(","),
+      docCard: card.fileNames.join(","),
+      docKYC: kyc.fileNames.join(","),
+    };
+
+    // **Handle agent-related files if `isAgent` is 'Yes'**
+    if (isAgent.value === "Yes") {
+      const agentBasisAuth = appendFilesWithFolder(
+        individualForm.agentBasisAuth,
+        "BasisOfAuthority"
+      );
+      allUploadPromises.push(...agentBasisAuth.uploadPromises);
+      fileNames.agentBasisAuth = agentBasisAuth.fileNames.join(",");
+    }
   }
 
   try {
@@ -297,15 +316,19 @@ const handleSubmit = async () => {
 
     // After file upload completes, proceed with account verification
     const verificationForm =
-      selectedCustomerType.value === "Corporate & Trading Comp"
-        ? corporateForm
-        : individualForm;
+      selectedCustomerType.value === "Corporate & Trading Company"
+        ? { ...corporateForm, ...fileNames }
+        : { ...individualForm, ...fileNames };
 
     const verifyResponse = await profileStore.verifyAccount(verificationForm);
 
     if (verifyResponse.status === 1) {
+      alertStore.alert("success", "You have submitted successfully.");
+      router.push({ path: "/profile" });
+
       console.log("Account verification successful!");
     } else {
+      alertStore.alert("error", verifyResponse.message);
       console.error("Account verification failed:", verifyResponse.message);
     }
   } catch (error) {
@@ -345,6 +368,8 @@ watch(
     corporateForm.registeredName = newProfileDetails.companyName;
     corporateForm.surname = newProfileDetails.surname;
     corporateForm.givenName = newProfileDetails.givenName;
+    corporateForm.operationCountry = newProfileDetails.operationCountry;
+    corporateForm.nationality = newProfileDetails.nationality;
     individualForm.surname = newProfileDetails.surname;
     individualForm.givenName = newProfileDetails.givenName;
   },
@@ -353,23 +378,12 @@ watch(
 
 // Sync country code with forms
 watch(
-  () => countryCodeStore.selectedCode,
+  () => countryCodeStore.selectedID,
   (newCode) => {
-    if (selectedCustomerType.value === "Corporate & Trading Comp") {
-      corporateForm.countryCode = newCode;
+    if (selectedCustomerType.value === "Corporate & Trading Company") {
+      corporateForm.telCode = newCode;
     } else if (selectedCustomerType.value === "Natural Person") {
-      individualForm.nationality = newCode;
-    }
-  }
-);
-
-watch(
-  () => countryStore.selectedCountry,
-  (newCountry) => {
-    if (selectedCustomerType.value === "Corporate & Trading Comp") {
-      corporateForm.nationality = newCountry;
-    } else if (selectedCustomerType.value === "Natural Person") {
-      individualForm.nationality = newCountry;
+      // individualForm.nationality = newCode;
     }
   }
 );
@@ -377,11 +391,16 @@ watch(
 onMounted(async () => {
   await profileStore.getProfileDetail();
   Object.assign(profileDetails, profileStore.profileDetails);
+  console.log(profileDetails);
   username.value = getLocalStorageWithExpiry("username");
   corporateForm.username = username.value;
   individualForm.username = username.value;
   selectedCustomerType.value = profileDetails.accountType;
 });
+
+const handleCancel = () => {
+  router.push({ path: "/profile" });
+};
 </script>
 
 <style scoped>
@@ -400,6 +419,19 @@ onMounted(async () => {
   gap: var(--size-24);
 }
 
+.profile .title {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.profile .title .btn-round {
+  position: absolute;
+  right: 0;
+}
+
 form {
   display: flex;
   flex-direction: column;
@@ -407,11 +439,9 @@ form {
   width: 100%;
 }
 
-/* form.step-one .footer {
-  display: flex;
-  flex-direction: column;
-  gap: var(--size-12);
-  width: 100%;
-  max-width: 400px;
-} */
+@media (max-width: 767px) {
+  .profile .title .btn-round {
+    display: none;
+  }
+}
 </style>

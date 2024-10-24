@@ -4,13 +4,12 @@ import { countryCodes } from "@/data/data";
 export const useCountryCodeStore = defineStore("countryCodeStore", {
   state: () => ({
     countryCodes: countryCodes,
-    selectedCode: countryCodes.find((country) => country.Name === "Singapore")
-      .Code, // Default to Singapore's code
+    selectedID: countryCodes.find((country) => country.Name === "Singapore").ID, // Default to Singapore's ID
     isDropdownOpen: false,
   }),
   actions: {
-    setSelectedCode(code) {
-      this.selectedCode = code;
+    setSelectedID(id) {
+      this.selectedID = id;
       this.isDropdownOpen = false;
     },
     toggleDropdown() {

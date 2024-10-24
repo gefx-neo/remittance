@@ -6,6 +6,7 @@
       :id="id"
       type="file"
       :multiple="multiple"
+      accept=".jpg, .png, .pdf, .doc, .docx, .xls, .xlsx"
       @change="handleFileChange"
     />
     <div class="file-upload">
@@ -13,7 +14,9 @@
       <span v-if="files.length">
         {{ files.map((file) => file.name).join(", ") }}
       </span>
-      <span v-else>No files chosen</span>
+      <span v-else
+        >No files chosen (accepts .jpg, .png, .pdf, .doc, .xls format)</span
+      >
     </div>
     <span v-if="error" class="error">{{ error }}</span>
   </div>

@@ -27,7 +27,7 @@ const authStore = useAuthStore();
 }
 
 .main-container {
-  padding: var(--size-24) 0;
+  padding: var(--size-24);
 }
 
 /* DESKTOP */

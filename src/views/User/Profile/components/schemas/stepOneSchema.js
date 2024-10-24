@@ -6,8 +6,8 @@ export const corporateValidation = (corporateForm) => ({
     label: "Registered name",
     rules: [validationService.isRequired],
   },
-  businessAddress: {
-    value: corporateForm?.businessAddress || "",
+  address: {
+    value: corporateForm?.address || "",
     label: "Business address",
     rules: [validationService.isRequired],
   },
@@ -26,8 +26,8 @@ export const corporateValidation = (corporateForm) => ({
     label: "Mailing postal code",
     rules: [validationService.isRequired],
   },
-  contactName: {
-    value: corporateForm?.contactName || "",
+  name: {
+    value: corporateForm?.name || "",
     label: "Contact name",
     rules: [validationService.isRequired],
   },
@@ -81,11 +81,13 @@ export const corporateValidation = (corporateForm) => ({
     label: "Registration no.",
     rules: [validationService.isRequired],
   },
-  otherEntity: {
-    value: corporateForm?.otherEntity || "",
-    label: "Type of entity (others)",
-    rules: [validationService.isRequired],
-  },
+  ...(corporateForm?.entity === "Others" && {
+    otherEntity: {
+      value: corporateForm?.otherEntity || "",
+      label: "Type of entity (others)",
+      rules: [validationService.isRequired],
+    },
+  }),
   surname: {
     value: corporateForm?.surname || "",
     label: "Surname",
@@ -98,7 +100,10 @@ export const corporateValidation = (corporateForm) => ({
   },
 });
 
-export const individualValidation = (individualForm) => ({
+export const individualValidation = (
+  individualForm,
+  naturalEmploymentType
+) => ({
   name: {
     value: individualForm?.name || "",
     label: "Name",
@@ -154,39 +159,44 @@ export const individualValidation = (individualForm) => ({
     label: "Given name",
     rules: [validationService.isRequired],
   },
-  employerName: {
-    value: individualForm?.employerName || "",
-    label: "Name of employer",
-    rules: [validationService.isRequired],
-  },
-  employerJobTitle: {
-    value: individualForm?.employerJobTitle || "",
-    label: "Job title",
-    rules: [validationService.isRequired],
-  },
-  employerAddress: {
-    value: individualForm?.employerAddress || "",
-    label: "Registered address of employer",
-    rules: [validationService.isRequired],
-  },
-  businessName: {
-    value: individualForm?.businessName || "",
-    label: "Name of business",
-    rules: [validationService.isRequired],
-  },
-  businessRegistrationNo: {
-    value: individualForm?.businessRegistrationNo || "",
-    label: "Business registration no.",
-    rules: [validationService.isRequired],
-  },
-  businessAddress: {
-    value: individualForm?.businessAddress || "",
-    label: "Registered business address",
-    rules: [validationService.isRequired],
-  },
-  businessPlace: {
-    value: individualForm?.businessPlace || "",
-    label: "Principal place of business",
-    rules: [validationService.isRequired],
-  },
+  ...(naturalEmploymentType === "employed" && {
+    employerName: {
+      value: individualForm?.employerName || "",
+      label: "Name of employer",
+      rules: [validationService.isRequired],
+    },
+    employerJobTitle: {
+      value: individualForm?.employerJobTitle || "",
+      label: "Job title",
+      rules: [validationService.isRequired],
+    },
+    employerAddress: {
+      value: individualForm?.employerAddress || "",
+      label: "Registered address of employer",
+      rules: [validationService.isRequired],
+    },
+  }),
+
+  ...(naturalEmploymentType === "selfEmployed" && {
+    businessName: {
+      value: individualForm?.businessName || "",
+      label: "Name of business",
+      rules: [validationService.isRequired],
+    },
+    businessRegistrationNo: {
+      value: individualForm?.businessRegistrationNo || "",
+      label: "Business registration no.",
+      rules: [validationService.isRequired],
+    },
+    businessAddress: {
+      value: individualForm?.businessAddress || "",
+      label: "Registered business address",
+      rules: [validationService.isRequired],
+    },
+    businessPlace: {
+      value: individualForm?.businessPlace || "",
+      label: "Principal place of business",
+      rules: [validationService.isRequired],
+    },
+  }),
 });

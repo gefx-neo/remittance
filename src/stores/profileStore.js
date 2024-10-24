@@ -26,7 +26,14 @@ export const useProfileStore = defineStore("profile", {
         const response = await apiService.getRequest(
           `/Profile/user?username=${username}`
         );
-
+        if (response.status !== 1) {
+          // If response status is not 1, log out the user and redirect to login
+          this.clearProfileDetails();
+          localStorage.removeItem("token"); // Clear any sensitive data
+          localStorage.removeItem("username");
+          router.push("/login"); // Redirect user to login page
+          throw new Error("Invalid profile details. You have been logged out.");
+        }
         this.profileDetails = response;
         setLocalStorageWithExpiry("token", response.token, 4);
         setLocalStorageWithExpiry("username", username, 4);
@@ -87,7 +94,23 @@ export const useProfileStore = defineStore("profile", {
         store.isLoading = false;
       }
     },
+    async sendReminder(username) {
+      try {
+        const response = await apiService.postRequest(
+          "/profile/urgent",
+          username
+        );
 
+        if (response.status === 1) {
+        } else {
+          this.error = response.message;
+        }
+        return response;
+      } catch (error) {
+        this.error = error.response?.message;
+        return null;
+      }
+    },
     clearProfileDetails() {
       this.profileDetails = null;
       this.error = null;

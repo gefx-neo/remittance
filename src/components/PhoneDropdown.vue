@@ -22,7 +22,7 @@
       <div class="title">All country code</div>
       <div
         v-for="item in countryCodeStore.countryCodes"
-        :key="item.Code"
+        :key="item.ID"
         @click="selectCountry(item)"
         class="item"
         :class="{ active: isActive(item) }"
@@ -59,19 +59,19 @@ const props = defineProps({
 const emit = defineEmits(["updateTelCode"]);
 const countryCodeStore = useCountryCodeStore();
 
-// Track the selected country from the store
+// Track the selected country from the store using ID
 const selectedCountry = computed(() => {
   return countryCodeStore.countryCodes.find(
-    (country) => country.Code === countryCodeStore.selectedCode
+    (country) => country.ID === countryCodeStore.selectedID
   );
 });
 
-const isActive = (item) => item.Code === countryCodeStore.selectedCode;
+const isActive = (item) => item.ID === countryCodeStore.selectedID;
 
-// Select country and emit the change
+// Select country and emit the change using ID
 const selectCountry = (item) => {
-  countryCodeStore.setSelectedCode(item.Code);
-  emit("updateTelCode", item.Code);
+  countryCodeStore.setSelectedID(item.ID);
+  emit("updateTelCode", item.ID);
 };
 
 const handleClickOutside = (event) => {

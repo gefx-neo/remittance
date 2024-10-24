@@ -42,7 +42,7 @@ export const useAuthStore = defineStore("auth", {
     // Step 1: Fetch reqKey (hex and iv) for the username
     async getReqKey(username) {
       try {
-        const response = await apiService.postRequest("/User/reqkey", username);
+        const response = await apiService.postRequest("/user/reqkey", username);
 
         if (response.status === 1) {
           this.hex = response.key;
@@ -83,7 +83,7 @@ export const useAuthStore = defineStore("auth", {
         };
 
         // Send the login request
-        const response = await apiService.postRequest("/User/login", payload, {
+        const response = await apiService.postRequest("/user/login", payload, {
           format: "raw",
         });
 
@@ -114,7 +114,7 @@ export const useAuthStore = defineStore("auth", {
       try {
         const username = getLocalStorageWithExpiry("username");
 
-        const response = await apiService.postRequest("/User/logout", username);
+        const response = await apiService.postRequest("user/logout", username);
 
         if (response.status === 1) {
           this.user = false;

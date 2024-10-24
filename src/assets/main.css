@@ -85,45 +85,45 @@
   background: var(--darker-blue);
 }
 
-.btn-back-round {
+.btn-round {
   min-width: var(--size-32);
   max-width: var(--size-32);
   min-height: var(--size-32);
   max-height: var(--size-32);
-  background: var(--sky-blue);
+  background: var(--light-grey);
   border-radius: var(--border-circle);
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.btn-back-round svg {
+.btn-round svg {
   min-width: var(--size-16);
   max-width: var(--size-16);
   min-height: var(--size-16);
   max-height: var(--size-16);
-  fill: var(--slate-blue);
-  color: var(--slate-blue);
+  fill: var(--black);
+  color: var(--black);
 }
 
-.btn-back-round:hover {
-  background: var(--sky-blue);
+.btn-round:hover {
+  background: var(--dark-grey);
 }
 
-.btn-back-round:focus {
-  background: var(--cool-blue);
+.btn-roundfocus {
+  background: var(--darker-grey);
 }
 
-.btn-back-round:focus:not(:focus-visible) {
-  background: var(--sky-blue);
+.btn-round:focus:not(:focus-visible) {
+  background: var(--light-grey);
 }
 
-.btn-back-round:focus:hover {
-  background: var(--sky-blue);
+.btn-round:focus:hover {
+  background: var(--dark-grey);
 }
 
-.btn-back-round:focus:active {
-  background: var(--cool-blue);
+.btn-round:focus:active {
+  background: var(--darker-grey);
 }
 
 .icon-round {

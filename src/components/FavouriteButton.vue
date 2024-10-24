@@ -11,11 +11,9 @@
       />
     </svg>
 
-    <transition name="fade">
-      <span class="tooltip">
-        {{ tooltipContent }}
-      </span>
-    </transition>
+    <span class="tooltip">
+      {{ tooltipContent }}
+    </span>
   </button>
 </template>
 
@@ -83,18 +81,10 @@ updateTooltipContent();
   overflow: hidden;
   font-size: var(--text-sm);
   pointer-events: none;
+  transition: opacity 0.3s ease-in-out;
 }
 
 .favourite:hover .tooltip {
   opacity: 1;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease-in-out;
-}
-.fade-enter,
-.fade-leave-to {
-  opacity: 0;
 }
 </style>

@@ -62,6 +62,12 @@ export const corporateValidation = (corporateForm, isAgent) => ({
       rules: [validationService.isRequired],
     },
   }),
+
+  purposeAccRel: {
+    value: corporateForm?.purposeAccRel || "",
+    label: "Purpose of account relationship",
+    rules: [validationService.isRequired],
+  },
 });
 
 export const individualValidation = (individualForm, isAgent) => ({

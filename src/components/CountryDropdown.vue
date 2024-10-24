@@ -1,7 +1,7 @@
 <template>
   <div class="dropdown-menu" :class="{ open: isDropdownOpen }">
     <div class="header">
-      <div class="btn-close" @click="countryStore.closeDropdown">
+      <div class="btn-close" @click="handleClose">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
           <path
             d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"
@@ -11,17 +11,16 @@
     </div>
     <div class="body">
       <div class="title">Selected country</div>
-      <div class="item" @click="countryStore.closeDropdown">
+      <div class="item" @click="selectCountry(item)">
         <div class="country">
-          <span class="name">{{ selectedCountry.name }}</span>
-          <!-- <span class="code">{{ selectedCountry.value }}</span> -->
+          <span class="name">{{ selectedCountryName }}</span>
         </div>
         <font-awesome-icon :icon="['fas', 'check']" class="icon-check" />
       </div>
 
       <div class="title">All countries</div>
       <div
-        v-for="item in countryStore.countries"
+        v-for="item in countries"
         :key="item.value"
         @click="selectCountry(item)"
         class="item"
@@ -29,7 +28,6 @@
       >
         <div class="country">
           <span class="name">{{ item.name }}</span>
-          <!-- <span class="code">{{ item.value }}</span> -->
         </div>
         <font-awesome-icon
           v-if="isActive(item)"
@@ -41,56 +39,57 @@
   </div>
   <div
     class="backdrop"
-    @click="countryStore.isDropdownOpen = false"
-    :class="{
-      open: countryStore.isDropdownOpen,
-    }"
+    @click="handleClose"
+    :class="{ open: isDropdownOpen }"
   ></div>
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, watch } from "vue";
-import { useCountryStore } from "@/stores/countryStore";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 
+// Props definition
 const props = defineProps({
   isDropdownOpen: Boolean,
+  selectedCountry: String,
+  countries: Array,
 });
 
-const emit = defineEmits(["updateCountry"]);
-const countryStore = useCountryStore();
+// Emits definition
+const emit = defineEmits(["updateCountry", "closeDropdown"]);
 
-// Track the selected country from the store
-const selectedCountry = computed(() => {
-  return countryStore.countries.find(
-    (country) => country.value === countryStore.selectedCountry
+// Local refs and variables
+const dropdownMenuRef = ref(null);
+
+// Track the selected country from the parent
+const selectedCountryName = computed(() => {
+  const country = props.countries.find(
+    (country) => country.value === props.selectedCountry
   );
+  return country ? country.name : "";
 });
 
-const isActive = (item) => item.value === countryStore.selectedCountry;
+// Helper to check if the country is active
+const isActive = (item) => item.value === props.selectedCountry;
 
-// Select country and emit the change
+// Select a country and emit the value
 const selectCountry = (item) => {
-  countryStore.setSelectedCountry(item.value);
   emit("updateCountry", item.value);
+  emit("closeDropdown"); // Close dropdown on country selection
 };
 
+// Close the dropdown
+const handleClose = () => {
+  emit("closeDropdown");
+};
+
+// Handle click outside the dropdown to close it
 const handleClickOutside = (event) => {
-  if (!event.target.closest(".dropdown")) {
-    countryStore.closeDropdown();
+  if (dropdownMenuRef.value && !dropdownMenuRef.value.contains(event.target)) {
+    handleClose(); // Close the dropdown if click is outside
   }
 };
 
-watch(
-  () => countryStore.isDropdownOpen,
-  (newValue) => {
-    if (newValue) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-  }
-);
-
+// Lifecycle hooks to manage click event listener
 onMounted(() => {
   document.addEventListener("click", handleClickOutside);
 });

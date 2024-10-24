@@ -1,22 +1,20 @@
 <template>
-  <div class="form-group">
+  <div class="form-group" ref="dropdownContainer">
     <label :for="id">{{ label }}</label>
     <div class="input-group">
       <div class="phone-item">
         <div class="dropdown">
-          <button
-            @click="countryStore.toggleDropdown"
-            :class="{ open: countryStore.isDropdownOpen }"
-          >
+          <button @click="toggleDropdown" :class="{ open: isDropdownOpen }">
             <!-- Display the name of the selected country -->
-            <span>
-              {{ selectedCountryName }}
-            </span>
+            <span>{{ selectedCountryName }}</span>
             <font-awesome-icon :icon="['fa', 'chevron-down']" />
           </button>
           <CountryDropdown
-            :isDropdownOpen="countryStore.isDropdownOpen"
+            :isDropdownOpen="isDropdownOpen"
+            :selectedCountry="selectedCountry"
+            :countries="countries"
             @updateCountry="updateCountry"
+            @closeDropdown="isDropdownOpen = false"
           />
         </div>
       </div>
@@ -27,44 +25,83 @@
 </template>
 
 <script setup>
-import { computed, watch } from "vue";
-import { useCountryStore } from "@/stores/countryStore";
+import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import CountryDropdown from "@/components/CountryDropdown.vue";
+import { countries } from "@/data/data"; // Static country data
 
 const props = defineProps({
   label: String,
   id: String,
-  modelValue: String, // Phone number
-  country: String, // Country value (code) for submission
+  modelValue: String, // Phone number (not used in your example, but kept here if needed)
+  modelCountry: String, // Country value (code) for submission
   error: String, // Error message passed from the parent component
 });
 
-const emit = defineEmits(["update:country"]);
+const emit = defineEmits(["update:modelCountry"]);
 
-// Access country store for managing country data
-const countryStore = useCountryStore();
+// Local state for managing dropdown and selected country
+const isDropdownOpen = ref(false);
 
-// Computed property to get the selected country name from the store
-const selectedCountryName = computed(() => {
-  const selectedCountry = countryStore.countries.find(
-    (country) => country.value === countryStore.selectedCountry
-  );
-  return selectedCountry ? selectedCountry.name : ""; // Return country name or empty string if not found
-});
+const selectedCountry = ref(
+  props.modelCountry ||
+    countries.find((country) => country.name === "Singapore").value
+);
 
-// Update country code and emit it for form submission
-const updateCountry = (countryValue) => {
-  countryStore.setSelectedCountry(countryValue);
-  emit("update:country", countryValue); // Emit the country value (for submission)
+// Ref for the dropdown container to check clicks outside
+const dropdownContainer = ref(null);
+
+// Toggle dropdown state
+const toggleDropdown = () => {
+  isDropdownOpen.value = !isDropdownOpen.value;
 };
 
-// Watch for changes in the passed country prop and update the countryStore
+// Computed property to get the selected country name
+const selectedCountryName = computed(() => {
+  const country = countries.find(
+    (country) => country.value === selectedCountry.value
+  );
+  return country ? country.name : "";
+});
+
+// Update country code and emit the new value to the parent
+const updateCountry = (countryValue) => {
+  selectedCountry.value = countryValue;
+  emit("update:modelCountry", countryValue); // Emit the selected country
+  isDropdownOpen.value = false; // Close the dropdown after selection
+};
+
+// Watch for changes in the passed country prop and update the local state
 watch(
-  () => props.country,
+  () => props.modelCountry,
   (newCountryValue) => {
-    countryStore.setSelectedCountry(newCountryValue); // Update the selected country value
+    if (newCountryValue) {
+      selectedCountry.value = newCountryValue;
+    }
   }
 );
+
+// Handle click outside the dropdown
+const handleClickOutside = (event) => {
+  if (
+    dropdownContainer.value &&
+    !dropdownContainer.value.contains(event.target)
+  ) {
+    isDropdownOpen.value = false;
+  }
+};
+
+// Add event listener for click outside
+onMounted(() => {
+  if (!props.modelCountry) {
+    emit("update:modelCountry", selectedCountry.value); // Emit the default country value
+  }
+  document.addEventListener("click", handleClickOutside);
+});
+
+// Remove event listener when component is destroyed
+onBeforeUnmount(() => {
+  document.removeEventListener("click", handleClickOutside);
+});
 </script>
 
 <style scoped>

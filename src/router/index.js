@@ -106,12 +106,6 @@ const routes = [
               import("../views/User/Beneficiary/BeneficiaryDetail.vue"),
             props: true,
           },
-          {
-            path: "addbeneficiary",
-            name: "addbeneficiary",
-            component: () =>
-              import("../views/User/Beneficiary/AddBeneficiary.vue"),
-          },
         ],
       },
       {
@@ -138,11 +132,22 @@ const routes = [
     ],
   },
 
-  // Account Verification with ProcessLayout
+  {
+    path: "/beneficiary",
+    component: ProcessLayout,
+    beforeEnter: authGuard,
+    children: [
+      {
+        path: "addbeneficiary",
+        name: "addbeneficiary",
+        component: () => import("../views/User/Beneficiary/AddBeneficiary.vue"),
+      },
+    ],
+  },
   {
     path: "/profile",
-    component: ProcessLayout, // Use ProcessLayout here
-    beforeEnter: authGuard, // You can still protect this route with auth guard
+    component: ProcessLayout,
+    beforeEnter: authGuard,
     children: [
       {
         path: "accountverification",

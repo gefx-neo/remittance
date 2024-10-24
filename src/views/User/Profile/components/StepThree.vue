@@ -3,7 +3,7 @@
     <!-- Corporate Form -->
     <fieldset
       :disabled="store.isLoading"
-      v-if="selectedCustomerType === 'Corporate & Trading Comp'"
+      v-if="selectedCustomerType === 'Corporate & Trading Company'"
     >
       <InputFile
         label="Account opening form (completed and signed by Authorizing Director)"
@@ -33,7 +33,7 @@
       />
 
       <InputFile
-        label="Director's identity card"
+        label="Photocopy of Identity Card (or Passport for non-Singaporean) with photograph of Director(s)"
         id="docDirectorIC"
         v-model="corporateForm.docDirectorIC"
         :multiple="false"
@@ -94,13 +94,13 @@
     </fieldset>
 
     <div class="footer">
-      <button
-        type="submit"
-        @click.prevent="handleSubmit"
+      <ButtonAPI
+        :disabled="isLoading"
         class="btn-red standard-button"
+        @click="handleSubmit"
       >
         Submit
-      </button>
+      </ButtonAPI>
       <button
         type="button"
         @click="handleBack"
@@ -117,6 +117,7 @@ import { ref, watch } from "vue";
 import { useStore } from "@/stores/useStore";
 import { useValidation } from "@/composables/useValidation";
 import { InputFile } from "@/components/Form";
+import ButtonAPI from "@/components/ButtonAPI.vue";
 import {
   corporateValidation,
   individualValidation,
@@ -126,6 +127,7 @@ const props = defineProps({
   corporateForm: Object,
   individualForm: Object,
   selectedCustomerType: String,
+  isLoading: Boolean,
 });
 
 const emit = defineEmits(["submit"]);
@@ -138,7 +140,7 @@ const selectedCustomerType = ref(props.selectedCustomerType); // Track customer 
 
 // Generic file upload handler
 const handleFileUpload = (field, files) => {
-  if (selectedCustomerType.value === "Corporate & Trading Comp") {
+  if (selectedCustomerType.value === "Corporate & Trading Company") {
     // Handle multiple files if :multiple="true"
     if (Array.isArray(files)) {
       props.corporateForm[field] = files;
@@ -157,13 +159,13 @@ const handleFileUpload = (field, files) => {
 // Validate and handle submit
 const handleSubmit = () => {
   const form =
-    selectedCustomerType.value === "Corporate & Trading Comp"
+    selectedCustomerType.value === "Corporate & Trading Company"
       ? props.corporateForm
       : props.individualForm;
 
   // Set the correct validation schema based on selectedCustomerType
   const schema =
-    selectedCustomerType.value === "Corporate & Trading Comp"
+    selectedCustomerType.value === "Corporate & Trading Company"
       ? corporateValidation(form)
       : individualValidation(form);
 

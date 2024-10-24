@@ -96,10 +96,11 @@ const goToStep = (step) => {
   position: absolute;
   margin-top: var(--size-12);
   font-size: var(--text-sm);
+  color: var(--black);
+  transition: color 0.6s ease;
 }
 
 .step .item .label.active {
-  color: var(--black);
   font-weight: var(--semi-bold);
 }
 

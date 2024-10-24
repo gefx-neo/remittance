@@ -12,7 +12,7 @@
     <!-- Corporate Form -->
     <fieldset
       :disabled="store.isLoading"
-      v-if="selectedCustomerType === 'Corporate & Trading Comp'"
+      v-if="selectedCustomerType === 'Corporate & Trading Company'"
     >
       <Input
         label="Registered name"
@@ -23,9 +23,9 @@
 
       <Input
         label="Business address"
-        id="businessAddress"
-        v-model="corporateForm.businessAddress"
-        :error="errors.businessAddress"
+        id="address"
+        v-model="corporateForm.address"
+        :error="errors.address"
       />
 
       <Input
@@ -51,15 +51,15 @@
 
       <Input
         label="Contact name"
-        id="contactName"
-        v-model="corporateForm.contactName"
-        :error="errors.contactName"
+        id="name"
+        v-model="corporateForm.name"
+        :error="errors.name"
       />
 
-      <Input
+      <InputCountry
         label="Country of operation"
         id="operationCountry"
-        v-model="corporateForm.operationCountry"
+        v-model:modelCountry="corporateForm.operationCountry"
         :error="errors.operationCountry"
       />
 
@@ -106,7 +106,7 @@
       <InputCountry
         label="Nationality"
         id="nationality"
-        v-model="corporateForm.nationality"
+        v-model:modelCountry="corporateForm.nationality"
         :error="errors.nationality"
       />
 
@@ -118,10 +118,10 @@
         :error="errors.dob"
       />
 
-      <Input
+      <InputCountry
         label="Place of registration"
         id="registrationPlace"
-        v-model="corporateForm.registrationPlace"
+        v-model:modelCountry="corporateForm.registrationPlace"
         :error="errors.registrationPlace"
       />
 
@@ -142,15 +142,15 @@
 
       <Select
         label="Type of entity"
-        id="entityType"
-        v-model="corporateForm.entityType"
+        id="entity"
+        v-model="corporateForm.entity"
         :options="entityTypes"
       />
 
       <Input
         label="Type of entity (others)"
         id="otherEntity"
-        v-if="corporateForm.entityType === 'Others'"
+        v-if="corporateForm.entity === 'Others'"
         v-model="corporateForm.otherEntity"
         :error="errors.otherEntity"
       />
@@ -217,10 +217,10 @@
         :error="errors.mailPostalCode"
       />
 
-      <Input
+      <InputCountry
         label="Nationality"
         id="nationality"
-        v-model="individualForm.nationality"
+        v-model:modelCountry="individualForm.nationality"
         :error="errors.nationality"
       />
 
@@ -386,6 +386,7 @@ const props = defineProps({
   individualForm: Object,
   profileDetails: Object,
   selectedCustomerType: String,
+  naturalEmploymentType: String,
 });
 
 const emit = defineEmits(["nextStep", "updateCustomerType"]);
@@ -444,23 +445,15 @@ watch(
 
 const handleNext = () => {
   const form =
-    selectedCustomerType.value === "Corporate & Trading Comp"
+    selectedCustomerType.value === "Corporate & Trading Company"
       ? props.corporateForm
       : props.individualForm;
 
   // Set the correct validation schema based on selectedCustomerType
   const schema =
-    selectedCustomerType.value === "Corporate & Trading Comp"
+    selectedCustomerType.value === "Corporate & Trading Company"
       ? corporateValidation(form)
-      : individualValidation(form);
-
-  // Conditionally remove validation for fields that are hidden (like "Other Entity")
-  if (
-    selectedCustomerType.value === "Corporate & Trading Comp" &&
-    props.corporateForm.entityType !== "Others"
-  ) {
-    delete schema.otherEntity;
-  }
+      : individualValidation(form, form.naturalEmploymentType);
 
   // If employment type is "employed", remove self-employed fields
   if (form.naturalEmploymentType === "employed") {
@@ -477,20 +470,6 @@ const handleNext = () => {
     delete form.employerAddress;
   }
 
-  // Conditionally remove validation for employment types
-  if (selectedCustomerType.value === "Natural Person") {
-    if (props.individualForm.naturalEmploymentType === "employed") {
-      delete schema.businessName;
-      delete schema.businessRegistrationNo;
-      delete schema.businessAddress;
-      delete schema.businessPlace;
-    } else if (props.individualForm.naturalEmploymentType === "selfEmployed") {
-      delete schema.employerName;
-      delete schema.employerJobTitle;
-      delete schema.employerAddress;
-    }
-  }
-
   // Validate the form
   const isValid = validateForm(form, schema);
   console.log("Validation Errors:", errors);
@@ -501,6 +480,20 @@ const handleNext = () => {
     alertStore.alert("error", "Please fill in all the required inputs.");
     scrollToErrors();
   }
+};
+
+// Delete other entity from form if toggled open and close again
+watch(
+  () => props.corporateForm.entity,
+  (newVal) => {
+    if (newVal !== "Others") {
+      delete props.corporateForm.otherEntity;
+    }
+  }
+);
+
+const handleCancel = () => {
+  router.push({ path: "/profile" });
 };
 </script>
 

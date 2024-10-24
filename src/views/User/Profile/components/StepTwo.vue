@@ -3,7 +3,7 @@
     <!-- Corporate Form -->
     <fieldset
       :disabled="store.isLoading"
-      v-if="selectedCustomerType === 'Corporate & Trading Comp'"
+      v-if="selectedCustomerType === 'Corporate & Trading Company'"
     >
       <RadioGroup
         label="Are you an agent acting on behalf of the customer?"
@@ -33,14 +33,14 @@
           :error="errors.agentAddress"
         />
 
-        <Input
+        <InputCountry
           :label="
             corporateForm.agentCorporateCustomerType === 'Entity'
               ? 'Place of registration'
               : 'Country'
           "
           id="agentRegistrationCountry"
-          v-model="corporateForm.agentRegistrationCountry"
+          v-model:modelCountry="corporateForm.agentRegistrationCountry"
           :error="errors.agentRegistrationCountry"
         />
 
@@ -86,6 +86,13 @@
         />
       </div>
 
+      <Input
+        label="Purpose and intended nature of account relationship and/or relevant business transaction undertaken"
+        id="purposeAccRel"
+        v-model="corporateForm.purposeAccRel"
+        :error="errors.purposeAccRel"
+      />
+
       <Select
         label="Source of funds"
         id="fundSource"
@@ -119,21 +126,21 @@
         label="Beneficial owner's involvement in public functions"
         id="beneficiaryInvolvement"
         v-model="corporateForm.beneficiaryInvolvement"
-        content="Has the beneficial owner ever been entrusted with prominent public functions, whether in Singapore, in a foreign country, or in an international organisation?"
+        content="Is the beneficial owner or has the beneficial owner ever been entrusted with prominent public functions, whether in Singapore, in a foreign country, or in an international organisation?"
       />
 
       <Switch
         label="Beneficial owner's family ties to individuals with public functions"
         id="beneficiaryFamilyInvolvement"
         v-model="corporateForm.beneficiaryFamilyInvolvement"
-        content="Has the beneficial owner ever been a parent, step-parent, step-child, adopted child, spouse, sibling, step-sibling, or adopted sibling of anyone who has been entrusted with prominent public functions, whether in Singapore, in a foreign country, or in an international organisation?"
+        content="Is the beneficial owner or has the beneficial owner ever been a parent, step-parent, step-child, adopted child, spouse, sibling, step-sibling, or adopted sibling of anyone who has been entrusted with prominent public functions, whether in Singapore, in a foreign country, or in an international organisation?"
       />
 
       <Switch
         label="Beneficial owner's connections to individuals with public functions"
         id="beneficiaryConnectionInvolvement"
         v-model="corporateForm.beneficiaryConnectionInvolvement"
-        content="Has the beneficial owner ever been closely connected, either socially or professionally, with anyone who is or has been entrusted with prominent public functions, whether in Singapore, in a foreign country, or in an international organisation?"
+        content="Is the beneficial owner or has the beneficial owner ever been closely connected, either socially or professionally, with anyone who is or has been entrusted with prominent public functions, whether in Singapore, in a foreign country, or in an international organisation?"
       />
     </fieldset>
 
@@ -163,10 +170,10 @@
           :error="errors.agentAddress"
         />
 
-        <Input
+        <InputCountry
           label="Nationality"
           id="agentNationality"
-          v-model="individualForm.agentNationality"
+          v-model:modelCountry="individualForm.agentNationality"
           :error="errors.agentNationality"
         />
 
@@ -207,51 +214,58 @@
       <Select
         label="Source of funds"
         id="fundSource"
-        v-model="corporateForm.fundSource"
+        v-model="individualForm.fundSource"
         :options="fundSource"
       />
 
       <Input
         label="Source of funds (others)"
         id="otherFundSource"
-        v-if="corporateForm.fundSource === 'Others'"
-        v-model="corporateForm.otherFundSource"
+        v-if="individualForm.fundSource === 'Others'"
+        v-model="individualForm.otherFundSource"
         :error="errors.otherFundSource"
       />
 
       <Select
         label="Purpose of intended transactions"
         id="purposeOfIntendedTransactions"
-        v-model="corporateForm.purposeOfIntendedTransactions"
+        v-model="individualForm.purposeOfIntendedTransactions"
         :options="purposeOfIntendedTransactions"
       />
 
       <Select
         label="Where did you hear about us?"
         id="hearAboutUs"
-        v-model="corporateForm.hearAboutUs"
+        v-model="individualForm.hearAboutUs"
         :options="hearAboutUs"
+      />
+
+      <Select
+        label="Annual income"
+        id="annualIncome"
+        v-model="individualForm.annualIncome"
+        :options="annualIncome"
       />
 
       <Switch
         label="Beneficial owner's involvement in public functions"
         id="beneficiaryInvolvement"
-        v-model="corporateForm.beneficiaryInvolvement"
-        content="Has the beneficial owner ever been entrusted with prominent public functions, whether in Singapore, in a foreign country, or in an international organisation?"
+        v-model="individualForm.beneficiaryInvolvement"
+        content="Is the beneficial owner or has the beneficial owner ever been entrusted with prominent public functions, whether in Singapore, in a foreign country, or in an international organisation?"
       />
 
       <Switch
         label="Beneficial owner's family ties to individuals with public functions"
         id="beneficiaryFamilyInvolvement"
-        v-model="corporateForm.beneficiaryFamilyInvolvement"
-        content="Has the beneficial owner ever been a parent, step-parent, step-child, adopted child, spouse, sibling, step-sibling, or adopted sibling of anyone who has been entrusted with prominent public functions, whether in Singapore, in a foreign country, or in an international organisation?"
+        v-model="individualForm.beneficiaryFamilyInvolvement"
+        content="Is the beneficial owner or has the beneficial owner ever been a parent, step-parent, step-child, adopted child, spouse, sibling, step-sibling, or adopted sibling of anyone who has been entrusted with prominent public functions, whether in Singapore, in a foreign country, or in an international organisation?"
       />
 
       <Switch
         label="Beneficial owner's connections to individuals with public functions"
         id="beneficiaryConnectionInvolvement"
-        v-model="corporateForm.beneficiaryConnectionInvolvement"
-        content="Has the beneficial owner ever been closely connected, either socially or professionally, with anyone who is or has been entrusted with prominent public functions, whether in Singapore, in a foreign country, or in an international organisation?"
+        v-model="individualForm.beneficiaryConnectionInvolvement"
+        content="Is the beneficial owner or has the beneficial owner ever been closely connected, either socially or professionally, with anyone who is or has been entrusted with prominent public functions, whether in Singapore, in a foreign country, or in an international organisation?"
       />
     </fieldset>
 
@@ -273,12 +287,14 @@
 <script setup>
 import { ref, watch } from "vue";
 import { useStore } from "@/stores/useStore";
+import { useAlertStore } from "@/stores/alertStore";
 import { useValidation } from "@/composables/useValidation";
 import {
   fundSource,
   purposeOfIntendedTransactions,
   agentCorporateCustomerType,
   hearAboutUs,
+  annualIncome,
 } from "@/data/data";
 import {
   corporateValidation,
@@ -286,6 +302,7 @@ import {
 } from "./schemas/stepTwoSchema";
 import {
   Input,
+  InputCountry,
   InputFile,
   Select,
   RadioGroup,
@@ -301,6 +318,7 @@ const props = defineProps({
 
 const emit = defineEmits(["nextStep", "prevStep", "updateAgent"]);
 const store = useStore();
+const alertStore = useAlertStore();
 
 // Initialize useValidation composables
 const { errors, validateForm, clearErrors, scrollToErrors } = useValidation();
@@ -319,24 +337,32 @@ watch(isAgent, (newValue) => {
   emit("updateAgent", newValue); // Emit the updated value to parent to retain state
 });
 
-// Generic file upload handler
 const handleFileUpload = (field, files) => {
-  if (selectedCustomerType.value === "Corporate & Trading Comp") {
-    props.corporateForm[field] = files;
+  if (selectedCustomerType.value === "Corporate & Trading Company") {
+    // Handle multiple files if :multiple="true"
+    if (Array.isArray(files)) {
+      props.corporateForm[field] = files;
+    } else {
+      props.corporateForm[field] = [files];
+    }
   } else {
-    props.individualForm[field] = files;
+    if (Array.isArray(files)) {
+      props.individualForm[field] = files;
+    } else {
+      props.individualForm[field] = [files];
+    }
   }
 };
 
 const handleNext = () => {
   const form =
-    selectedCustomerType.value === "Corporate & Trading Comp"
+    selectedCustomerType.value === "Corporate & Trading Company"
       ? props.corporateForm
       : props.individualForm;
 
   // If isAgent is "No", remove agent-related fields
   if (isAgent.value === "No") {
-    if (selectedCustomerType.value === "Corporate & Trading Comp") {
+    if (selectedCustomerType.value === "Corporate & Trading Company") {
       delete form.agentCorporateCustomerType;
       delete form.agentAddress;
       delete form.agentRegistrationCountry;
@@ -358,7 +384,7 @@ const handleNext = () => {
 
   // Validate the form
   const schema =
-    selectedCustomerType.value === "Corporate & Trading Comp"
+    selectedCustomerType.value === "Corporate & Trading Company"
       ? corporateValidation(form, isAgent.value)
       : individualValidation(form, isAgent.value);
 
@@ -367,6 +393,7 @@ const handleNext = () => {
   if (isValid) {
     emit("nextStep");
   } else {
+    alertStore.alert("error", "Please fill in all the required inputs.");
     scrollToErrors();
     console.log("Validation Errors:", errors);
   }
@@ -402,6 +429,23 @@ watch(
     delete errors.agentRelationship;
   },
   { immediate: true }
+);
+
+// Delete otherFundSource from form if toggled open and close again
+watch(
+  () =>
+    selectedCustomerType.value === "Corporate & Trading Company"
+      ? props.corporateForm.fundSource
+      : props.individualForm.fundSource,
+  (newVal) => {
+    if (newVal !== "Others") {
+      if (selectedCustomerType.value === "Corporate & Trading Company") {
+        delete props.corporateForm.otherFundSource;
+      } else {
+        delete props.individualForm.otherFundSource;
+      }
+    }
+  }
 );
 
 const handleBack = () => {
