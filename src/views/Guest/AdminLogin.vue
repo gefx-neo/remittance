@@ -72,7 +72,7 @@ import { ref, reactive } from "vue";
 import { useAuthStore } from "@/stores/authStore";
 import { useStore } from "@/stores/useStore";
 import { validationService } from "@/services/validationUserService.js";
-import ButtonAPI from "@/components/ButtonAPI.vue";
+import { ButtonAPI } from "@/components/Form";
 
 const authStore = useAuthStore();
 const store = useStore();

@@ -1,7 +1,7 @@
 <template>
   <div class="dropdown-menu" :class="{ open: isDropdownOpen }">
     <div class="header">
-      <div class="btn-close" @click="countryCodeStore.closeDropdown">
+      <div class="btn-close" @click="handleClose">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
           <path
             d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"
@@ -10,26 +10,16 @@
       </div>
     </div>
     <div class="body">
-      <div class="title">Selected country code</div>
-      <div class="item" @click="countryCodeStore.closeDropdown">
-        <div class="country">
-          <span class="name">{{ selectedCountry.Name }}</span>
-          <span class="code">{{ selectedCountry.Code }}</span>
-        </div>
-        <font-awesome-icon :icon="['fas', 'check']" class="icon-check" />
-      </div>
-
-      <div class="title">All country code</div>
+      <div class="title">All currencies</div>
       <div
-        v-for="item in countryCodeStore.countryCodes"
-        :key="item.ID"
-        @click="selectCountry(item)"
+        v-for="item in currencies"
+        :key="item.code"
+        @click="selectCurrency(item)"
         class="item"
         :class="{ active: isActive(item) }"
       >
-        <div class="country">
-          <span class="name">{{ item.Name }}</span>
-          <span class="code">{{ item.Code }}</span>
+        <div class="currency">
+          <span class="name">{{ item.name }}</span>
         </div>
         <font-awesome-icon
           v-if="isActive(item)"
@@ -41,55 +31,47 @@
   </div>
   <div
     class="backdrop"
-    @click="countryCodeStore.isDropdownOpen = false"
-    :class="{
-      open: countryCodeStore.isDropdownOpen,
-    }"
+    @click="handleClose"
+    :class="{ open: isDropdownOpen }"
   ></div>
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, watch } from "vue";
-import { useCountryCodeStore } from "@/stores/countryCodeStore";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 
 const props = defineProps({
   isDropdownOpen: Boolean,
+  selectedCurrency: String,
+  currencies: Array,
 });
 
-const emit = defineEmits(["updateTelCode"]);
-const countryCodeStore = useCountryCodeStore();
+const emit = defineEmits(["updateCurrency", "closeDropdown"]);
 
-// Track the selected country from the store using ID
-const selectedCountry = computed(() => {
-  return countryCodeStore.countryCodes.find(
-    (country) => country.ID === countryCodeStore.selectedID
+const selectedCurrencyName = computed(() => {
+  const currency = props.currencies.find(
+    (currency) => currency.code === props.selectedCurrency
   );
+  return currency ? currency.name : "";
 });
 
-const isActive = (item) => item.ID === countryCodeStore.selectedID;
+const isActive = (item) => item.code === props.selectedCurrency;
 
-// Select country and emit the change using ID
-const selectCountry = (item) => {
-  countryCodeStore.setSelectedID(item.ID);
-  emit("updateTelCode", item.ID);
+const selectCurrency = (item) => {
+  emit("updateCurrency", item.code);
+  emit("closeDropdown");
 };
+
+const handleClose = () => {
+  emit("closeDropdown");
+};
+
+const dropdownMenuRef = ref(null);
 
 const handleClickOutside = (event) => {
-  if (!event.target.closest(".dropdown")) {
-    countryCodeStore.closeDropdown();
+  if (dropdownMenuRef.value && !dropdownMenuRef.value.contains(event.target)) {
+    handleClose();
   }
 };
-
-watch(
-  () => countryCodeStore.isDropdownOpen,
-  (newValue) => {
-    if (newValue) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-  }
-);
 
 onMounted(() => {
   document.addEventListener("click", handleClickOutside);
@@ -138,7 +120,9 @@ onUnmounted(() => {
   padding-top: 8px;
   padding-bottom: 4px;
   margin: 0px var(--size-8);
+  font-size: var(--text-sm);
   font-weight: var(--semi-bold);
+  color: var(--cool-blue);
   position: sticky;
   top: 0;
   background: var(--white);
@@ -149,7 +133,7 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--size-dropdown-item);
+  padding: var(--size-12);
   margin: 0px var(--size-8);
   border-radius: var(--border-md);
   border: 1px solid var(--white);
@@ -157,7 +141,7 @@ onUnmounted(() => {
 }
 
 .dropdown-menu .item:hover {
-  border: 1px solid var(--slate-blue);
+  border: 1px solid var(--black);
 }
 
 .dropdown-menu .item .country {
@@ -174,7 +158,6 @@ onUnmounted(() => {
 }
 
 .dropdown-menu .item .name {
-  color: var(--slate-blue);
   font-weight: var(--semi-bold);
 }
 

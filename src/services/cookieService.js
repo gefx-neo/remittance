@@ -22,7 +22,13 @@ export default {
       date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
       expires = "; expires=" + date.toUTCString();
     }
-    document.cookie = name + "=" + (value || "") + expires + "; path=/; Secure";
+
+    // Check if the current URL protocol is HTTPS to determine if Secure should be set
+    const isSecure = window.location.protocol === "https:";
+    const secureFlag = isSecure ? "Secure;" : ""; // Set the Secure flag only for HTTPS
+
+    // Set the cookie with or without Secure based on the current environment
+    document.cookie = `${name}=${value || ""}${expires}; path=/; ${secureFlag}`;
   },
 
   // Get a regular cookie

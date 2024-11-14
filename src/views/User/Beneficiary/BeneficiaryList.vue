@@ -41,9 +41,14 @@
             tabindex="0"
             @click="navigateToBeneficiaryDetail(beneficiary)"
           >
-            <FavouriteButton :beneficiaryId="beneficiary.id" @click.stop />
+            <div class="favourite-group">
+              <FavouriteButton :beneficiaryId="beneficiary.id" @click.stop />
+            </div>
             <div class="detail">
-              <span class="icon-round">{{ beneficiary.initials }}</span>
+              <span class="icon-round"
+                >{{ beneficiary.initials }}
+                <img :src="beneficiary.currency" />
+              </span>
               <span>{{ beneficiary.name }}</span>
               <span>{{ beneficiary.accountType }}</span>
             </div>
@@ -63,7 +68,10 @@
           >
             <FavouriteButton :beneficiaryId="beneficiary.id" @click.stop />
             <div class="detail">
-              <span class="icon-round">{{ beneficiary.initials }}</span>
+              <span class="icon-round"
+                >{{ beneficiary.initials }}
+                <img :src="beneficiary.currency" />
+              </span>
               <span>{{ beneficiary.name }}</span>
               <span>{{ beneficiary.accountType }}</span>
             </div>
@@ -81,7 +89,7 @@
 import { useRouter } from "vue-router";
 import { computed } from "vue";
 import { useBeneficiaryStore } from "@/stores/beneficiaryStore";
-import FavouriteButton from "@/components/FavouriteButton.vue";
+import FavouriteButton from "./components/FavouriteButton.vue";
 
 const router = useRouter();
 const beneficiaryStore = useBeneficiaryStore();
@@ -204,6 +212,12 @@ const navigateToAddBeneficiary = () => {
   cursor: pointer;
 }
 
+.beneficiary .item-section .item .favourite-group {
+  display: flex;
+  justify-content: end;
+  align-items: center;
+}
+
 .beneficiary .item-section .item .favourite {
   position: absolute;
   top: var(--size-8);
@@ -216,10 +230,10 @@ const navigateToAddBeneficiary = () => {
   justify-content: center;
   align-items: center;
   padding: var(--size-24) 0;
-  gap: var(--size-4);
 }
 
 .beneficiary .item-section .item .detail .icon-round {
+  position: relative;
   min-width: var(--size-60);
   max-width: var(--size-60);
   min-height: var(--size-60);
@@ -228,6 +242,18 @@ const navigateToAddBeneficiary = () => {
   font-weight: var(--semi-bold);
   color: var(--slate-blue);
   margin-bottom: var(--size-8);
+}
+
+.beneficiary .item-section .item .detail .icon-round img {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  min-width: var(--size-20);
+  max-width: var(--size-20);
+  min-height: var(--size-20);
+  max-height: var(--size-20);
+  border: 2px solid var(--white);
+  border-radius: var(--border-circle);
 }
 
 .beneficiary .item-section .item .detail span:nth-child(2) {
@@ -310,7 +336,14 @@ const navigateToAddBeneficiary = () => {
     min-height: var(--size-48);
     max-height: var(--size-48);
     font-size: var(--text-lg);
-    margin-bottom: var(--size-4);
+    margin-bottom: var(--size-8);
+  }
+
+  .beneficiary .item-section .item .detail .icon-round img {
+    min-width: var(--size-16);
+    max-width: var(--size-16);
+    min-height: var(--size-16);
+    max-height: var(--size-16);
   }
 }
 </style>

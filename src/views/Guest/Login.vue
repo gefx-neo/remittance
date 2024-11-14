@@ -18,7 +18,9 @@
             errors.username
           }}</span>
         </div>
-        <ButtonAPI class="btn-red standard-button"> Next </ButtonAPI>
+        <ButtonAPI class="btn-red standard-button" :disabled="store.isLoading">
+          Next
+        </ButtonAPI>
       </fieldset>
     </form>
 
@@ -78,7 +80,7 @@ import { ref, reactive } from "vue";
 import { useAuthStore } from "@/stores/authStore";
 import { useStore } from "@/stores/useStore";
 import { validationService } from "@/services/validationUserService.js";
-import ButtonAPI from "@/components/ButtonAPI.vue";
+import { ButtonAPI } from "@/components/Form";
 
 const authStore = useAuthStore();
 const store = useStore();

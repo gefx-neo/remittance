@@ -93,7 +93,7 @@ import { useRegisterStore } from "@/stores/registerStore";
 import { useStore } from "@/stores/useStore";
 import { validationService } from "@/services/validationUserService.js";
 import Modal from "@/components/Modal.vue";
-import ButtonAPI from "@/components/ButtonAPI.vue";
+import { ButtonAPI } from "@/components/Form";
 
 const registerStore = useRegisterStore();
 const store = useStore();

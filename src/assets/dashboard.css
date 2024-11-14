@@ -41,6 +41,7 @@
   color: var(--slate-blue);
   font-weight: var(--semi-bold);
   padding-right: 118px;
+  letter-spacing: 0.3px;
 }
 
 .form-group .input-group {
@@ -72,6 +73,7 @@
 .exchange-rate .form-group .input-group button span {
   font-size: var(--text-lg);
   font-weight: var(--semi-bold);
+  letter-spacing: 0.1px;
 }
 
 .exchange-rate .rate-group {
@@ -198,6 +200,14 @@
   height: 4px;
   background: var(--black);
   border-radius: var(--border-circle);
+}
+
+.history .item .detail .first-column .second-row span:nth-child(1).pending {
+  color: var(--midnight-violet);
+}
+
+.history .item .detail .first-column .second-row span:nth-child(2).pending {
+  background: var(--midnight-violet);
 }
 
 .history .item .detail .first-column .second-row span:nth-child(1).completed {

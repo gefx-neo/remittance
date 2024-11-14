@@ -1,5 +1,5 @@
 <template>
-  <button class="favourite" @click="toggleFavourite">
+  <button type="button" class="favourite" @click="toggleFavourite">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
       <path
         v-if="isFavourite"
@@ -20,6 +20,7 @@
 <script setup>
 import { ref, computed, watch } from "vue";
 import { useBeneficiaryStore } from "@/stores/beneficiaryStore";
+import { useAlertStore } from "@/stores/alertStore";
 
 const props = defineProps({
   beneficiaryId: {
@@ -29,6 +30,7 @@ const props = defineProps({
 });
 
 const beneficiaryStore = useBeneficiaryStore();
+const alertStore = useAlertStore();
 
 const beneficiary = computed(() =>
   beneficiaryStore.beneficiaries.find((b) => b.id === props.beneficiaryId)
@@ -37,9 +39,15 @@ const beneficiary = computed(() =>
 const isFavourite = computed(() => beneficiary.value?.favouriteStatus);
 const tooltipContent = ref("");
 
-const toggleFavourite = () => {
-  beneficiaryStore.toggleFavourite(props.beneficiaryId);
-  updateTooltipContent();
+const toggleFavourite = async () => {
+  try {
+    const newStatus = !isFavourite.value;
+    await beneficiaryStore.updateFavourite(beneficiary.value?.name, newStatus);
+    beneficiaryStore.toggleFavourite(props.beneficiaryId);
+    updateTooltipContent();
+  } catch (error) {
+    alertStore.alert("error", "Failed to update favourite status");
+  }
 };
 
 const updateTooltipContent = () => {
@@ -48,9 +56,7 @@ const updateTooltipContent = () => {
     : "Add favourite";
 };
 
-// Watch for changes in the favourite status to update the tooltip
 watch(isFavourite, updateTooltipContent);
-
 updateTooltipContent();
 </script>
 
@@ -86,5 +92,11 @@ updateTooltipContent();
 
 .favourite:hover .tooltip {
   opacity: 1;
+}
+
+@media (max-width: 1279px) {
+  .tooltip {
+    display: none;
+  }
 }
 </style>

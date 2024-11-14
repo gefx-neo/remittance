@@ -14,7 +14,10 @@
           </svg>
         </div>
         <div class="button-group">
-          <button class="btn-blue standard-button" @click="removeFocus">
+          <button
+            class="btn-blue standard-button"
+            @click="navigateToAddTransaction"
+          >
             <span class="desktop">New transaction</span>
             <span class="mobile">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
@@ -32,6 +35,7 @@
           :key="index"
           class="item"
           tabindex="0"
+          @click="navigateToTransactionDetail(transaction)"
         >
           <div class="detail">
             <div class="first-column">
@@ -73,8 +77,23 @@
 <script setup>
 import { useTransactionStore } from "@/stores/transactionStore";
 import { storeToRefs } from "pinia";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+
 const transactionStore = useTransactionStore();
 const { transactions } = storeToRefs(transactionStore);
+
+const navigateToTransactionDetail = (transaction) => {
+  router.push({
+    name: "transaction-detail",
+    params: { id: transaction.id, transaction },
+  });
+};
+
+const navigateToAddTransaction = () => {
+  router.push({ name: "addtransaction" });
+};
 </script>
 
 <style scoped>

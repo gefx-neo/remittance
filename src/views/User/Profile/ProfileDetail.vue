@@ -53,7 +53,7 @@
           v-if="showReminderButton"
           @click="handleReminder"
           class="btn-blue"
-          :disabled="isLoading"
+          :disabled="store.isLoading"
         >
           Send reminder
         </ButtonAPI>
@@ -93,15 +93,17 @@ import { useRouter } from "vue-router";
 import { ref, computed, onMounted, reactive } from "vue";
 import { useProfileStore } from "@/stores/profileStore";
 import { useAlertStore } from "@/stores/alertStore";
+import { useStore } from "@/stores/useStore";
 import cookieService from "@/services/cookieService";
 import { getLocalStorageWithExpiry } from "@/services/localStorageService.js";
-import ButtonAPI from "@/components/ButtonAPI.vue";
+import { ButtonAPI } from "@/components/Form";
 import Tooltip from "@/components/Tooltip.vue";
 
 const router = useRouter();
 
 const profileStore = useProfileStore();
 const alertStore = useAlertStore();
+const store = useStore();
 
 const profileDetails = reactive({
   givenName: "",
@@ -126,9 +128,9 @@ const handleReminder = async () => {
     const response = await profileStore.sendReminder(username.value);
 
     if (response.status === 1) {
-      cookieService.setCookie("reminderSent", "true", 365 * 10);
+      cookieService.setCookie("reminderSent", "true", 365);
 
-      alertStore.alert("success", "You have submitted successfully.");
+      alertStore.alert("success", "We have received your reminder.");
       window.location.reload();
 
       console.log("success", response);

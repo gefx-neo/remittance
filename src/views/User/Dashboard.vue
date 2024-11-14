@@ -2,48 +2,27 @@
   <div class="content-area">
     <div class="exchange-rate">
       <div class="form-section">
-        <div class="form-group">
-          <label>Sending amount</label>
-          <div class="input-group">
-            <input type="text" v-model="sendingAmount" />
-            <div class="dropdown">
-              <button @click="currencyStore.toggleSenderDropdown">
-                <img
-                  :src="`src/assets/currency/${currencyStore.senderCurrency.code}.svg`"
-                />
-                <span>{{ currencyStore.senderCurrency.code }}</span>
-                <font-awesome-icon :icon="['fa', 'chevron-down']" />
-              </button>
-              <CurrencyDropdown
-                currencyType="sender"
-                :isDropdownOpen="currencyStore.isSenderDropdownOpen"
-                @updateCurrency="updateSenderCurrency"
-              />
-            </div>
-          </div>
-        </div>
+        <InputAmount
+          id="sendingAmount"
+          label="Sending Amount"
+          :modelValue="sendingAmount"
+          :modelCurrency="sendingCurrency"
+          :isSending="true"
+          @update:modelValue="sendingAmount = $event"
+          @update:modelCurrency="sendingCurrency = $event"
+          :isDashboard="true"
+        />
 
-        <div class="form-group">
-          <label>Receiving amount</label>
-          <div class="input-group">
-            <input type="text" v-model="receivingAmount" />
-            <div class="dropdown">
-              <button @click="currencyStore.toggleBeneficiaryDropdown">
-                <img
-                  :src="`src/assets/currency/${currencyStore.beneficiaryCurrency.code}.svg`"
-                  class="currency-image"
-                />
-                <span>{{ currencyStore.beneficiaryCurrency.code }}</span>
-                <font-awesome-icon :icon="['fa', 'chevron-down']" />
-              </button>
-              <CurrencyDropdown
-                currencyType="beneficiary"
-                :isDropdownOpen="currencyStore.isBeneficiaryDropdownOpen"
-                @updateCurrency="updateBeneficiaryCurrency"
-              />
-            </div>
-          </div>
-        </div>
+        <InputAmount
+          id="receivingAmount"
+          label="Receiving Amount"
+          :modelValue="receivingAmount"
+          :modelCurrency="receivingCurrency"
+          :isSending="false"
+          @update:modelValue="receivingAmount = $event"
+          @update:modelCurrency="receivingCurrency = $event"
+          :isDashboard="true"
+        />
       </div>
 
       <div class="rate-group">
@@ -58,7 +37,7 @@
       </div>
 
       <div class="button-group">
-        <button class="btn-red standard-button" @click="submitForm">
+        <button class="btn-red standard-button" @click="handleSubmit">
           Calculate
         </button>
       </div>
@@ -142,50 +121,41 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from "vue";
-import CurrencyDropdown from "@/components/CurrencyDropdown.vue";
-import { useCurrencyStore } from "@/stores/currencyStore";
+import { ref, watch } from "vue";
 import { useTransactionStore } from "@/stores/transactionStore";
-import { useBeneficiaryStore } from "@/stores/beneficiaryStore";
+import { InputAmount } from "@/components/Form";
 import { storeToRefs } from "pinia";
+import { sendingCurrencies, receivingCurrencies } from "@/data/data";
+import { useRouter } from "vue-router";
 
-const currencyStore = useCurrencyStore();
+const router = useRouter();
 const transactionStore = useTransactionStore();
-const beneficiaryStore = useBeneficiaryStore();
 const { transactions } = storeToRefs(transactionStore);
-const { beneficiaries } = storeToRefs(beneficiaryStore);
 
-// Ref for input values
-const sendingAmount = ref("");
-const receivingAmount = ref("");
-
-const updateSenderCurrency = (currency) => {
-  currencyStore.setSenderCurrency(currency);
-  console.log("Sender Currency Set To:", currencyStore.senderCurrency);
-};
-
-const updateBeneficiaryCurrency = (currency) => {
-  currencyStore.setBeneficiaryCurrency(currency);
-  console.log(
-    "Beneficiary Currency Set To:",
-    currencyStore.beneficiaryCurrency
-  );
-};
-
+// Dummy data for current currency rates
 const currencies = [
-  { icon: "src/assets/currency/usd.svg", code: "USD", rate: "SGD 1.36" },
-  { icon: "src/assets/currency/eur.svg", code: "EUR", rate: "SGD 1.46" },
-  { icon: "src/assets/currency/gbp.svg", code: "GBP", rate: "SGD 1.72" },
-  { icon: "src/assets/currency/cny.svg", code: "CNY", rate: "SGD 0.19" },
-  { icon: "src/assets/currency/myr.svg", code: "MYR", rate: "SGD 0.30" },
+  { icon: "/assets/currency/usd.svg", code: "USD", rate: "SGD 1.36" },
+  { icon: "/assets/currency/eur.svg", code: "EUR", rate: "SGD 1.46" },
+  { icon: "/assets/currency/gbp.svg", code: "GBP", rate: "SGD 1.72" },
+  { icon: "/assets/currency/cny.svg", code: "CNY", rate: "SGD 0.19" },
+  { icon: "/assets/currency/myr.svg", code: "MYR", rate: "SGD 0.30" },
 ];
 
-// Method to handle form submission
-const submitForm = () => {
-  console.log("Sending Amount:", sendingAmount.value);
-  console.log("Sending Currency:", currencyStore.senderCurrency.code);
-  console.log("Receiving Amount:", receivingAmount.value);
-  console.log("Receiving Currency:", currencyStore.beneficiaryCurrency.code);
+const sendingAmount = ref("");
+const sendingCurrency = ref(sendingCurrencies[1].code);
+const receivingAmount = ref("");
+const receivingCurrency = ref(receivingCurrencies[0].code);
+
+const handleSubmit = () => {
+  router.push({
+    path: "/transaction/addtransaction",
+    query: {
+      sendingAmount: sendingAmount.value,
+      sendingCurrency: sendingCurrency.value,
+      receivingAmount: receivingAmount.value,
+      receivingCurrency: receivingCurrency.value,
+    },
+  });
 };
 </script>
 

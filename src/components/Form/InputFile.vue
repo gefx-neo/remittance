@@ -10,13 +10,11 @@
       @change="handleFileChange"
     />
     <div class="file-upload">
-      <button type="button" @click="triggerFileInput">Choose File</button>
+      <button type="button" @click="triggerFileInput">Upload file</button>
       <span v-if="files.length">
         {{ files.map((file) => file.name).join(", ") }}
       </span>
-      <span v-else
-        >No files chosen (accepts .jpg, .png, .pdf, .doc, .xls format)</span
-      >
+      <span v-else>No file chosen </span>
     </div>
     <span v-if="error" class="error">{{ error }}</span>
   </div>
@@ -76,6 +74,7 @@ watch(
   border-radius: var(--border-md);
   padding: var(--size-dropdown-item);
   margin-right: var(--size-8);
+  font-weight: var(--semi-bold);
   cursor: pointer;
 }
 </style>

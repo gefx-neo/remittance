@@ -2,60 +2,50 @@
   <div class="form-group" ref="dropdownContainer">
     <label :for="id">{{ label }}</label>
     <div class="input-group">
-      <div class="phone-item">
+      <div class="category-item">
         <div class="dropdown">
           <button
             type="button"
             @click="toggleDropdown"
             :class="{ open: isDropdownOpen }"
           >
-            <!-- Display the name of the selected country -->
-            <span>{{ selectedCountryName }}</span>
+            <span>{{ selectedCategoryName }}</span>
             <font-awesome-icon :icon="['fa', 'chevron-down']" />
           </button>
-          <CountryDropdown
+          <BusinessCategoryDropdown
             :isDropdownOpen="isDropdownOpen"
-            :selectedCountry="selectedCountry"
-            :countries="filteredCountries"
-            @updateCountry="updateCountry"
+            :selectedCategory="selectedCategory"
+            :businessCategories="businessCategories"
+            @updateCategory="updateCategory"
             @closeDropdown="isDropdownOpen = false"
           />
         </div>
       </div>
     </div>
-    <!-- Error message display -->
     <span v-if="error" class="error">{{ error }}</span>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
-import CountryDropdown from "@/components/Dropdown/CountryDropdown.vue";
-import { countries } from "@/data/data"; // Static country data
+import BusinessCategoryDropdown from "@/components/Dropdown/BusinessCategoryDropdown.vue";
+import { businessCategories } from "@/data/data"; // Business categories data import
 
+// Props
 const props = defineProps({
   label: String,
   id: String,
-  modelValue: String, // Phone number (not used in your example, but kept here if needed)
-  modelCountry: String, // Country value (code) for submission
-  error: String, // Error message passed from the parent component
-  showOthers: {
-    type: Boolean,
-    default: false,
-  },
+  modelCategory: [String, Number], // Accepts both String and Number types
+  error: String,
 });
 
-const emit = defineEmits(["update:modelCountry"]);
+// Emits for v-model binding
+const emit = defineEmits(["update:modelCategory"]);
 
-// Local state for managing dropdown and selected country
 const isDropdownOpen = ref(false);
+const selectedCategory = ref(props.modelCategory || "");
 
-const selectedCountry = ref(
-  props.modelCountry ||
-    countries.find((country) => country.name === "Singapore").value
-);
-
-// Ref for the dropdown container to check clicks outside
+// Ref for dropdown container to manage click outside
 const dropdownContainer = ref(null);
 
 // Toggle dropdown state
@@ -63,34 +53,29 @@ const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value;
 };
 
-// Computed property to get the selected country name
-const selectedCountryName = computed(() => {
-  const country = countries.find(
-    (country) => country.value === selectedCountry.value
-  );
-  return country ? country.name : "";
+// Computed property to get the selected category name based on the ID
+const selectedCategoryName = computed(() => {
+  for (const category of businessCategories) {
+    const subCategory = category.subcategories.find(
+      (sub) => sub.id === selectedCategory.value
+    );
+    if (subCategory) return subCategory.name;
+  }
+  return "Select a category"; // Fallback label if none is selected
 });
 
-const filteredCountries = computed(() => {
-  return props.showOthers
-    ? countries
-    : countries.filter((country) => country.value !== "OTHERS");
-});
-
-// Update country code and emit the new value to the parent
-const updateCountry = (countryValue) => {
-  selectedCountry.value = countryValue;
-  emit("update:modelCountry", countryValue); // Emit the selected country
-  isDropdownOpen.value = false; // Close the dropdown after selection
+// Update selected category and emit to parent for v-model support
+const updateCategory = (categoryValue) => {
+  selectedCategory.value = categoryValue;
+  emit("update:modelCategory", categoryValue);
+  isDropdownOpen.value = false;
 };
 
-// Watch for changes in the passed country prop and update the local state
+// Watch for changes in `modelCategory` and update `selectedCategory` locally
 watch(
-  () => props.modelCountry,
-  (newCountryValue) => {
-    if (newCountryValue) {
-      selectedCountry.value = newCountryValue;
-    }
+  () => props.modelCategory,
+  (newCategoryValue) => {
+    selectedCategory.value = newCategoryValue;
   }
 );
 
@@ -104,15 +89,13 @@ const handleClickOutside = (event) => {
   }
 };
 
-// Add event listener for click outside
 onMounted(() => {
-  if (!props.modelCountry) {
-    emit("update:modelCountry", selectedCountry.value); // Emit the default country value
+  if (!props.modelCategory) {
+    emit("update:modelCategory", selectedCategory.value); // Emit initial value
   }
   document.addEventListener("click", handleClickOutside);
 });
 
-// Remove event listener when component is destroyed
 onBeforeUnmount(() => {
   document.removeEventListener("click", handleClickOutside);
 });

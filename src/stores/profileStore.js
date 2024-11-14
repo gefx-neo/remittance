@@ -78,7 +78,6 @@ export const useProfileStore = defineStore("profile", {
         );
 
         if (response.status === 1) {
-          this.successMessage = "Account verification successful!";
           this.error = null;
         } else {
           this.error = response.message;

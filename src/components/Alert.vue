@@ -1,45 +1,37 @@
 <template>
-  <transition name="fade">
+  <transition-group name="fade" tag="div">
     <div
-      v-if="isVisible"
-      :class="['alert-item', `${alertType}`]"
-      @click="clearAlert"
+      v-for="alert in alerts"
+      :key="alert.id"
+      :class="['alert-item', `${alert.type}`]"
+      @click="clearAlert(alert.id)"
     >
-      <button class="icon" v-if="alertType === 'success'">
+      <button class="icon" v-if="alert.type === 'success'">
         <font-awesome-icon :icon="['fas', 'check']" />
       </button>
-      <button class="icon" v-if="alertType === 'error'">
+      <button class="icon" v-if="alert.type === 'error'">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
           <path
             d="M376.6 84.5c11.3-13.6 9.5-33.8-4.1-45.1s-33.8-9.5-45.1 4.1L192 206 56.6 43.5C45.3 29.9 25.1 28.1 11.5 39.4S-3.9 70.9 7.4 84.5L150.3 256 7.4 427.5c-11.3 13.6-9.5 33.8 4.1 45.1s33.8-9.5 45.1-4.1L192 306 327.4 468.5c11.3 13.6 31.5 15.4 45.1 4.1s15.4-31.5 4.1-45.1L233.7 256 376.6 84.5z"
           />
         </svg>
       </button>
-      {{ alertMessage }}
+      {{ alert.message }}
     </div>
-  </transition>
+  </transition-group>
 </template>
 
 <script setup>
-import { computed, watch } from "vue";
+import { computed } from "vue";
 import { useAlertStore } from "@/stores/alertStore";
-import { useRoute } from "vue-router";
 
 const alertStore = useAlertStore();
-const route = useRoute();
 
-// Watch for route changes and clear the alert on route change
-watch(route, () => {
-  if (alertStore.isVisible) {
-    alertStore.clearAlert();
-  }
-});
+// Computed property for accessing the alerts array
+const alerts = computed(() => alertStore.alerts);
 
-// Computed properties for the alert store data
-const alertMessage = computed(() => alertStore.message);
-const alertType = computed(() => alertStore.type);
-const isVisible = computed(() => alertStore.isVisible);
-const clearAlert = alertStore.clearAlert;
+// Method for clearing individual alerts by id
+const clearAlert = (id) => alertStore.clearAlert(id);
 </script>
 
 <style scoped>

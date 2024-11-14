@@ -1,7 +1,7 @@
 <template>
   <div class="dropdown-menu" :class="{ open: isDropdownOpen }">
     <div class="header">
-      <div class="btn-close" @click="currencyStore.closeAllDropdowns">
+      <div class="btn-close" @click="handleClose">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
           <path
             d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"
@@ -10,26 +10,23 @@
       </div>
     </div>
     <div class="body">
-      <div class="title">Selected currency</div>
-      <div class="item" @click="currencyStore.closeAllDropdowns">
-        <div class="currency">
-          <img :src="`/assets/currency/${selectedCurrency.code}.svg`" />
-          <span class="code">{{ selectedCurrency.code }}</span>
-          <span class="name">{{ selectedCurrency.name }}</span>
+      <div class="title">Selected country</div>
+      <div class="item" @click="selectCountry(item)">
+        <div class="country">
+          <span class="name">{{ selectedCountryName }}</span>
         </div>
         <font-awesome-icon :icon="['fas', 'check']" class="icon-check" />
       </div>
-      <div class="title">All currencies</div>
+
+      <div class="title">All countries</div>
       <div
-        v-for="item in currencies"
-        :key="item.code"
-        @click="selectCurrency(item)"
+        v-for="item in countries"
+        :key="item.value"
+        @click="selectCountry(item)"
         class="item"
         :class="{ active: isActive(item) }"
       >
-        <div class="currency">
-          <img :src="`/assets/currency/${item.code}.svg`" />
-          <span class="code">{{ item.code }}</span>
+        <div class="country">
           <span class="name">{{ item.name }}</span>
         </div>
         <font-awesome-icon
@@ -40,62 +37,66 @@
       </div>
     </div>
   </div>
-
   <div
     class="backdrop"
-    @click="currencyStore.closeAllDropdowns"
-    :class="{
-      open:
-        currencyStore.isBeneficiaryDropdownOpen ||
-        currencyStore.isSenderDropdownOpen,
-    }"
+    @click="handleClose"
+    :class="{ open: isDropdownOpen }"
   ></div>
 </template>
 
 <script setup>
-import { computed } from "vue";
-import { useCurrencyStore } from "@/stores/currencyStore";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 
+// Props definition
 const props = defineProps({
-  currencyType: {
-    type: String,
-    required: true,
-  },
-  isDropdownOpen: {
-    type: Boolean,
-    required: true,
-  },
+  isDropdownOpen: Boolean,
+  selectedCountry: String,
+  countries: Array,
 });
 
-const emit = defineEmits(["updateCurrency"]);
+// Emits definition
+const emit = defineEmits(["updateCountry", "closeDropdown"]);
 
-const currencyStore = useCurrencyStore();
+// Local refs and variables
+const dropdownMenuRef = ref(null);
 
-const currencies = computed(() => currencyStore.currencies);
-
-const selectedCurrency = computed({
-  get() {
-    return props.currencyType === "sender"
-      ? currencyStore.senderCurrency
-      : currencyStore.beneficiaryCurrency;
-  },
-  set(value) {
-    if (props.currencyType === "sender") {
-      currencyStore.setSenderCurrency(value);
-    } else {
-      currencyStore.setBeneficiaryCurrency(value);
-    }
-  },
+// Track the selected country from the parent
+const selectedCountryName = computed(() => {
+  const country = props.countries.find(
+    (country) => country.value === props.selectedCountry
+  );
+  return country ? country.name : "";
 });
 
-const isActive = (item) => {
-  return item.code === selectedCurrency.value.code;
+// Helper to check if the country is active
+const isActive = (item) => item.value === props.selectedCountry;
+
+// Select a country and emit the value
+const selectCountry = (item) => {
+  emit("updateCountry", item.value);
+  emit("closeDropdown"); // Close dropdown on country selection
 };
 
-const selectCurrency = (item) => {
-  selectedCurrency.value = item;
-  emit("updateCurrency", item);
+// Close the dropdown
+const handleClose = () => {
+  emit("closeDropdown");
 };
+
+// Handle click outside the dropdown to close it
+const handleClickOutside = (event) => {
+  if (dropdownMenuRef.value && !dropdownMenuRef.value.contains(event.target)) {
+    handleClose(); // Close the dropdown if click is outside
+  }
+};
+
+// Lifecycle hooks to manage click event listener
+onMounted(() => {
+  document.addEventListener("click", handleClickOutside);
+});
+
+onUnmounted(() => {
+  document.removeEventListener("click", handleClickOutside);
+});
 </script>
 
 <style scoped>
@@ -103,7 +104,7 @@ const selectCurrency = (item) => {
   visibility: hidden;
   position: absolute;
   top: 100%;
-  right: 0;
+  left: 0;
   z-index: 1056;
   margin: 0;
   width: 330px;
@@ -136,7 +137,9 @@ const selectCurrency = (item) => {
   padding-top: 8px;
   padding-bottom: 4px;
   margin: 0px var(--size-8);
+  font-size: var(--text-sm);
   font-weight: var(--semi-bold);
+  color: var(--cool-blue);
   position: sticky;
   top: 0;
   background: var(--white);
@@ -147,7 +150,7 @@ const selectCurrency = (item) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--size-dropdown-item);
+  padding: var(--size-12);
   margin: 0px var(--size-8);
   border-radius: var(--border-md);
   border: 1px solid var(--white);
@@ -155,10 +158,10 @@ const selectCurrency = (item) => {
 }
 
 .dropdown-menu .item:hover {
-  border: 1px solid var(--slate-blue);
+  border: 1px solid var(--black);
 }
 
-.dropdown-menu .item .currency {
+.dropdown-menu .item .country {
   display: flex;
   align-items: center;
   gap: var(--size-8);
@@ -171,12 +174,11 @@ const selectCurrency = (item) => {
   max-height: var(--size-24);
 }
 
-.dropdown-menu .item .code {
-  color: var(--slate-blue);
+.dropdown-menu .item .name {
   font-weight: var(--semi-bold);
 }
 
-.dropdown-menu .item .name {
+.dropdown-menu .item .code {
   font-size: var(--text-sm);
 }
 

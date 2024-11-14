@@ -1,0 +1,253 @@
+<template>
+  <div class="third-form" @keydown.enter.prevent="handleSubmit">
+    <fieldset>
+      <div class="left-form">
+        <div class="item-group">
+          <div class="header">Remittance Application</div>
+          <div class="body">
+            <InputFile
+              label="Supporting documents"
+              id="docIC"
+              v-model="localForm.docIC"
+              :multiple="false"
+              @update:modelValue="(files) => handleFileUpload('docIC', files)"
+              :error="errors.docIC"
+            />
+            <Input
+              label="Remarks (optional)"
+              id="remarks"
+              v-model="localForm.remarks"
+              :error="errors.remarks"
+            />
+          </div>
+        </div>
+        <!-- StepThree.vue -->
+        <div class="item-group">
+          <div class="header">Beneficiary Information</div>
+          <div class="body">
+            <div class="item">
+              <div class="label">Account holder name</div>
+              <div class="value">
+                {{ localForm.beneficiaryInfo?.name || "N/A" }}
+              </div>
+            </div>
+            <div class="item" v-if="localForm.beneficiaryInfo?.accountType">
+              <div class="label">Account Type</div>
+              <div class="value">
+                {{ localForm.beneficiaryInfo.accountType }}
+              </div>
+            </div>
+            <div class="item" v-if="localForm.beneficiaryInfo?.currency">
+              <div class="label">Currency</div>
+              <div class="value">{{ localForm.beneficiaryInfo.currency }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="right-form">
+        <TransactionSummary
+          :sendingAmount="localForm.sendingAmount"
+          :sendingCurrency="localForm.sendingCurrency"
+          :receivingAmount="localForm.receivingAmount"
+          :receivingCurrency="localForm.receivingCurrency"
+          processingFees="8 SGD"
+          exchangeRate="1 SGD = 0.7424 USD"
+          totalPayment="2,000 SGD"
+        />
+
+        <div class="footer">
+          <button
+            type="button"
+            @click="handleSubmit"
+            class="btn-red standard-button"
+          >
+            Submit
+          </button>
+          <button
+            type="button"
+            @click="handleBack"
+            class="btn-back standard-button"
+          >
+            Back
+          </button>
+        </div>
+      </div>
+    </fieldset>
+  </div>
+</template>
+
+<script setup>
+import TransactionSummary from "./TransactionSummary.vue";
+import { ref, toRef, watch, defineProps, defineEmits, onMounted } from "vue";
+import { Input, InputFile } from "@/components/Form";
+import { paymentTypes, gefxBanks } from "@/data/data";
+import { useValidation } from "@/composables/useValidation";
+import { formValidation } from "./schemas/stepThreeSchema";
+import { useAlertStore } from "@/stores/alertStore";
+import { useRoute, useRouter } from "vue-router";
+
+const props = defineProps({
+  modelValue: {
+    type: Object,
+    required: true,
+  },
+});
+const emit = defineEmits(["update:modelValue", "nextStep"]);
+const { errors, validateForm, clearErrors, scrollToErrors } = useValidation();
+const route = useRoute();
+const router = useRouter();
+const alertStore = useAlertStore();
+
+const localForm = toRef(props, "modelValue");
+
+const handleSubmit = () => {
+  const form = localForm.value;
+  const schema = formValidation(form);
+
+  const isValid = validateForm(form, schema);
+  console.log("Validation Errors:", errors);
+
+  if (isValid) {
+    emit("submit");
+  } else {
+    alertStore.alert("error", "Please fill in all the required inputs.");
+    scrollToErrors();
+  }
+};
+
+// Generic file upload handler
+const handleFileUpload = (field, files) => {
+  if (Array.isArray(files)) {
+    localForm.value[field] = files;
+  } else {
+    localForm.value[field] = [files];
+  }
+};
+
+watch(
+  localForm,
+  (newVal) => {
+    if (JSON.stringify(newVal) !== JSON.stringify(props.modelValue)) {
+      emit("update:modelValue", { ...newVal });
+    }
+  },
+  { deep: true }
+);
+
+onMounted(() => {
+  if (
+    localForm.value.sendingAmount === undefined ||
+    localForm.value.sendingAmount === null
+  ) {
+    localForm.value.sendingAmount = route.query.sendingAmount
+      ? parseFloat(route.query.sendingAmount)
+      : 0.0;
+  }
+
+  if (!localForm.value.sendingCurrency) {
+    localForm.value.sendingCurrency = route.query.sendingCurrency || "SGD";
+  }
+
+  if (
+    localForm.value.receivingAmount === undefined ||
+    localForm.value.receivingAmount === null
+  ) {
+    localForm.value.receivingAmount = route.query.receivingAmount
+      ? parseFloat(route.query.receivingAmount)
+      : 0.0;
+  }
+
+  if (!localForm.value.receivingCurrency) {
+    localForm.value.receivingCurrency = route.query.receivingCurrency || "MYR";
+  }
+});
+
+const handleBack = () => {
+  emit("prevStep");
+};
+</script>
+
+<style scoped>
+@import "@/assets/dashboard.css";
+
+.third-form {
+  width: 100%;
+  max-width: 1000px;
+}
+
+.third-form fieldset {
+  display: flex;
+  justify-content: space-between;
+}
+
+.third-form .left-form {
+  width: 550px;
+  max-width: 550px;
+}
+
+.third-form .right-form {
+  width: 400px;
+  max-width: 400px;
+}
+
+.third-form .left-form .item-group {
+  border: 1px solid var(--light-grey);
+  border-radius: var(--border-md);
+  margin-bottom: var(--size-24);
+}
+
+.third-form .left-form .item-group .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--size-dropdown-item);
+  border-bottom: 1px solid var(--light-grey);
+  font-weight: var(--semi-bold);
+}
+
+.third-form .left-form .item-group .body {
+  padding: var(--size-16);
+  border-bottom: 1px solid var(--light-grey);
+}
+
+.third-form .left-form .item-group .body .item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: var(--size-8);
+}
+
+.third-form .left-form .item-group .body .item .label {
+  color: var(--grey);
+}
+
+.third-form .left-form .item-group .body .item .value {
+  color: var(--black);
+}
+
+.third-form .footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-12);
+}
+
+.form-group {
+  margin-bottom: var(--size-24);
+}
+
+@media (max-width: 1023px) {
+  .third-form {
+    max-width: 400px;
+  }
+
+  .third-form fieldset {
+    flex-direction: column;
+  }
+
+  .third-form .left-form,
+  .third-form .right-form {
+    width: 100%;
+    max-width: 400px;
+  }
+}
+</style>

@@ -112,7 +112,7 @@ import { ref, watch, reactive } from "vue";
 import { useForgotPasswordStore } from "@/stores/forgotPasswordStore";
 import { useStore } from "@/stores/useStore";
 import Modal from "@/components/Modal.vue";
-import ButtonAPI from "@/components/ButtonAPI.vue";
+import { ButtonAPI } from "@/components/Form";
 import { validationService } from "@/services/validationUserService.js";
 
 const forgotPasswordStore = useForgotPasswordStore();

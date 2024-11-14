@@ -110,8 +110,21 @@ const routes = [
       },
       {
         path: "transaction",
-        name: "transaction",
-        component: () => import("../views/User/Transaction.vue"),
+        children: [
+          {
+            path: "",
+            name: "transaction",
+            component: () =>
+              import("../views/User/Transaction/TransactionList.vue"),
+          },
+          {
+            path: ":id",
+            name: "transaction-detail",
+            component: () =>
+              import("../views/User/Transaction/TransactionDetail.vue"),
+            props: true,
+          },
+        ],
       },
       {
         path: "profile",
@@ -141,6 +154,18 @@ const routes = [
         path: "addbeneficiary",
         name: "addbeneficiary",
         component: () => import("../views/User/Beneficiary/AddBeneficiary.vue"),
+      },
+    ],
+  },
+  {
+    path: "/transaction",
+    component: ProcessLayout,
+    beforeEnter: authGuard,
+    children: [
+      {
+        path: "addtransaction",
+        name: "addtransaction",
+        component: () => import("../views/User/Transaction/AddTransaction.vue"),
       },
     ],
   },

@@ -1,9 +1,8 @@
-<!-- ParentComponent.vue -->
 <template>
   <div class="content-area">
-    <div class="profile">
+    <div class="transaction">
       <div class="title">
-        <h3>Add Beneficiary</h3>
+        <h3>Remittance</h3>
         <button class="btn-round" @click="handleCancel">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
             <path
@@ -19,6 +18,7 @@
           v-model="form"
           @nextStep="nextStep"
         />
+
         <StepTwo
           v-if="stepStore.currentStep === 2"
           v-model="form"
@@ -33,6 +33,7 @@
           @submit="handleSubmit"
         />
       </form>
+      <button type="button" @click="handleSubmit">Submit</button>
     </div>
   </div>
 </template>
@@ -46,14 +47,12 @@ import StepThree from "./components/StepThree.vue";
 import { getLocalStorageWithExpiry } from "@/services/localStorageService.js";
 import { useValidation } from "@/composables/useValidation";
 import { useRouter } from "vue-router";
-
 const router = useRouter();
 const stepStore = useStepStore();
 const { scrollToTop } = useValidation();
 
 const username = ref("");
 const form = ref({});
-
 const handleSubmit = () => {
   // Logic for submitting form data
   console.log(form.value);
@@ -70,14 +69,14 @@ const prevStep = () => {
 };
 
 onMounted(() => {
-  stepStore.setSteps(["Particulars", "Bank", "Payment"]);
+  stepStore.setSteps(["Amount", "Beneficiary", "Final"]);
   stepStore.setCurrentStep(1);
   username.value = getLocalStorageWithExpiry("username");
   form.value.username = username.value;
 });
 
 const handleCancel = () => {
-  router.push({ path: "/beneficiary" });
+  router.push({ path: "/transaction" });
 };
 </script>
 
@@ -88,7 +87,7 @@ const handleCancel = () => {
   align-items: center;
 }
 
-.profile {
+.transaction {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -97,7 +96,7 @@ const handleCancel = () => {
   gap: var(--size-24);
 }
 
-.profile .title {
+.transaction .title {
   position: relative;
   display: flex;
   justify-content: center;
@@ -105,7 +104,7 @@ const handleCancel = () => {
   width: 100%;
 }
 
-.profile .title .btn-round {
+.transaction .title .btn-round {
   position: absolute;
   right: 0;
 }
@@ -118,7 +117,7 @@ form {
 }
 
 @media (max-width: 767px) {
-  .profile .title .btn-round {
+  .transaction .title .btn-round {
     display: none;
   }
 }

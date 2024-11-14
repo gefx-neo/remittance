@@ -40,7 +40,7 @@
 <script setup>
 import { ref, watch } from "vue";
 import { useCountryCodeStore } from "@/stores/countryCodeStore";
-import PhoneDropdown from "@/components/PhoneDropdown.vue";
+import PhoneDropdown from "@/components/Dropdown/PhoneDropdown.vue";
 
 const props = defineProps({
   label: String,

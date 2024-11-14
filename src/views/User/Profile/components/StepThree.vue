@@ -116,8 +116,7 @@
 import { ref, watch } from "vue";
 import { useStore } from "@/stores/useStore";
 import { useValidation } from "@/composables/useValidation";
-import { InputFile } from "@/components/Form";
-import ButtonAPI from "@/components/ButtonAPI.vue";
+import { InputFile, ButtonAPI } from "@/components/Form";
 import {
   corporateValidation,
   individualValidation,

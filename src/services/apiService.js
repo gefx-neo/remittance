@@ -103,6 +103,46 @@ const apiService = {
       throw error.response?.data?.message || error.message;
     }
   },
+
+  async putRequest(url, data, options = { format: "json" }) {
+    let requestData;
+    const headers = {};
+
+    switch (options.format) {
+      case "raw":
+        requestData = `"${JSON.stringify(data).replace(/"/g, '\\"')}"`;
+        headers["Content-Type"] = "application/json";
+        break;
+      case "multipart/form-data":
+        requestData = data;
+        headers["Content-Type"] = "multipart/form-data";
+        break;
+      default:
+        requestData = JSON.stringify(data);
+        headers["Content-Type"] = "application/json";
+        break;
+    }
+
+    try {
+      const response = await axiosInstance.put(url, requestData, {
+        headers: { ...axiosInstance.defaults.headers, ...headers },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("API request failed:", error);
+      throw error.response?.data?.message || error.message;
+    }
+  },
+
+  async deleteRequest(url, params = {}) {
+    try {
+      const response = await axiosInstance.delete(url, { params });
+      return response.data;
+    } catch (error) {
+      console.error("API request failed:", error);
+      throw error.response?.data?.message || error.message;
+    }
+  },
 };
 
 export default apiService;

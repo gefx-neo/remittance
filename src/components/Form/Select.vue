@@ -29,7 +29,18 @@ const props = defineProps({
 const emit = defineEmits(["update:modelValue"]);
 
 // Emit selected value to parent on change
+// Emit selected value to parent on change
 const updateValue = (event) => {
-  emit("update:modelValue", event.target.value);
+  const selectedValue = event.target.value;
+  // Check if the selected value exists in the options and convert it accordingly
+  const matchedOption = props.options.find(
+    (option) => option.value.toString() === selectedValue
+  );
+
+  // Emit the value as its original type
+  emit(
+    "update:modelValue",
+    matchedOption ? matchedOption.value : selectedValue
+  );
 };
 </script>

@@ -4,7 +4,7 @@
     class="modal-overlay"
     :class="{ open: isModalOpen }"
     v-if="isModalOpen"
-    @click.self="handleClose"
+    @click="handleClose"
   >
     <div class="modal" :class="{ open: isModalOpen }" @click.stop>
       <div class="header">
@@ -42,7 +42,22 @@
         <a href="/" v-if="redirectToLogin" class="message">
           Redirect to login page
         </a>
-
+        <div v-if="showAction" class="action">
+          <button
+            type="button"
+            @click="emitCancel"
+            class="btn-back standard-button"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            @click="emitSubmit"
+            class="btn-blue standard-button"
+          >
+            Confirm
+          </button>
+        </div>
         <slot name="footer"></slot>
       </div>
     </div>
@@ -67,6 +82,8 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  showAction: { type: Boolean, default: false },
+
   success: {
     // For User success action
     type: Boolean,
@@ -74,7 +91,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["close"]);
+const emit = defineEmits(["close", "submit", "cancel"]);
 
 const store = useStore();
 
@@ -100,6 +117,9 @@ const handleClose = () => {
     store.closeModal(); // This is for default modals
   }
 };
+
+const emitCancel = () => emit("cancel");
+const emitSubmit = () => emit("submit");
 </script>
 
 <style scoped>
@@ -148,12 +168,17 @@ const handleClose = () => {
   justify-content: center;
   min-height: var(--size-32);
   max-height: var(--size-32);
+  margin-bottom: var(--size-12);
 }
 
 .modal .header .btn-round {
   position: absolute;
   top: var(--size-16);
   right: var(--size-16);
+}
+
+.modal .body {
+  min-height: var(--size-48);
 }
 
 .modal .body .icon {
@@ -183,6 +208,16 @@ const handleClose = () => {
   font-weight: var(--semi-bold);
   text-decoration: underline;
   color: var(--grey);
+}
+
+.modal .action {
+  display: flex;
+  justify-content: space-between;
+}
+
+.modal .action button {
+  min-width: 48.5%;
+  max-width: 48.5%;
 }
 
 @media (max-width: 767px) {

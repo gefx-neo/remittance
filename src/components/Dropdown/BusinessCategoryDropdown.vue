@@ -9,31 +9,37 @@
         </svg>
       </div>
     </div>
-    <div class="body">
-      <div class="title">Selected country</div>
-      <div class="item" @click="selectCountry(item)">
-        <div class="country">
-          <span class="name">{{ selectedCountryName }}</span>
-        </div>
-        <font-awesome-icon :icon="['fas', 'check']" class="icon-check" />
-      </div>
 
-      <div class="title">All countries</div>
-      <div
-        v-for="item in countries"
-        :key="item.value"
-        @click="selectCountry(item)"
-        class="item"
-        :class="{ active: isActive(item) }"
-      >
-        <div class="country">
-          <span class="name">{{ item.name }}</span>
+    <!-- Global Search Input -->
+    <div class="search-item">
+      <input
+        type="text"
+        v-model="searchQuery"
+        placeholder="Search all subcategories..."
+      />
+    </div>
+    <div class="body">
+      <!-- Loop through filtered categories and display only those with matching subcategories -->
+      <div v-for="category in filteredCategories" :key="category.category">
+        <div class="title">{{ category.category }}</div>
+
+        <!-- Filtered subcategories for each category -->
+        <div
+          v-for="subCategory in filteredSubcategories(category.subcategories)"
+          :key="subCategory.id"
+          @click="selectCategory(subCategory)"
+          class="item"
+          :class="{ active: isActive(subCategory) }"
+        >
+          <div class="subCategory">
+            <span class="name">{{ subCategory.name }}</span>
+          </div>
+          <font-awesome-icon
+            v-if="isActive(subCategory)"
+            :icon="['fas', 'check']"
+            class="icon-check"
+          />
         </div>
-        <font-awesome-icon
-          v-if="isActive(item)"
-          :icon="['fas', 'check']"
-          class="icon-check"
-        />
       </div>
     </div>
   </div>
@@ -45,36 +51,29 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 
 // Props definition
 const props = defineProps({
   isDropdownOpen: Boolean,
-  selectedCountry: String,
-  countries: Array,
+  selectedCategory: [String, Number],
+  businessCategories: Array,
 });
 
 // Emits definition
-const emit = defineEmits(["updateCountry", "closeDropdown"]);
+const emit = defineEmits(["updateCategory", "closeDropdown"]);
 
 // Local refs and variables
 const dropdownMenuRef = ref(null);
+const searchQuery = ref(""); // Global search term for filtering
 
-// Track the selected country from the parent
-const selectedCountryName = computed(() => {
-  const country = props.countries.find(
-    (country) => country.value === props.selectedCountry
-  );
-  return country ? country.name : "";
-});
+// Helper to check if the subcategory is active
+const isActive = (subCategory) => subCategory.id === props.selectedCategory;
 
-// Helper to check if the country is active
-const isActive = (item) => item.value === props.selectedCountry;
-
-// Select a country and emit the value
-const selectCountry = (item) => {
-  emit("updateCountry", item.value);
-  emit("closeDropdown"); // Close dropdown on country selection
+// Select a subcategory and emit the value
+const selectCategory = (subCategory) => {
+  emit("updateCategory", subCategory.id);
+  emit("closeDropdown"); // Close dropdown on subcategory selection
 };
 
 // Close the dropdown
@@ -88,6 +87,23 @@ const handleClickOutside = (event) => {
     handleClose(); // Close the dropdown if click is outside
   }
 };
+
+// Filtered subcategories based on the global search query
+const filteredSubcategories = (subcategories) => {
+  return subcategories.filter((subCategory) =>
+    subCategory.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+  );
+};
+
+// Computed property to filter categories that have matching subcategories
+const filteredCategories = computed(() => {
+  return props.businessCategories
+    .map((category) => ({
+      ...category,
+      subcategories: filteredSubcategories(category.subcategories),
+    }))
+    .filter((category) => category.subcategories.length > 0);
+});
 
 // Lifecycle hooks to manage click event listener
 onMounted(() => {
@@ -123,6 +139,15 @@ onUnmounted(() => {
   visibility: visible;
 }
 
+.dropdown-menu .search-item {
+  padding: var(--size-12);
+  padding-bottom: 0;
+}
+
+.dropdown-menu .search-item input {
+  width: 100%;
+}
+
 .dropdown-menu .header {
   display: none;
 }
@@ -130,6 +155,7 @@ onUnmounted(() => {
 .dropdown-menu .body {
   overflow-y: auto;
   height: calc(100% - 16px);
+  margin-bottom: var(--size-8);
 }
 
 .dropdown-menu .title {
@@ -137,7 +163,9 @@ onUnmounted(() => {
   padding-top: 8px;
   padding-bottom: 4px;
   margin: 0px var(--size-8);
+  font-size: var(--text-sm);
   font-weight: var(--semi-bold);
+  color: var(--cool-blue);
   position: sticky;
   top: 0;
   background: var(--white);
@@ -148,7 +176,7 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--size-dropdown-item);
+  padding: var(--size-12);
   margin: 0px var(--size-8);
   border-radius: var(--border-md);
   border: 1px solid var(--white);
@@ -156,7 +184,7 @@ onUnmounted(() => {
 }
 
 .dropdown-menu .item:hover {
-  border: 1px solid var(--slate-blue);
+  border: 1px solid var(--black);
 }
 
 .dropdown-menu .item .country {
@@ -173,7 +201,6 @@ onUnmounted(() => {
 }
 
 .dropdown-menu .item .name {
-  color: var(--slate-blue);
   font-weight: var(--semi-bold);
 }
 

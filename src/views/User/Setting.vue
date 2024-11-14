@@ -129,7 +129,7 @@ import { ref, reactive, onMounted, watch } from "vue";
 import { useStore } from "@/stores/useStore";
 import { useForgotPasswordStore } from "@/stores/forgotPasswordStore";
 import Modal from "@/components/Modal.vue";
-import ButtonAPI from "@/components/ButtonAPI.vue";
+import { ButtonAPI } from "@/components/Form";
 import { getLocalStorageWithExpiry } from "@/services/localStorageService.js";
 import { validationService } from "@/services/validationUserService.js";
 

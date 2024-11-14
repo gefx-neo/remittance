@@ -10,15 +10,21 @@
           </svg>
         </button>
         <div class="user-group">
-          <span class="icon-round">{{ beneficiary.initials }}</span>
+          <span class="icon-round"
+            >{{ beneficiary.initials }}
+            <img :src="beneficiary.currency" />
+          </span>
           <div>
             <span>{{ beneficiary.name }}</span>
-            <FavouriteButton :beneficiaryId="beneficiary.id" />
+            <span>
+              <FavouriteButton :beneficiaryId="beneficiary.id" />
+            </span>
           </div>
+          <div>{{ beneficiary.accountCurrency }}</div>
         </div>
         <div class="button-group">
           <button class="btn-red">Send money</button>
-          <button class="btn-delete">Delete</button>
+          <button class="btn-delete" @click="store.openModal">Delete</button>
         </div>
       </div>
 
@@ -92,11 +98,67 @@
             </div>
           </div>
         </div>
-        <div v-if="activeTab === 'transactions'" class="transaction item">
-          <!-- Content for Transactions tab -->
-          <p>Transaction history goes here.</p>
+        <div v-if="activeTab === 'transactions'" class="transaction">
+          <div class="item-group">
+            <div
+              v-for="(transaction, index) in transactions"
+              :key="index"
+              class="item"
+              tabindex="0"
+            >
+              <div class="icon-round">
+                <font-awesome-icon :icon="['fas', 'dollar-sign']" />
+              </div>
+              <div class="information">
+                <div class="first-column">
+                  <div class="first-row">{{ transaction.number }}</div>
+                  <div class="second-row">
+                    <span
+                      :class="{
+                        unpaid: transaction.status === 'Unpaid',
+                        pending: transaction.status.includes('Pending'),
+                        completed: transaction.status === 'Completed',
+                        failed: transaction.status === 'Failed',
+                      }"
+                      >{{ transaction.status }}</span
+                    >
+                    <span
+                      :class="{
+                        unpaid: transaction.status === 'Unpaid',
+                        pending: transaction.status.includes('Pending'),
+                        completed: transaction.status === 'Completed',
+                        failed: transaction.status === 'Failed',
+                      }"
+                    ></span>
+                    <span>{{ transaction.date }}</span>
+                  </div>
+                </div>
+                <div class="second-column">
+                  <div class="first-row">
+                    {{ transaction.sendingAmount }}
+                  </div>
+                  <div class="second-row">
+                    {{ transaction.receivingAmount }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+
+      <Modal
+        :isModalOpen="store.isModalOpen"
+        :title="'Delete beneficiary'"
+        :showAction="true"
+        @close="store.closeModal"
+        @submit="handleSubmit"
+        @cancel="handleCancel"
+      >
+        <template #body>
+          <p>Are you sure you want to delete this beneficiary?</p>
+        </template>
+      </Modal>
     </div>
   </div>
 </template>
@@ -105,17 +167,26 @@
 import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useBeneficiaryStore } from "@/stores/beneficiaryStore";
-import FavouriteButton from "@/components/FavouriteButton.vue";
+import { useTransactionStore } from "@/stores/transactionStore";
+import { useStore } from "@/stores/useStore";
+import { useAlertStore } from "@/stores/alertStore";
+import FavouriteButton from "./components/FavouriteButton.vue";
+import Modal from "@/components/Modal.vue";
+import { storeToRefs } from "pinia";
 
 const route = useRoute();
 const router = useRouter();
 
 const id = route.params.id; // Extract beneficiary ID from params
 const beneficiaryStore = useBeneficiaryStore();
+const transactionStore = useTransactionStore();
+const store = useStore();
+const alertStore = useAlertStore();
 
 const beneficiary = computed(() => {
   return beneficiaryStore.beneficiaries.find((b) => b.id === Number(id));
 });
+const { transactions } = storeToRefs(transactionStore);
 
 const goBack = () => {
   router.go(-1);
@@ -127,10 +198,38 @@ const setActiveTab = (tab) => {
   activeTab.value = tab;
 };
 
+const handleSubmit = async () => {
+  try {
+    const response = await beneficiaryStore.deleteBeneficiary(
+      beneficiary.value.name
+    );
+
+    if (response.status === 1) {
+      alertStore.alert(
+        "success",
+        "You have deleted this beneficiary successfully"
+      );
+      console.log("Beneficiary deleted successfully");
+      router.push("/beneficiary-list");
+    } else {
+      // Handle error
+      alertStore.alert("error", "Failed to delete beneficiary");
+      console.error("Failed to delete beneficiary:", response.message);
+    }
+  } catch (error) {
+    alertStore.alert("error", "Failed to delete beneficiary");
+    console.error("Error in handleSubmit:");
+  }
+};
+
 onMounted(() => {
   console.log("Beneficiary ID:", id);
   console.log("Beneficiary Object:", beneficiary.value);
 });
+
+const handleCancel = () => {
+  store.closeModal();
+};
 </script>
 
 <style scoped>
@@ -157,21 +256,36 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin-bottom: var(--size-12);
 }
 
 .beneficiary .profile-section .user-group .icon-round {
-  min-width: var(--size-60);
-  max-width: var(--size-60);
-  min-height: var(--size-60);
-  max-height: var(--size-60);
-  font-size: var(--text-xl);
+  position: relative;
+  min-width: var(--size-72);
+  max-width: var(--size-72);
+  min-height: var(--size-72);
+  max-height: var(--size-72);
+  font-size: 24px;
   font-weight: var(--semi-bold);
   color: var(--slate-blue);
   margin-bottom: var(--size-8);
 }
 
+.beneficiary .profile-section .user-group .icon-round img {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  min-width: var(--size-24);
+  max-width: var(--size-24);
+  min-height: var(--size-2240);
+  max-height: var(--size-24);
+  border: 2px solid var(--white);
+  border-radius: var(--border-circle);
+}
+
 .beneficiary .profile-section .user-group span {
   color: var(--slate-blue);
+  font-size: var(--text-lg);
   font-weight: var(--semi-bold);
 }
 
@@ -179,7 +293,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: var(--size-8);
-  margin-bottom: var(--size-12);
+  color: var(--grey);
 }
 
 .beneficiary .button-group {
@@ -253,6 +367,177 @@ onMounted(() => {
 
 .beneficiary .item-section .detail .item-group .item span:nth-child(2) {
   font-weight: var(--semi-bold);
+}
+
+.beneficiary .transaction .item-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: var(--size-4) 0;
+}
+
+.beneficiary .transaction .item-group .item {
+  display: flex;
+  align-items: center;
+  width: calc(100% + 16px);
+  padding: var(--size-8);
+  cursor: pointer;
+  border-radius: var(--border-md);
+}
+
+.beneficiary .transaction .item-group .item:hover {
+  background: var(--sky-blue);
+  margin-inline: -16px;
+}
+
+.beneficiary .transaction .item-group .item .icon-round {
+  margin-right: var(--size-12);
+}
+
+.beneficiary .transaction .item-group .item:hover .icon-round {
+  background: var(--slate-blue);
+}
+
+.beneficiary .transaction .item-group .item:hover .icon-round svg {
+  color: var(--sky-blue);
+}
+
+.beneficiary .transaction .item-group .item .information {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.beneficiary
+  .transaction
+  .item-group
+  .item
+  .information
+  .first-column
+  .first-row {
+  color: var(--slate-blue);
+  font-weight: var(--semi-bold);
+}
+
+.beneficiary
+  .transaction
+  .item-group
+  .item
+  .information
+  .first-column
+  .second-row {
+  display: flex;
+  align-items: center;
+  gap: var(--size-8);
+  font-size: var(--text-sm);
+}
+
+.beneficiary
+  .transaction
+  .item-group
+  .item
+  .information
+  .first-column
+  .second-row
+  span:nth-child(1) {
+  font-weight: var(--semi-bold);
+}
+
+.beneficiary
+  .transaction
+  .item-group
+  .item
+  .information
+  .first-column
+  .second-row
+  span:nth-child(2) {
+  width: 4px;
+  height: 4px;
+  background: var(--black);
+  border-radius: var(--border-circle);
+}
+
+.beneficiary
+  .transaction
+  .item-group
+  .item
+  .information
+  .first-column
+  .second-row
+  span:nth-child(1).completed {
+  color: var(--pastel-green);
+}
+
+.beneficiary
+  .transaction
+  .item-group
+  .item
+  .information
+  .first-column
+  .second-row
+  span:nth-child(2).completed {
+  background: var(--pastel-green);
+}
+
+.beneficiary
+  .transaction
+  .item-group
+  .item
+  .information
+  .first-column
+  .second-row
+  span:nth-child(1).failed,
+.beneficiary
+  .transaction
+  .item-group
+  .item
+  .information
+  .first-column
+  .second-row
+  span:nth-child(1).unpaid {
+  color: var(--darker-crimson-red);
+}
+
+.beneficiary
+  .transaction
+  .item-group
+  .item
+  .information
+  .first-column
+  span:nth-child(2).failed,
+.beneficiary
+  .transaction
+  .item-group
+  .item
+  .information
+  .first-column
+  span:nth-child(2).unpaid {
+  background: var(--dark-crimson-red);
+}
+
+.beneficiary .transaction .item-group .item .information .second-column {
+  text-align: end;
+}
+
+.beneficiary
+  .transaction
+  .item-group
+  .item
+  .information
+  .second-column
+  .first-row {
+  color: var(--slate-blue);
+  font-weight: var(--semi-bold);
+}
+
+.beneficiary
+  .transaction
+  .item-group
+  .item
+  .information
+  .second-column
+  .second-row {
+  font-size: var(--text-sm);
 }
 
 @media (max-width: 768px) {
