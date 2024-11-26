@@ -3,25 +3,29 @@
     <div class="exchange-rate">
       <div class="form-section">
         <InputAmount
+          :key="sendingAmount"
           id="sendingAmount"
           label="Sending Amount"
           :modelValue="sendingAmount"
           :modelCurrency="sendingCurrency"
           :isSending="true"
-          @update:modelValue="sendingAmount = $event"
-          @update:modelCurrency="sendingCurrency = $event"
+          @update:modelValue="updateSendingAmount"
+          @update:modelCurrency="updateSendingCurrency"
           :isDashboard="true"
+          :error="errors.sendingAmount"
         />
 
         <InputAmount
+          :key="receivingAmount"
           id="receivingAmount"
           label="Receiving Amount"
           :modelValue="receivingAmount"
           :modelCurrency="receivingCurrency"
           :isSending="false"
-          @update:modelValue="receivingAmount = $event"
-          @update:modelCurrency="receivingCurrency = $event"
+          @update:modelValue="updateReceivingAmount"
+          @update:modelCurrency="updateReceivingCurrency"
           :isDashboard="true"
+          :error="errors.receivingAmount"
         />
       </div>
 
@@ -37,9 +41,13 @@
       </div>
 
       <div class="button-group">
-        <button class="btn-red standard-button" @click="handleSubmit">
+        <ButtonAPI
+          :disabled="store.isLoading"
+          class="btn-red standard-button"
+          @click="handleSubmit"
+        >
           Calculate
-        </button>
+        </ButtonAPI>
       </div>
     </div>
 
@@ -121,16 +129,29 @@
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
+import { ref } from "vue";
 import { useTransactionStore } from "@/stores/transactionStore";
-import { InputAmount } from "@/components/Form";
+import { InputAmount, ButtonAPI } from "@/components/Form";
 import { storeToRefs } from "pinia";
 import { sendingCurrencies, receivingCurrencies } from "@/data/data";
 import { useRouter } from "vue-router";
+import { useStore } from "@/stores/useStore";
+import { useDashboardStore } from "@/stores/dashboardStore";
+import { useAlertStore } from "@/stores/alertStore";
+import { useValidation } from "@/composables/useValidation";
+import {
+  formValidation,
+  dashboardSchema,
+} from "./components/schemas/dashboardSchema";
 
 const router = useRouter();
 const transactionStore = useTransactionStore();
 const { transactions } = storeToRefs(transactionStore);
+const store = useStore();
+const dashboardStore = useDashboardStore();
+const alertStore = useAlertStore();
+const { errors, validateSendingAmount, validateReceivingAmount } =
+  useValidation();
 
 // Dummy data for current currency rates
 const currencies = [
@@ -146,7 +167,159 @@ const sendingCurrency = ref(sendingCurrencies[1].code);
 const receivingAmount = ref("");
 const receivingCurrency = ref(receivingCurrencies[0].code);
 
+const updateSendingAmount = async (amount) => {
+  sendingAmount.value = parseFloat(amount).toFixed(2);
+
+  store.setLoading(true);
+
+  try {
+    const { convertedAmount } = await dashboardStore.fetchExchangeRate(
+      sendingCurrency.value,
+      receivingCurrency.value,
+      sendingAmount.value
+    );
+
+    receivingAmount.value = parseFloat(convertedAmount).toFixed(2);
+
+    validateSendingAmount(
+      sendingAmount.value,
+      sendingCurrency.value,
+      dashboardSchema
+    );
+    validateReceivingAmount(
+      receivingAmount.value,
+      receivingCurrency.value,
+      dashboardSchema
+    );
+  } catch (error) {
+    console.error("Error updating sending amount:", error);
+  } finally {
+    store.setLoading(false);
+  }
+};
+
+const updateReceivingAmount = async (amount) => {
+  receivingAmount.value = parseFloat(amount).toFixed(2);
+
+  store.setLoading(true);
+
+  try {
+    const { convertedAmount } = await dashboardStore.fetchExchangeRate(
+      receivingCurrency.value,
+      sendingCurrency.value,
+      receivingAmount.value
+    );
+
+    sendingAmount.value = parseFloat(convertedAmount).toFixed(2);
+
+    validateSendingAmount(
+      sendingAmount.value,
+      sendingCurrency.value,
+      dashboardSchema
+    );
+    validateReceivingAmount(
+      receivingAmount.value,
+      receivingCurrency.value,
+      dashboardSchema
+    );
+  } catch (error) {
+    console.error("Error updating receiving amount:", error);
+  } finally {
+    store.setLoading(false);
+  }
+};
+
+const updateSendingCurrency = async (currency) => {
+  if (sendingCurrency.value === currency) {
+    console.log(
+      "Sending currency is already selected. No need to recalculate."
+    );
+    return;
+  }
+
+  sendingCurrency.value = currency;
+
+  if (!sendingAmount.value || parseFloat(sendingAmount.value) === 0) {
+    console.log("Sending amount is empty. Skipping recalculation.");
+    return;
+  }
+
+  store.setLoading(true);
+
+  try {
+    const { convertedAmount } = await dashboardStore.fetchExchangeRate(
+      sendingCurrency.value,
+      receivingCurrency.value,
+      sendingAmount.value
+    );
+
+    receivingAmount.value = parseFloat(convertedAmount).toFixed(2);
+
+    validateSendingAmount(
+      sendingAmount.value,
+      sendingCurrency.value,
+      dashboardSchema
+    );
+    validateReceivingAmount(
+      receivingAmount.value,
+      receivingCurrency.value,
+      dashboardSchema
+    );
+  } catch (error) {
+    console.error("Error while updating receiving amount:", error);
+  } finally {
+    store.setLoading(false);
+  }
+};
+
+const updateReceivingCurrency = async (currency) => {
+  if (receivingCurrency.value === currency) {
+    console.log(
+      "Receiving currency is already selected. No need to recalculate."
+    );
+    return;
+  }
+
+  receivingCurrency.value = currency;
+
+  if (!receivingAmount.value || parseFloat(receivingAmount.value) === 0) {
+    console.log("Receiving amount is empty. Skipping recalculation.");
+    return;
+  }
+
+  store.setLoading(true);
+
+  try {
+    const { convertedAmount } = await dashboardStore.fetchExchangeRate(
+      receivingCurrency.value,
+      sendingCurrency.value,
+      receivingAmount.value
+    );
+
+    sendingAmount.value = parseFloat(convertedAmount).toFixed(2);
+
+    validateSendingAmount(
+      sendingAmount.value,
+      sendingCurrency.value,
+      dashboardSchema
+    );
+    validateReceivingAmount(
+      receivingAmount.value,
+      receivingCurrency.value,
+      dashboardSchema
+    );
+  } catch (error) {
+    console.error("Error while updating sending amount:", error);
+  } finally {
+    store.setLoading(false);
+  }
+};
+
 const handleSubmit = () => {
+  if (errors.sendingAmount || errors.receivingAmount) {
+    alertStore.alert("error", "The amount is not within the acceptable range");
+    return;
+  }
   router.push({
     path: "/transaction/addtransaction",
     query: {

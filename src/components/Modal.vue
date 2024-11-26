@@ -179,6 +179,7 @@ const emitSubmit = () => emit("submit");
 
 .modal .body {
   min-height: var(--size-48);
+  margin-bottom: var(--size-24);
 }
 
 .modal .body .icon {

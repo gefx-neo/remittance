@@ -1,11 +1,6 @@
 import { validationService } from "@/services/validationService";
 
 export const formValidation = (form) => ({
-  beneficiaryType: {
-    value: form.beneficiaryType || "",
-    label: "Beneficiary type",
-    rules: [validationService.isRequired],
-  },
   name: {
     value: form.name || "",
     label: "Beneficiary's friendly name",
@@ -66,11 +61,6 @@ export const formValidation = (form) => ({
     nationality: {
       value: form.nationality || "",
       label: "Nationality",
-      rules: [validationService.isRequired],
-    },
-    otherNationality: {
-      value: form.otherNationality || "",
-      label: "Other nationality",
       rules: [validationService.isRequired],
     },
     ...(form.nationality === "OTHERS" && {

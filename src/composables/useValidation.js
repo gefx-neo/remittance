@@ -23,6 +23,44 @@ export function useValidation() {
     return !Object.values(errors).some((error) => error); // Return true if no errors
   };
 
+  const formatAmount = (amount) => {
+    return parseFloat(amount).toLocaleString("en-US");
+  };
+
+  const validateSendingAmount = (amount, currency, schema) => {
+    const minSending = schema[currency]?.min || 0;
+    const maxSending = schema[currency]?.max || Infinity;
+
+    if (amount < minSending) {
+      errors.sendingAmount = `The lowest amount you can send is ${formatAmount(
+        minSending
+      )} ${currency}.`;
+    } else if (amount > maxSending) {
+      errors.sendingAmount = `The highest amount you can send is ${formatAmount(
+        maxSending
+      )} ${currency}.`;
+    } else {
+      errors.sendingAmount = null;
+    }
+  };
+
+  const validateReceivingAmount = (amount, currency, schema) => {
+    const minReceiving = schema[currency]?.min || 0;
+    const maxReceiving = schema[currency]?.max || Infinity;
+
+    if (amount < minReceiving) {
+      errors.receivingAmount = `The lowest amount you can receive is ${formatAmount(
+        minReceiving
+      )} ${currency}.`;
+    } else if (amount > maxReceiving) {
+      errors.receivingAmount = `The highest amount you can receive is ${formatAmount(
+        maxReceiving
+      )} ${currency}.`;
+    } else {
+      errors.receivingAmount = null;
+    }
+  };
+
   const clearErrors = () => {
     Object.keys(errors).forEach((key) => (errors[key] = ""));
   };
@@ -56,6 +94,8 @@ export function useValidation() {
   return {
     errors,
     validateForm,
+    validateSendingAmount,
+    validateReceivingAmount,
     clearErrors,
     scrollToErrors,
     scrollToTop,

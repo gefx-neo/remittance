@@ -173,6 +173,7 @@ import { useAlertStore } from "@/stores/alertStore";
 import FavouriteButton from "./components/FavouriteButton.vue";
 import Modal from "@/components/Modal.vue";
 import { storeToRefs } from "pinia";
+import { getLocalStorageWithExpiry } from "@/services/localStorageService.js";
 
 const route = useRoute();
 const router = useRouter();
@@ -182,6 +183,7 @@ const beneficiaryStore = useBeneficiaryStore();
 const transactionStore = useTransactionStore();
 const store = useStore();
 const alertStore = useAlertStore();
+const username = ref("");
 
 const beneficiary = computed(() => {
   return beneficiaryStore.beneficiaries.find((b) => b.id === Number(id));
@@ -225,6 +227,10 @@ const handleSubmit = async () => {
 onMounted(() => {
   console.log("Beneficiary ID:", id);
   console.log("Beneficiary Object:", beneficiary.value);
+});
+onMounted(async () => {
+  await beneficiaryStore.getBeneficiaryDetail();
+  username.value = getLocalStorageWithExpiry("username");
 });
 
 const handleCancel = () => {
@@ -305,7 +311,6 @@ const handleCancel = () => {
 
 .beneficiary .button-group .btn-red {
   padding: var(--size-dropdown-item);
-  border-radius: var(--border-md);
 }
 
 .beneficiary .button-group .btn-delete {

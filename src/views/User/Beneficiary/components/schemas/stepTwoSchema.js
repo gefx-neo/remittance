@@ -39,7 +39,7 @@ export const formValidation = (form) => ({
     rules: [validationService.isRequired],
   },
   branchCode: {
-    value: form.branchCode || "",
+    value: form.secondaryBIC || "",
     label: "Branch code",
     rules: [validationService.isRequired],
   },

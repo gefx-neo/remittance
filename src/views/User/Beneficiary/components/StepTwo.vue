@@ -15,16 +15,15 @@
         :error="errors.bankAccountNo"
       />
 
-      <InputCountry
+      <InputBeneficiaryCountry
         label="Beneficiary's bank country"
         id="bankCountry"
-        v-model:modelCountry="localForm.bankCountry"
-        :showOthers="true"
+        v-model:modelValue="localForm.bankCountry"
         :error="errors.bankCountry"
       />
 
       <Input
-        v-if="localForm.bankCountry === 'OTHERS'"
+        v-if="localForm.bankCountry === 280"
         label="Other beneficiary's bank country"
         id="otherBankCountry"
         v-model="localForm.otherBankCountry"
@@ -36,6 +35,14 @@
         id="bankAddress"
         v-model="localForm.bankAddress"
         :error="errors.bankAddress"
+      />
+
+      <Select
+        label="Payment type"
+        id="paymentType"
+        v-model="localForm.paymentType"
+        :options="paymentTypes"
+        :error="errors.paymentType"
       />
 
       <Input
@@ -54,9 +61,9 @@
 
       <Input
         label="Branch code"
-        id="branchCode"
-        v-model="localForm.branchCode"
-        :error="errors.branchCode"
+        id="secondaryBIC"
+        v-model="localForm.secondaryBIC"
+        :error="errors.secondaryBIC"
       />
     </fieldset>
 
@@ -76,11 +83,12 @@
 </template>
 
 <script setup>
-import { watch, toRef } from "vue";
-import { Input, InputCountry } from "@/components/Form";
+import { watch, reactive } from "vue";
+import { Input, InputBeneficiaryCountry, Select } from "@/components/Form";
 import { useValidation } from "@/composables/useValidation";
 import { formValidation } from "./schemas/stepTwoSchema";
 import { useAlertStore } from "@/stores/alertStore";
+import { paymentTypes } from "@/data/data";
 
 const props = defineProps({
   modelValue: {
@@ -92,13 +100,26 @@ const emit = defineEmits(["update:modelValue", "nextStep", "prevStep"]);
 const { errors, validateForm, clearErrors, scrollToErrors } = useValidation();
 const alertStore = useAlertStore();
 
-const localForm = toRef(props, "modelValue");
+const localForm = reactive({
+  paymentType: props.modelValue.paymentType || "Local Payment",
+
+  ...props.modelValue,
+});
+
+watch(
+  () => props.modelValue,
+  (newVal) => {
+    if (newVal) {
+      Object.assign(localForm, { ...newVal });
+    }
+  },
+  { immediate: true, deep: true }
+);
 
 const handleNext = () => {
-  const form = localForm.value;
-  const schema = formValidation(form);
+  const schema = formValidation(localForm);
 
-  const isValid = validateForm(form, schema);
+  const isValid = validateForm(localForm, schema);
   console.log("Validation Errors:", errors);
 
   if (isValid) {

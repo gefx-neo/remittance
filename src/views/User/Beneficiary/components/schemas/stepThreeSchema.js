@@ -6,6 +6,12 @@ export const formValidation = (form) => ({
     label: "Payment details / instructions",
     rules: [validationService.isRequired],
   },
+  paymentDetail: {
+    value: form.rel || "",
+    label:
+      "Purpose and intended nature of account relationship and/or relevant business transaction undertaken",
+    rules: [validationService.isRequired],
+  },
   purposeOfIntendedTransactions: {
     value: form.purposeOfIntendedTransactions || "",
     label: "Purpose of intended transactions",

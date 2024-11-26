@@ -88,7 +88,7 @@ const routes = [
       {
         path: "dashboard",
         name: "dashboard",
-        component: () => import("../views/User/Dashboard.vue"), // Dynamic import
+        component: () => import("../views/User/Dashboard/Dashboard.vue"), // Dynamic import
       },
       {
         path: "beneficiary",

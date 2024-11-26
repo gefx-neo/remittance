@@ -78,7 +78,11 @@ export const useProfileStore = defineStore("profile", {
         );
 
         if (response.status === 1) {
-          this.error = null;
+          setLocalStorageWithExpiry("token", response.token, 4);
+          setLocalStorageWithExpiry("username", username, 4);
+
+          console.log("profile response token", response.token);
+          return response;
         } else {
           this.error = response.message;
         }

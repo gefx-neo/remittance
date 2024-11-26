@@ -8,16 +8,24 @@
         :error="errors.paymentDetail"
       />
 
+      <Input
+        label="Purpose and intended nature of account relationship and/or relevant business transaction undertaken"
+        id="rel"
+        v-model="localForm.rel"
+        :error="errors.rel"
+      />
+
       <Select
         label="Purpose of intended transactions"
         id="purposeOfIntendedTransactions"
         v-model="localForm.purposeOfIntendedTransactions"
         :options="purposeOfIntendedTransactions"
         :error="errors.purposeOfIntendedTransactions"
+        submitKey="id"
       />
 
       <Input
-        v-if="localForm.purposeOfIntendedTransactions === 'Others'"
+        v-if="localForm.purposeOfIntendedTransactions === 52"
         label="Other purpose of intended transactions"
         id="otherPurposeOfIntendedTransactions"
         v-model="localForm.otherPurposeOfIntendedTransactions"
@@ -30,10 +38,11 @@
         v-model="localForm.fundSource"
         :options="fundSource"
         :error="errors.fundSource"
+        submitKey="id"
       />
 
       <Input
-        v-if="localForm.fundSource === 'Others'"
+        v-if="localForm.fundSource === 20"
         label="Other source of funds"
         id="otherFundSource"
         v-model="localForm.otherFundSource"
@@ -61,7 +70,7 @@
 </template>
 
 <script setup>
-import { watch, onMounted, toRef } from "vue";
+import { watch, reactive } from "vue";
 import { Input, Select } from "@/components/Form";
 import { purposeOfIntendedTransactions, fundSource } from "@/data/data";
 import { useValidation } from "@/composables/useValidation";
@@ -78,13 +87,27 @@ const emit = defineEmits(["update:modelValue", "submit", "prevStep"]);
 const { errors, validateForm, clearErrors, scrollToErrors } = useValidation();
 const alertStore = useAlertStore();
 
-const localForm = toRef(props, "modelValue");
+const localForm = reactive({
+  purposeOfIntendedTransactions:
+    props.modelValue.purposeOfIntendedTransactions ?? 1,
+  fundSource: props.modelValue.fundSource ?? 1,
+  ...props.modelValue,
+});
+
+watch(
+  () => props.modelValue,
+  (newVal) => {
+    if (newVal) {
+      Object.assign(localForm, { ...newVal });
+    }
+  },
+  { immediate: true, deep: true }
+);
 
 const handleSubmit = () => {
-  const form = localForm.value;
-  const schema = formValidation(form);
+  const schema = formValidation(localForm);
 
-  const isValid = validateForm(form, schema);
+  const isValid = validateForm(localForm, schema);
   console.log("Validation Errors:", errors);
 
   if (isValid) {
@@ -98,23 +121,16 @@ const handleSubmit = () => {
 watch(
   localForm,
   (newVal) => {
-    if (newVal.purposeOfIntendedTransactions !== "Others") {
+    if (newVal.purposeOfIntendedTransactions !== 52) {
       delete newVal.otherPurposeOfIntendedTransactions;
     }
-    if (newVal.fundSource !== "Others") {
+    if (newVal.fundSource !== 20) {
       delete newVal.otherFundSource;
     }
     emit("update:modelValue", newVal);
   },
   { deep: true }
 );
-
-onMounted(() => {
-  localForm.value.purposeOfIntendedTransactions =
-    purposeOfIntendedTransactions[0].value;
-  localForm.value.fundSource = fundSource[0].value;
-});
-
 const handleBack = () => {
   emit("prevStep");
 };

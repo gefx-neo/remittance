@@ -19,7 +19,7 @@
             @click="navigateToAddBeneficiary"
             class="btn-blue standard-button"
           >
-            <span class="desktop">New Beneficiary</span>
+            <span class="desktop">Add Beneficiary</span>
             <span class="mobile">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
                 <path
@@ -47,7 +47,7 @@
             <div class="detail">
               <span class="icon-round"
                 >{{ beneficiary.initials }}
-                <img :src="beneficiary.currency" />
+                <img :src="getCurrencyImagePath(beneficiary.currency)" />
               </span>
               <span>{{ beneficiary.name }}</span>
               <span>{{ beneficiary.accountType }}</span>
@@ -70,7 +70,7 @@
             <div class="detail">
               <span class="icon-round"
                 >{{ beneficiary.initials }}
-                <img :src="beneficiary.currency" />
+                <img :src="getCurrencyImagePath(beneficiary.currency)" />
               </span>
               <span>{{ beneficiary.name }}</span>
               <span>{{ beneficiary.accountType }}</span>
@@ -87,12 +87,14 @@
 
 <script setup>
 import { useRouter } from "vue-router";
-import { computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useBeneficiaryStore } from "@/stores/beneficiaryStore";
 import FavouriteButton from "./components/FavouriteButton.vue";
+import { getLocalStorageWithExpiry } from "@/services/localStorageService.js";
 
 const router = useRouter();
 const beneficiaryStore = useBeneficiaryStore();
+const username = ref("");
 
 const localPaymentBeneficiaries = computed(
   () => beneficiaryStore.localPaymentBeneficiaries
@@ -100,6 +102,15 @@ const localPaymentBeneficiaries = computed(
 const swiftPaymentBeneficiaries = computed(
   () => beneficiaryStore.swiftPaymentBeneficiaries
 );
+
+const getCurrencyImagePath = (currencyCode) => {
+  return `/src/assets/currency/${currencyCode.toLowerCase()}.svg`;
+};
+
+onMounted(async () => {
+  await beneficiaryStore.getBeneficiaryList();
+  username.value = getLocalStorageWithExpiry("username");
+});
 
 const navigateToBeneficiaryDetail = (beneficiary) => {
   router.push({

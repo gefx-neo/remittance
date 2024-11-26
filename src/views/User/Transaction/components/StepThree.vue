@@ -12,6 +12,8 @@
               :multiple="false"
               @update:modelValue="(files) => handleFileUpload('docIC', files)"
               :error="errors.docIC"
+              :tooltip="true"
+              tooltipText="Upload supporting documents for your application"
             />
             <Input
               label="Remarks (optional)"
@@ -58,7 +60,7 @@
         <div class="footer">
           <button
             type="button"
-            @click="handleSubmit"
+            @click="store.openModal"
             class="btn-red standard-button"
           >
             Submit
@@ -73,18 +75,35 @@
         </div>
       </div>
     </fieldset>
+    <Modal
+      :isModalOpen="store.isModalOpen"
+      :title="'Transaction Confirmation'"
+      :showAction="true"
+      @close="store.closeModal"
+      @submit="handleSubmit"
+      @cancel="store.closeModal"
+    >
+      <template #body>
+        <p>
+          By confirming this transaction, you agree to complete the payment to
+          us within the next hour. Failure to make the payment within this
+          timeframe may result in
+        </p>
+      </template>
+    </Modal>
   </div>
 </template>
 
 <script setup>
 import TransactionSummary from "./TransactionSummary.vue";
-import { ref, toRef, watch, defineProps, defineEmits, onMounted } from "vue";
+import { toRef, watch, defineProps, defineEmits, onMounted } from "vue";
 import { Input, InputFile } from "@/components/Form";
-import { paymentTypes, gefxBanks } from "@/data/data";
 import { useValidation } from "@/composables/useValidation";
 import { formValidation } from "./schemas/stepThreeSchema";
+import { useStore } from "@/stores/useStore";
 import { useAlertStore } from "@/stores/alertStore";
-import { useRoute, useRouter } from "vue-router";
+import Modal from "@/components/Modal.vue";
+import { useRoute } from "vue-router";
 
 const props = defineProps({
   modelValue: {
@@ -92,10 +111,10 @@ const props = defineProps({
     required: true,
   },
 });
-const emit = defineEmits(["update:modelValue", "nextStep"]);
+const emit = defineEmits(["update:modelValue", "submit", "prevStep"]);
 const { errors, validateForm, clearErrors, scrollToErrors } = useValidation();
 const route = useRoute();
-const router = useRouter();
+const store = useStore();
 const alertStore = useAlertStore();
 
 const localForm = toRef(props, "modelValue");

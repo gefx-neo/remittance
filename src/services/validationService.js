@@ -42,6 +42,13 @@ export const validationService = {
     }
   },
 
+  isWithinRange(value, label, { min = 0, max = Infinity } = {}) {
+    if (value < min || value > max) {
+      return `${label} must be between ${min} and ${max}.`;
+    }
+    return null; // No error
+  },
+
   // Validate form based on a schema
   validateForm(validationSchema) {
     const errors = {};

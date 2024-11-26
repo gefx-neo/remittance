@@ -1,4 +1,3 @@
-<!-- ParentComponent.vue -->
 <template>
   <div class="content-area">
     <div class="profile">
@@ -39,6 +38,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import { useBeneficiaryStore } from "@/stores/beneficiaryStore";
 import { useStepStore } from "@/stores/stepStore";
 import StepOne from "./components/StepOne.vue";
 import StepTwo from "./components/StepTwo.vue";
@@ -48,15 +48,107 @@ import { useValidation } from "@/composables/useValidation";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
+const beneficiaryStore = useBeneficiaryStore();
 const stepStore = useStepStore();
 const { scrollToTop } = useValidation();
 
 const username = ref("");
 const form = ref({});
 
-const handleSubmit = () => {
-  // Logic for submitting form data
-  console.log(form.value);
+const handleSubmit = async () => {
+  form.value.username = username.value;
+
+  let allUploadPromises = [];
+  let fileNames = {};
+
+  // Only perform file upload if beneficiaryType === 0
+  if (form.value.beneficiaryType === 0) {
+    // Helper function to upload a single file
+    const uploadFile = async (file) => {
+      const formData = new FormData();
+      formData.append("file", file); // Add the file to FormData
+
+      // Log the time before the upload starts
+      const fileStartTime = new Date();
+      console.log(
+        `Uploading ${
+          file.name
+        } started at: ${fileStartTime.toLocaleTimeString()}`
+      );
+
+      // Upload the file
+      await beneficiaryStore.uploadFiles(formData);
+
+      // Log the time after the upload finishes
+      const fileEndTime = new Date();
+      console.log(
+        `Finished uploading ${
+          file.name
+        } at: ${fileEndTime.toLocaleTimeString()}`
+      );
+      console.log(
+        `Time taken to upload ${file.name}: ${
+          (fileEndTime - fileStartTime) / 1000
+        } seconds`
+      );
+    };
+
+    // Helper function to gather all file upload promises and return file names
+    const prepareFileUploads = (files) => {
+      const uploadPromises = [];
+      const fileNames = [];
+
+      if (Array.isArray(files)) {
+        files.forEach((file) => {
+          uploadPromises.push(uploadFile(file));
+          fileNames.push(file.name); // Collect file names
+        });
+      } else if (files) {
+        uploadPromises.push(uploadFile(files[0])); // Single file upload
+        fileNames.push(files[0].name); // Collect file name
+      }
+
+      return { uploadPromises, fileNames };
+    };
+
+    // Prepare files for upload
+    const ic = prepareFileUploads(form.value.docIC);
+
+    // Collect all promises
+    allUploadPromises = [...ic.uploadPromises];
+
+    // Collect file names
+    fileNames = {
+      docIC: ic.fileNames.join(","),
+    };
+  }
+
+  try {
+    // Await all upload promises (if any)
+    await Promise.all(allUploadPromises);
+
+    console.log(
+      "Form value after file uploads:",
+      JSON.stringify(form.value, null, 2)
+    );
+
+    // After successful uploads, add the beneficiary
+    const beneficiaryForm = {
+      username: form.value.username,
+      ...form.value,
+      ...fileNames,
+    };
+    const response = await beneficiaryStore.addBeneficiary(beneficiaryForm);
+
+    if (response.status === 1) {
+      console.log("Beneficiary added successfully:", response);
+      router.push({ path: "/beneficiary" });
+    } else {
+      console.error("Error adding beneficiary:", response.message);
+    }
+  } catch (error) {
+    console.error("Error during file upload or beneficiary addition:", error);
+  }
 };
 
 const nextStep = () => {

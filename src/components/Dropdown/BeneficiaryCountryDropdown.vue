@@ -10,18 +10,18 @@
       </div>
     </div>
     <div class="body">
-      <div class="title">Selected country</div>
+      <!-- <div class="title">Selected country</div>
       <div class="item" @click="selectCountry(item)">
         <div class="country">
           <span class="name">{{ selectedCountryName }}</span>
         </div>
         <font-awesome-icon :icon="['fas', 'check']" class="icon-check" />
-      </div>
+      </div> -->
 
       <div class="title">All countries</div>
       <div
         v-for="item in countries"
-        :key="item.value"
+        :key="item.id"
         @click="selectCountry(item)"
         class="item"
         :class="{ active: isActive(item) }"
@@ -63,18 +63,18 @@ const dropdownMenuRef = ref(null);
 // Track the selected country from the parent
 const selectedCountryName = computed(() => {
   const country = props.countries.find(
-    (country) => country.value === props.selectedCountry
+    (country) => country.id === props.selectedCountry // Match `id` instead of `value`
   );
   return country ? country.name : "";
 });
 
 // Helper to check if the country is active
-const isActive = (item) => item.value === props.selectedCountry;
+const isActive = (item) => item.id === props.selectedCountry;
 
 // Select a country and emit the value
 const selectCountry = (item) => {
-  emit("updateCountry", item.value);
-  emit("closeDropdown"); // Close dropdown on country selection
+  emit("updateCountry", item.id); // Emit `id` instead of `value`
+  emit("closeDropdown");
 };
 
 // Close the dropdown

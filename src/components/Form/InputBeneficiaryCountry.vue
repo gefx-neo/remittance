@@ -13,10 +13,10 @@
             <span>{{ selectedCountryName }}</span>
             <font-awesome-icon :icon="['fa', 'chevron-down']" />
           </button>
-          <CountryDropdown
+          <BeneficiaryCountryDropdown
             :isDropdownOpen="isDropdownOpen"
             :selectedCountry="selectedCountry"
-            :countries="countries"
+            :countries="beneficiaryCountries"
             @updateCountry="updateCountry"
             @closeDropdown="isDropdownOpen = false"
           />
@@ -30,26 +30,22 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
-import CountryDropdown from "@/components/Dropdown/CountryDropdown.vue";
-import { countries } from "@/data/data"; // Static country data
+import BeneficiaryCountryDropdown from "@/components/Dropdown/BeneficiaryCountryDropdown.vue";
+import { beneficiaryCountries } from "@/data/data"; // Static country data
 
 const props = defineProps({
   label: String,
   id: String,
-  modelValue: String, // Phone number (not used in your example, but kept here if needed)
-  modelCountry: String, // Country value (code) for submission
+  modelValue: [String, Number], // Accept both String and Number for flexibility
   error: String, // Error message passed from the parent component
 });
 
-const emit = defineEmits(["update:modelCountry"]);
+const emit = defineEmits(["update:modelValue"]);
 
 // Local state for managing dropdown and selected country
 const isDropdownOpen = ref(false);
 
-const selectedCountry = ref(
-  props.modelCountry ||
-    countries.find((country) => country.name === "Singapore").value
-);
+const selectedCountry = ref(props.modelValue || null);
 
 // Ref for the dropdown container to check clicks outside
 const dropdownContainer = ref(null);
@@ -61,25 +57,31 @@ const toggleDropdown = () => {
 
 // Computed property to get the selected country name
 const selectedCountryName = computed(() => {
-  const country = countries.find(
-    (country) => country.value === selectedCountry.value
+  const country = beneficiaryCountries.find(
+    (country) => country.id === selectedCountry.value
   );
-  return country ? country.name : "";
+  return country ? country.name : "Select a country"; // Default text when no country is selected
 });
 
-// Update country code and emit the new value to the parent
-const updateCountry = (countryValue) => {
-  selectedCountry.value = countryValue;
-  emit("update:modelCountry", countryValue); // Emit the selected country
+// Update country ID as an integer and emit it to the parent
+
+const updateCountry = (countryId) => {
+  console.log(
+    "InputBeneficiaryCountry: Received country ID from BeneficiaryCountryDropdown:",
+    countryId
+  ); // Log received ID
+
+  selectedCountry.value = countryId; // No parsing, directly set the value
+  emit("update:modelValue", countryId); // Emit the ID as is
   isDropdownOpen.value = false; // Close the dropdown after selection
 };
 
 // Watch for changes in the passed country prop and update the local state
 watch(
-  () => props.modelCountry,
-  (newCountryValue) => {
-    if (newCountryValue) {
-      selectedCountry.value = newCountryValue;
+  () => props.modelValue,
+  (newCountryId) => {
+    if (newCountryId) {
+      selectedCountry.value = parseInt(newCountryId, 10); // Ensure it is an integer
     }
   }
 );
@@ -96,9 +98,6 @@ const handleClickOutside = (event) => {
 
 // Add event listener for click outside
 onMounted(() => {
-  if (!props.modelCountry) {
-    emit("update:modelCountry", selectedCountry.value); // Emit the default country value
-  }
   document.addEventListener("click", handleClickOutside);
 });
 

@@ -1,6 +1,7 @@
 export { default as Input } from "./Input.vue";
 export { default as InputPhone } from "./InputPhone.vue";
 export { default as InputCountry } from "./InputCountry.vue";
+export { default as InputBeneficiaryCountry } from "./InputBeneficiaryCountry.vue";
 export { default as InputFile } from "./InputFile.vue";
 export { default as InputAmount } from "./InputAmount.vue";
 export { default as InputReceivingCurrency } from "./InputReceivingCurrency.vue";

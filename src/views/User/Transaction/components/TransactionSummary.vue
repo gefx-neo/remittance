@@ -16,7 +16,9 @@
       <div class="body">
         <div class="item">
           <div class="label">Sending amount</div>
-          <div class="value">{{ sendingAmount }} {{ sendingCurrency }}</div>
+          <div class="value">
+            {{ formatNumber(sendingAmount) }} {{ sendingCurrency }}
+          </div>
         </div>
         <div class="item">
           <div class="label">Processing fees</div>
@@ -28,7 +30,9 @@
         </div>
         <div class="item">
           <div class="label">Receiving amount</div>
-          <div class="value">{{ receivingAmount }} {{ receivingCurrency }}</div>
+          <div class="value">
+            {{ formatNumber(receivingAmount) }} {{ receivingCurrency }}
+          </div>
         </div>
       </div>
       <div class="footerr">
@@ -51,6 +55,19 @@ const props = defineProps({
   exchangeRate: String,
   totalPayment: String,
 });
+
+const formatNumber = (value) => {
+  const number = parseFloat(value);
+  if (isNaN(number)) return "";
+
+  // Format without unnecessary decimals
+  return number % 1 === 0
+    ? number.toLocaleString() // No decimal places for whole numbers
+    : number.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }); // Add decimals only if necessary
+};
 
 const isAccordionOpen = ref(true);
 const toggleAccordion = () => {

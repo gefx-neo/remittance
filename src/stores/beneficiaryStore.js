@@ -1,5 +1,10 @@
 import { defineStore } from "pinia";
-import apiService from "@/services/apiService"; // Import your API service
+import apiService from "@/services/apiService";
+import { useStore } from "@/stores/useStore";
+import {
+  setLocalStorageWithExpiry,
+  getLocalStorageWithExpiry,
+} from "@/services/localStorageService.js";
 
 export const useBeneficiaryStore = defineStore("beneficiaryStore", {
   state: () => ({
@@ -103,10 +108,11 @@ export const useBeneficiaryStore = defineStore("beneficiaryStore", {
         accountType: "Individual",
         favouriteStatus: false,
         paymentType: "swiftPayment",
-        currency: "src/assets/currency/myr.svg",
+        currency: "MYR",
         accountCurrency: "MYR account ending in 6222",
       },
     ],
+    selectedBeneficiary: null,
   }),
   getters: {
     localPaymentBeneficiaries: (state) =>
@@ -138,11 +144,11 @@ export const useBeneficiaryStore = defineStore("beneficiaryStore", {
 
         // Call the API with username as a query parameter
         const response = await apiService.getRequest(
-          `/beneficiary/list?username=${username}`
+          `/bene/list?username=${username}`
         );
         if (response.status !== 1) {
           // If response status is not 1, log out the user and redirect to login
-          this.clearProfileDetails();
+          this.clearBeneficiaryList();
           localStorage.removeItem("token");
           localStorage.removeItem("username");
           router.push("/login");
@@ -164,7 +170,7 @@ export const useBeneficiaryStore = defineStore("beneficiaryStore", {
         store.isLoading = false;
       }
     },
-    async getBeneficiaryDetail(nickname) {
+    async getBeneficiaryDetail(beneId) {
       const store = useStore();
       store.isLoading = true;
       try {
@@ -176,7 +182,7 @@ export const useBeneficiaryStore = defineStore("beneficiaryStore", {
 
         // Call the API with nickname and username as query parameters
         const response = await apiService.getRequest(
-          `/beneficiary/${nickname}?username=${username}`
+          `/bene/details?username=${username}&beneId=1`
         );
 
         if (response.status !== 1) {
@@ -205,7 +211,22 @@ export const useBeneficiaryStore = defineStore("beneficiaryStore", {
         store.isLoading = false;
       }
     },
-
+    async uploadFiles(formData) {
+      try {
+        // Use the apiService to send the FormData object
+        const response = await apiService.postRequest(
+          "/bene/upload",
+          formData,
+          {
+            format: "multipart/form-data",
+          }
+        );
+        return response;
+      } catch (error) {
+        console.error("File upload failed:", error);
+        throw error;
+      }
+    },
     async addBeneficiary(form) {
       const store = useStore();
       store.isLoading = true;
@@ -214,13 +235,16 @@ export const useBeneficiaryStore = defineStore("beneficiaryStore", {
       try {
         console.log(form);
         const response = await apiService.postRequest(
-          "/beneficiary/addBeneficiary",
+          "/bene/addBeneficiary",
           form,
           { format: "raw" }
         );
 
         if (response.status === 1) {
-          this.error = null;
+          setLocalStorageWithExpiry("token", response.token, 4);
+          setLocalStorageWithExpiry("username", form.username, 4);
+
+          console.log("beneficiary response token", response.token);
         } else {
           this.error = response.message;
         }
@@ -244,7 +268,7 @@ export const useBeneficiaryStore = defineStore("beneficiaryStore", {
         const payload = { nickname, status };
 
         const response = await apiService.postRequest(
-          "/beneficiary/updateFavourite",
+          "/bene/updateFavourite",
           payload
         );
 
@@ -266,15 +290,17 @@ export const useBeneficiaryStore = defineStore("beneficiaryStore", {
       }
     },
 
-    async deleteBeneficiary(nickname) {
+    async deleteBeneficiary(beneId) {
       const store = useStore();
       store.isLoading = true;
       this.error = null;
 
       try {
         const response = await apiService.deleteRequest(
-          "/beneficiary/deleteBeneficiary",
-          { nickname }
+          "/bene/deleteBeneficiary",
+          {
+            beneId,
+          }
         );
 
         if (response.status === 1) {
@@ -294,7 +320,9 @@ export const useBeneficiaryStore = defineStore("beneficiaryStore", {
         store.isLoading = false;
       }
     },
-
+    setSelectedBeneficiary(beneficiary) {
+      this.selectedBeneficiary = beneficiary;
+    },
     clearBeneficiaryList() {
       this.beneficiaryList = null;
       this.error = null;

@@ -2,11 +2,11 @@
   <div class="form-group">
     <label :for="id">{{ label }}</label>
     <div class="select-item">
-      <select :id="id" :value="modelValue" @change="updateValue">
+      <select :id="id" :value="selectedOption" @change="updateValue">
         <option
           v-for="(option, index) in options"
           :key="index"
-          :value="option.value"
+          :value="option[submitKey]"
         >
           {{ option.name }}
         </option>
@@ -18,29 +18,44 @@
 </template>
 
 <script setup>
+import { computed } from "vue";
+
 const props = defineProps({
   label: String,
   id: String,
   modelValue: [String, Number],
-  options: Array, // { name: 'Option Name', value: 'optionValue' }
+  options: Array, // Array of objects: { id, name, value }
   error: String,
+  submitKey: {
+    type: String,
+    default: "value", // Default to emitting the 'value'
+    validator: (key) => ["id", "value"].includes(key),
+  },
 });
 
 const emit = defineEmits(["update:modelValue"]);
 
-// Emit selected value to parent on change
-// Emit selected value to parent on change
+// Compute the currently selected option based on modelValue
+const selectedOption = computed(() => {
+  const matchedOption = props.options.find(
+    (option) => option[props.submitKey] === props.modelValue
+  );
+  return matchedOption ? matchedOption[props.submitKey] : "";
+});
+
+// Emit the selected key (id or value) based on the submitKey prop
 const updateValue = (event) => {
   const selectedValue = event.target.value;
-  // Check if the selected value exists in the options and convert it accordingly
+
+  // Find the selected option in the options array
   const matchedOption = props.options.find(
-    (option) => option.value.toString() === selectedValue
+    (option) => option[props.submitKey].toString() === selectedValue
   );
 
-  // Emit the value as its original type
+  // Emit the selected key's value
   emit(
     "update:modelValue",
-    matchedOption ? matchedOption.value : selectedValue
+    matchedOption ? matchedOption[props.submitKey] : selectedValue
   );
 };
 </script>

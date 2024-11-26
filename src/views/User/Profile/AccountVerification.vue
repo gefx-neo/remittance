@@ -176,13 +176,11 @@ const updateCustomerType = (newCustomerType) => {
 };
 
 const handleSubmit = async () => {
-  const formData = new FormData();
-
   // Helper function to append and upload each file individually
   const appendAndUploadFile = async (file, folderName) => {
-    const fileFormData = new FormData();
-    fileFormData.append("file", file); // Add file
-    fileFormData.append("folder", folderName); // Add folder name as text
+    const formData = new FormData();
+    formData.append("file", file); // Add file
+    formData.append("folder", folderName); // Add folder name as text
 
     // Log the time before the upload starts
     const fileStartTime = new Date();
@@ -191,7 +189,7 @@ const handleSubmit = async () => {
     );
 
     // Upload the file
-    await profileStore.uploadFiles(fileFormData);
+    await profileStore.uploadFiles(formData);
 
     // Log the time after the upload finishes
     const fileEndTime = new Date();

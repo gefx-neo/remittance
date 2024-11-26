@@ -69,7 +69,7 @@ const prevStep = () => {
 };
 
 onMounted(() => {
-  stepStore.setSteps(["Amount", "Beneficiary", "Final"]);
+  stepStore.setSteps(["Beneficiary", "Amount", "Final"]);
   stepStore.setCurrentStep(1);
   username.value = getLocalStorageWithExpiry("username");
   form.value.username = username.value;

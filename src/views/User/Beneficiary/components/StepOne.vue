@@ -6,7 +6,6 @@
         label="Beneficiary type"
         v-model="localForm.beneficiaryType"
         :options="beneficiaryTypes"
-        :error="errors.beneficiaryTypes"
       />
       <Select
         label="Is this your account?"
@@ -39,14 +38,14 @@
           v-model="localForm.registrationNo"
           :error="errors.registrationNo"
         />
-        <InputCountry
+        <InputBeneficiaryCountry
           label="Beneficiary's country of incorporation"
           id="registrationPlace"
-          v-model:modelCountry="localForm.registrationPlace"
-          :showOthers="true"
+          v-model:modelValue="localForm.registrationPlace"
+          :error="errors.registrationPlace"
         />
         <Input
-          v-if="localForm.registrationPlace === 'OTHERS'"
+          v-if="localForm.registrationPlace === 280"
           label="Other beneficiary's country of incorporation"
           id="otherRegistrationPlace"
           v-model="localForm.otherRegistrationPlace"
@@ -74,15 +73,14 @@
       </div>
 
       <div v-if="localForm.beneficiaryType === 0">
-        <InputCountry
+        <InputBeneficiaryCountry
           label="Nationality"
           id="nationality"
-          v-model:modelCountry="localForm.nationality"
-          :showOthers="true"
+          v-model:modelValue="localForm.nationality"
           :error="errors.nationality"
         />
         <Input
-          v-if="localForm.nationality === 'OTHERS'"
+          v-if="localForm.nationality === 280"
           label="Other nationality"
           id="otherNationality"
           v-model="localForm.otherNationality"
@@ -144,10 +142,10 @@
 </template>
 
 <script setup>
-import { watch, onMounted, toRef } from "vue";
+import { reactive, watch } from "vue";
 import {
   Input,
-  InputCountry,
+  InputBeneficiaryCountry,
   InputFile,
   InputReceivingCurrency,
   InputBusinessCategory,
@@ -172,33 +170,45 @@ const router = useRouter();
 
 const alertStore = useAlertStore();
 
-// Create a local copy of the form data
-const localForm = toRef(props, "modelValue");
+const localForm = reactive({
+  beneficiaryType: props.modelValue.beneficiaryType ?? 1,
+  isYourAccount: props.modelValue.isYourAccount ?? 0,
+  ...props.modelValue,
+});
+
+watch(
+  () => props.modelValue,
+  (newVal) => {
+    if (newVal) {
+      Object.assign(localForm, { ...newVal });
+    }
+  },
+  { immediate: true, deep: true }
+);
 
 // Generic file upload handler
 const handleFileUpload = (field, files) => {
-  if (localForm.value.beneficiaryType === 0) {
+  if (localForm.beneficiaryType === 0) {
     // Corporate type
     if (Array.isArray(files)) {
-      localForm.value[field] = files;
+      localForm[field] = files;
     } else {
-      localForm.value[field] = [files];
+      localForm[field] = [files];
     }
   } else {
     // Individual type
     if (Array.isArray(files)) {
-      localForm.value[field] = files;
+      localForm[field] = files;
     } else {
-      localForm.value[field] = [files];
+      localForm[field] = [files];
     }
   }
 };
 
 const handleNext = () => {
-  const form = localForm.value;
-  const schema = formValidation(form);
+  const schema = formValidation(localForm);
 
-  const isValid = validateForm(form, schema);
+  const isValid = validateForm(localForm, schema);
   console.log("Validation Errors:", errors);
 
   if (isValid) {
@@ -212,68 +222,82 @@ const handleNext = () => {
 watch(
   localForm,
   (newVal) => {
+    // Handle changes based on beneficiary type
     if (newVal.beneficiaryType === 1) {
-      // Remove individual-specific fields when beneficiaryType is 1
+      // Corporate-specific cleanup
       delete newVal.nationality;
-      delete newVal.otherNationality;
       delete newVal.docIC;
       delete newVal.dob;
     } else if (newVal.beneficiaryType === 0) {
-      // Remove corporate-specific fields when beneficiaryType is 0
+      // Individual-specific cleanup
       delete newVal.registrationNo;
       delete newVal.registrationPlace;
       delete newVal.otherRegistrationPlace;
       delete newVal.businessCategory;
-      delete newVal.otherBusinessCategory;
       delete newVal.companyContactNo;
     }
 
-    emit("update:modelValue", { ...newVal }); // Emit a shallow copy to avoid reactivity issues
-  },
-  { deep: true }
-);
-
-// Watch for changes in local form and emit them to the parent
-watch(
-  localForm,
-  (newVal) => {
-    console.log("businessCategory:", newVal.businessCategory); // Log to check value
-
-    if (newVal.registrationPlace !== "OTHERS") {
+    // Handle conditional fields
+    if (newVal.registrationPlace !== 280) {
       delete newVal.otherRegistrationPlace;
     }
-    if (newVal.nationality !== "OTHERS") {
+    if (newVal.nationality !== 280) {
       delete newVal.otherNationality;
     }
 
-    emit("update:modelValue", newVal);
+    emit("update:modelValue", { ...newVal }); // Emit updated form
   },
   { deep: true }
 );
 
-// Watch for changes in beneficiaryType and clear errors accordingly
+// watch(
+//   localForm,
+//   (newVal) => {
+//     if (newVal.beneficiaryType === 1) {
+//       // Remove individual-specific fields when beneficiaryType is 1
+//       delete newVal.nationality;
+//       delete newVal.docIC;
+//       delete newVal.dob;
+//     } else if (newVal.beneficiaryType === 0) {
+//       // Remove corporate-specific fields when beneficiaryType is 0
+//       delete newVal.registrationNo;
+//       delete newVal.registrationPlace;
+//       delete newVal.otherRegistrationPlace;
+//       delete newVal.businessCategory;
+//       delete newVal.companyContactNo;
+//     }
+
+//     emit("update:modelValue", { ...newVal }); // Emit a shallow copy to avoid reactivity issues
+//   },
+//   { deep: true }
+// );
+
+// // Watch for changes in local form and emit them to the parent
+// watch(
+//   localForm,
+//   (newVal) => {
+//     if (newVal.registrationPlace !== "OTHERS") {
+//       delete newVal.otherRegistrationPlace;
+//     }
+//     if (newVal.nationality !== "OTHERS") {
+//       delete newVal.otherNationality;
+//     }
+
+//     emit("update:modelValue", newVal);
+//   },
+//   { deep: true }
+// );
+
 watch(
-  () => localForm.value.beneficiaryType,
+  () => localForm.beneficiaryType,
   () => {
     clearErrors(); // Clear all errors when beneficiaryType changes
   }
 );
 
-onMounted(() => {
-  localForm.value.beneficiaryType = 1;
-  localForm.value.isYourAccount = 0;
-});
-
 const handleCancel = () => {
   router.push({ path: "/beneficiary" });
 };
-
-// watch(
-//   () => localForm.value.telCode,
-//   (newVal) => {
-//     console.log("Updated telCode (countryID):", newVal);
-//   }
-// );
 </script>
 
 <style scoped>

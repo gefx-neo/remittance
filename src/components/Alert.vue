@@ -16,7 +16,13 @@
           />
         </svg>
       </button>
-      {{ alert.message }}
+      <div v-if="alert.type === 'loading'" class="loader">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <span v-else>{{ alert.message }}</span>
     </div>
   </transition-group>
 </template>
@@ -89,6 +95,47 @@ const clearAlert = (id) => alertStore.clearAlert(id);
 
 .alert-item.error .icon svg {
   fill: var(--white);
+}
+
+.alert-item.loading {
+  background: var(--lighter-grey);
+  border-radius: var(--border-circle);
+  padding: var(--size-12);
+}
+
+.loader {
+  display: inline-block;
+  position: relative;
+  width: var(--size-24);
+  height: var(--size-24);
+}
+.loader div {
+  box-sizing: border-box;
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 2px solid var(--grey);
+  border-radius: var(--border-circle);
+  animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  border-color: var(--grey) transparent transparent transparent;
+}
+.loader div:nth-child(1) {
+  animation-delay: -0.45s;
+}
+.loader div:nth-child(2) {
+  animation-delay: -0.3s;
+}
+.loader div:nth-child(3) {
+  animation-delay: -0.15s;
+}
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .fade-enter-active,
