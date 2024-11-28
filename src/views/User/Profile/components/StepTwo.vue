@@ -286,8 +286,7 @@
 
 <script setup>
 import { ref, watch } from "vue";
-import { useStore } from "@/stores/useStore";
-import { useAlertStore } from "@/stores/alertStore";
+import { useAlertStore, useStore } from "@/stores/index.js";
 import { useValidation } from "@/composables/useValidation";
 import {
   fundSource,

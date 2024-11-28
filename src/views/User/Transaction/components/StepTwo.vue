@@ -74,12 +74,12 @@
 
 <script setup>
 import TransactionSummary from "./TransactionSummary.vue";
-import { ref, toRef, watch, defineProps, defineEmits, onMounted } from "vue";
+import { toRef, watch, defineProps, defineEmits } from "vue";
 import { InputAmount, Select } from "@/components/Form";
 import { paymentTypes, gefxBanks } from "@/data/data";
 import { useValidation } from "@/composables/useValidation";
 import { formValidation } from "./schemas/stepOneSchema";
-import { useAlertStore } from "@/stores/alertStore";
+import { useAlertStore } from "@/stores/index.js";
 import { useRoute } from "vue-router";
 
 const props = defineProps({

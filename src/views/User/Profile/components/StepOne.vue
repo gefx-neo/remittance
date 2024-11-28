@@ -361,7 +361,7 @@
 import { ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useStore } from "@/stores/useStore";
-import { useAlertStore } from "@/stores/alertStore";
+import { useAlertStore, useStore } from "@/stores/index.js";
 import {
   Input,
   InputPhone,

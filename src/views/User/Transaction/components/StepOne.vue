@@ -113,9 +113,8 @@
 import { computed, watch, toRef, ref, onMounted } from "vue";
 import { useValidation } from "@/composables/useValidation";
 import { formValidation } from "./schemas/stepTwoSchema";
-import { useAlertStore } from "@/stores/alertStore";
+import { useAlertStore, useBeneficiaryStore } from "@/stores/index.js";
 import FavouriteButton from "../../Beneficiary/components/FavouriteButton.vue";
-import { useBeneficiaryStore } from "@/stores/beneficiaryStore";
 import { useRouter } from "vue-router";
 
 const beneficiaryStore = useBeneficiaryStore();

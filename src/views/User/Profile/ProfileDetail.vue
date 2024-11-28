@@ -91,11 +91,13 @@
 <script setup>
 import { useRouter } from "vue-router";
 import { ref, computed, onMounted, reactive } from "vue";
-import { useProfileStore } from "@/stores/profileStore";
-import { useAlertStore } from "@/stores/alertStore";
-import { useStore } from "@/stores/useStore";
+import {
+  useAlertStore,
+  useAuthStore,
+  useProfileStore,
+  useStore,
+} from "@/stores/index.js";
 import cookieService from "@/services/cookieService";
-import { getLocalStorageWithExpiry } from "@/services/localStorageService.js";
 import { ButtonAPI } from "@/components/Form";
 import Tooltip from "@/components/Tooltip.vue";
 
@@ -103,6 +105,7 @@ const router = useRouter();
 
 const profileStore = useProfileStore();
 const alertStore = useAlertStore();
+const authStore = useAuthStore();
 const store = useStore();
 
 const profileDetails = reactive({
@@ -114,7 +117,7 @@ const profileDetails = reactive({
   companyName: "",
 });
 
-const username = ref("");
+const username = authStore.username;
 
 // Computed property to get initials
 const initials = computed(() => {
@@ -156,7 +159,6 @@ const isPriorityProcessing = computed(() => {
 onMounted(async () => {
   await profileStore.getProfileDetail();
   Object.assign(profileDetails, profileStore.profileDetails); // Assign store data to reactive object
-  username.value = getLocalStorageWithExpiry("username");
   console.log(profileDetails);
 });
 

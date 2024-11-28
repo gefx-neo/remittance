@@ -155,7 +155,7 @@ import {
 import { beneficiaryTypes, isYourAccount } from "@/data/data";
 import { useValidation } from "@/composables/useValidation";
 import { formValidation } from "./schemas/stepOneSchema";
-import { useAlertStore } from "@/stores/alertStore";
+import { useAlertStore } from "@/stores/index.js";
 import { useRouter } from "vue-router";
 
 const props = defineProps({

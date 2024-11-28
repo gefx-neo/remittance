@@ -1,26 +1,32 @@
 <template>
   <div class="content-area">
-    <div class="beneficiary">
+    <div class="beneficiary" v-if="beneficiaryDetails">
       <div class="profile-section">
         <button class="btn-round" @click="goBack">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
             <path
-              d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0L214.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"
+              d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0L214.6 118.6c-12.5-12.5-12.5-32.8 0-45.3l-160 160z"
             />
           </svg>
         </button>
         <div class="user-group">
-          <span class="icon-round"
-            >{{ beneficiary.initials }}
-            <img :src="beneficiary.currency" />
+          <span class="icon-round">
+            {{ getInitials(beneficiaryDetails.beneName) }}
+            <img
+              :src="getCurrencyImagePath(beneficiaryDetails.currency)"
+              alt="Currency"
+            />
           </span>
           <div>
-            <span>{{ beneficiary.name }}</span>
+            <span>{{ beneficiaryDetails.name }}</span>
             <span>
-              <FavouriteButton :beneficiaryId="beneficiary.id" />
+              <FavouriteButton
+                :beneficiaryId="beneficiaryDetails.id || route.params.id"
+                :isFav="!!beneficiaryDetails.isFav"
+              />
             </span>
           </div>
-          <div>{{ beneficiary.accountCurrency }}</div>
+          <div>{{ beneficiaryDetails.accountCurrency }}</div>
         </div>
         <div class="button-group">
           <button class="btn-red">Send money</button>
@@ -43,61 +49,148 @@
             Transactions
           </button>
         </div>
+
         <div v-if="activeTab === 'details'" class="detail">
           <div class="title">Bank details</div>
           <div class="item-group">
             <div class="item">
               <span>Account holder name</span>
-              <span>John Doe</span>
+              <span>{{ beneficiaryDetails.beneName }}</span>
             </div>
             <div class="item">
               <span>Account type</span>
-              <span>Business</span>
+              <span>{{ getAccountType(beneficiaryDetails.accountType) }}</span>
             </div>
             <div class="item">
               <span>Bank name</span>
-              <span>Bank of America</span>
+              <span>{{ beneficiaryDetails.bankName }}</span>
             </div>
             <div class="item">
               <span>Account number</span>
-              <span>98645321012</span>
+              <span>{{ beneficiaryDetails.bankAccountNo }}</span>
+            </div>
+            <div class="item">
+              <span>Payment type</span>
+              <span>{{ beneficiaryDetails.paymentType }}</span>
+            </div>
+            <div class="item">
+              <span>Swift code</span>
+              <span>{{ beneficiaryDetails.swiftCode }}</span>
+            </div>
+            <div class="item">
+              <span
+                >ACH routing number / IBAN no / BSB / ABA / Sort code / Bank
+                code</span
+              >
+              <span>{{ beneficiaryDetails.primaryBIC }}</span>
+            </div>
+            <div class="item">
+              <span>Branch code </span>
+              <span>{{ beneficiaryDetails.secondaryBIC }}</span>
+            </div>
+            <div class="item">
+              <span>Bank country</span>
+              <span>{{ getNationality(beneficiaryDetails.bankCountry) }}</span>
+            </div>
+            <div class="item" v-if="beneficiaryDetails.otherBankCountry">
+              <span>Other bank country</span>
+              <span>{{ getNationality(beneficiaryDetails.bankCountry) }}</span>
+            </div>
+            <div class="item">
+              <span>Bank address</span>
+              <span>{{ beneficiaryDetails.bankAddress }}</span>
             </div>
           </div>
+
           <div class="title">Personal details</div>
           <div class="item-group">
             <div class="item">
               <span>Full name</span>
-              <span>John Doe</span>
+              <span>{{ beneficiaryDetails.name }}</span>
             </div>
-            <div class="item">
+            <div class="item" v-if="isBusiness">
+              <span>Business category</span>
+              <span>{{
+                getBusinessCategory(beneficiaryDetails.businessCategory)
+              }}</span>
+            </div>
+            <div class="item" v-if="isBusiness">
+              <span>Company registration number</span>
+              <span>{{ beneficiaryDetails.registrationNo }}</span>
+            </div>
+            <div class="item" v-if="isBusiness">
+              <span>Country of incorporation</span>
+              <span>{{ beneficiaryDetails.registrationPlace }}</span>
+            </div>
+            <div class="item" v-if="isIndividual">
               <span>Nationality</span>
-              <span>American</span>
+              <span>{{ getNationality(beneficiaryDetails.nationality) }}</span>
+            </div>
+            <div
+              class="item"
+              v-if="isIndividual && beneficiaryDetails.otherNationality"
+            >
+              <span>Other nationality</span>
+              <span>{{ beneficiaryDetails.otherNationality }}</span>
+            </div>
+            <div class="item" v-if="isIndividual">
+              <span>Date of birth</span>
+              <span>{{ beneficiaryDetails.dob }}</span>
+            </div>
+            <div class="item" v-if="isBusiness">
+              <span>Company contact number</span>
+              <span>{{ beneficiaryDetails.companyContactNo }}</span>
             </div>
             <div class="item">
               <span>Phone number</span>
-              <span>+1-212-456-7890</span>
+              <span>{{ beneficiaryDetails.contactMobile }}</span>
             </div>
             <div class="item">
-              <span>E-mail address</span>
-              <span>johndoe123@outlook.com</span>
-            </div>
-            <div class="item">
-              <span>Delivery address</span>
-              <span>123 Ocean Drive Port St. Lucie, FL 34952 USA</span>
+              <span>Address</span>
+              <span>{{ beneficiaryDetails.address }}</span>
             </div>
           </div>
+
           <div class="title">Payment details</div>
           <div class="item-group">
             <div class="item">
-              <span>Remittance purpose</span>
-              <span>Overseas Mortgage and Rental</span>
+              <span>Payment details</span>
+              <span>{{ beneficiaryDetails.paymentDetail }}</span>
             </div>
             <div class="item">
-              <span>Source of income</span>
-              <span>Business income</span>
+              <span>Account relationship</span>
+              <span>{{ beneficiaryDetails.rel }}</span>
+            </div>
+            <div class="item">
+              <span>Purpose of intended transactions </span>
+              <span>
+                {{
+                  getRemittancePurpose(
+                    beneficiaryDetails.purposeOfIntendedTransactions
+                  )
+                }}
+              </span>
+            </div>
+            <div
+              class="item"
+              v-if="beneficiaryDetails.otherPurposeOfIntendedTransactions"
+            >
+              <span>Other remittance purpose</span>
+              <span>{{
+                beneficiaryDetails.otherPurposeOfIntendedTransactions
+              }}</span>
+            </div>
+            <div class="item">
+              <span>Source of funds</span>
+              <span>{{ getFundSource(beneficiaryDetails.fundSource) }}</span>
+            </div>
+            <div class="item" v-if="beneficiaryDetails.otherFundSource">
+              <span>Other source of funds</span>
+              <span>{{ beneficiaryDetails.otherFundSource }}</span>
             </div>
           </div>
         </div>
+
         <div v-if="activeTab === 'transactions'" class="transaction">
           <div class="item-group">
             <div
@@ -166,33 +259,34 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useBeneficiaryStore } from "@/stores/beneficiaryStore";
+import {
+  useBeneficiaryStore,
+  useStore,
+  useAlertStore,
+} from "@/stores/index.js";
 import { useTransactionStore } from "@/stores/transactionStore";
-import { useStore } from "@/stores/useStore";
-import { useAlertStore } from "@/stores/alertStore";
 import FavouriteButton from "./components/FavouriteButton.vue";
 import Modal from "@/components/Modal.vue";
 import { storeToRefs } from "pinia";
-import { getLocalStorageWithExpiry } from "@/services/localStorageService.js";
+import {
+  beneficiaryTypes,
+  beneficiaryCountries,
+  businessCategories,
+  purposeOfIntendedTransactions,
+  fundSource,
+} from "@/data/data.js";
 
 const route = useRoute();
 const router = useRouter();
 
-const id = route.params.id; // Extract beneficiary ID from params
+const id = route.params.id;
 const beneficiaryStore = useBeneficiaryStore();
 const transactionStore = useTransactionStore();
 const store = useStore();
 const alertStore = useAlertStore();
-const username = ref("");
 
-const beneficiary = computed(() => {
-  return beneficiaryStore.beneficiaries.find((b) => b.id === Number(id));
-});
+const beneficiaryDetails = ref(null);
 const { transactions } = storeToRefs(transactionStore);
-
-const goBack = () => {
-  router.go(-1);
-};
 
 const activeTab = ref("details");
 
@@ -200,41 +294,93 @@ const setActiveTab = (tab) => {
   activeTab.value = tab;
 };
 
+const isIndividual = computed(() => {
+  return beneficiaryDetails.value?.accountType === 0;
+});
+
+const isBusiness = computed(() => {
+  return beneficiaryDetails.value?.accountType === 1;
+});
+
 const handleSubmit = async () => {
   try {
-    const response = await beneficiaryStore.deleteBeneficiary(
-      beneficiary.value.name
-    );
-
+    const response = await beneficiaryStore.deleteBeneficiary(id);
     if (response.status === 1) {
+      store.closeModal();
       alertStore.alert(
         "success",
         "You have deleted this beneficiary successfully"
       );
-      console.log("Beneficiary deleted successfully");
-      router.push("/beneficiary-list");
+
+      window.location.href = "/#/beneficiary";
     } else {
-      // Handle error
       alertStore.alert("error", "Failed to delete beneficiary");
-      console.error("Failed to delete beneficiary:", response.message);
     }
   } catch (error) {
     alertStore.alert("error", "Failed to delete beneficiary");
-    console.error("Error in handleSubmit:");
   }
 };
 
-onMounted(() => {
-  console.log("Beneficiary ID:", id);
-  console.log("Beneficiary Object:", beneficiary.value);
-});
+const getNationality = (id) => {
+  const country = beneficiaryCountries.find((item) => item.id === parseInt(id));
+  return country.name;
+};
+
+const getAccountType = (value) => {
+  const type = beneficiaryTypes.find((item) => item.value === parseInt(value));
+  return type.name;
+};
+
+const getBusinessCategory = (id) => {
+  for (const category of businessCategories) {
+    const subcategory = category.subcategories.find(
+      (sub) => sub.id === parseInt(id)
+    );
+    if (subcategory) {
+      return subcategory.name;
+    }
+  }
+};
+
+const getRemittancePurpose = (code) => {
+  const purpose = purposeOfIntendedTransactions.find(
+    (item) => item.id === parseInt(code)
+  );
+  return purpose.name;
+};
+
+const getFundSource = (code) => {
+  const source = fundSource.find((item) => item.id === parseInt(code));
+  return source.name;
+};
+
+const getInitials = (name) => {
+  if (!name) return "";
+  const words = name.split(" ");
+  return words.length > 1
+    ? words[0][0].toUpperCase() + words[1][0].toUpperCase()
+    : name[0].toUpperCase();
+};
+
+const getCurrencyImagePath = (currencyCode) => {
+  return currencyCode
+    ? `/src/assets/currency/${currencyCode.toLowerCase()}.svg`
+    : `/src/assets/currency/default.svg`;
+};
+
 onMounted(async () => {
-  await beneficiaryStore.getBeneficiaryDetail();
-  username.value = getLocalStorageWithExpiry("username");
+  try {
+    const response = await beneficiaryStore.getBeneficiaryDetail(id);
+    if (response?.beneDetails) {
+      beneficiaryDetails.value = response.beneDetails;
+    }
+  } catch (error) {
+    console.error("Error fetching beneficiary details:", error);
+  }
 });
 
-const handleCancel = () => {
-  store.closeModal();
+const goBack = () => {
+  router.go(-1);
 };
 </script>
 

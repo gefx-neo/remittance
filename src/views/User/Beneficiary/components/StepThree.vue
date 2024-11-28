@@ -75,7 +75,7 @@ import { Input, Select } from "@/components/Form";
 import { purposeOfIntendedTransactions, fundSource } from "@/data/data";
 import { useValidation } from "@/composables/useValidation";
 import { formValidation } from "./schemas/stepThreeSchema";
-import { useAlertStore } from "@/stores/alertStore";
+import { useAlertStore } from "@/stores/index.js";
 
 const props = defineProps({
   modelValue: {

@@ -29,7 +29,7 @@
 
 <script setup>
 import { computed } from "vue";
-import { useAlertStore } from "@/stores/alertStore";
+import { useAlertStore } from "@/stores/index.js";
 
 const alertStore = useAlertStore();
 

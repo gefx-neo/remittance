@@ -135,9 +135,7 @@ import { InputAmount, ButtonAPI } from "@/components/Form";
 import { storeToRefs } from "pinia";
 import { sendingCurrencies, receivingCurrencies } from "@/data/data";
 import { useRouter } from "vue-router";
-import { useStore } from "@/stores/useStore";
-import { useDashboardStore } from "@/stores/dashboardStore";
-import { useAlertStore } from "@/stores/alertStore";
+import { useAlertStore, useDashboardStore, useStore } from "@/stores/index.js";
 import { useValidation } from "@/composables/useValidation";
 import {
   formValidation,

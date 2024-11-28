@@ -38,25 +38,29 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { useBeneficiaryStore } from "@/stores/beneficiaryStore";
-import { useStepStore } from "@/stores/stepStore";
+import {
+  useAlertStore,
+  useAuthStore,
+  useBeneficiaryStore,
+  useStepStore,
+} from "@/stores/index.js";
 import StepOne from "./components/StepOne.vue";
 import StepTwo from "./components/StepTwo.vue";
 import StepThree from "./components/StepThree.vue";
-import { getLocalStorageWithExpiry } from "@/services/localStorageService.js";
 import { useValidation } from "@/composables/useValidation";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
 const beneficiaryStore = useBeneficiaryStore();
 const stepStore = useStepStore();
+const alertStore = useAlertStore();
+const authStore = useAuthStore();
 const { scrollToTop } = useValidation();
 
-const username = ref("");
 const form = ref({});
 
 const handleSubmit = async () => {
-  form.value.username = username.value;
+  form.value.username = authStore.username;
 
   let allUploadPromises = [];
   let fileNames = {};
@@ -141,8 +145,8 @@ const handleSubmit = async () => {
     const response = await beneficiaryStore.addBeneficiary(beneficiaryForm);
 
     if (response.status === 1) {
-      console.log("Beneficiary added successfully:", response);
-      router.push({ path: "/beneficiary" });
+      alertStore.alert("success", "You have added a new beneficiary");
+      window.location.href = "/#/beneficiary";
     } else {
       console.error("Error adding beneficiary:", response.message);
     }
@@ -164,8 +168,6 @@ const prevStep = () => {
 onMounted(() => {
   stepStore.setSteps(["Particulars", "Bank", "Payment"]);
   stepStore.setCurrentStep(1);
-  username.value = getLocalStorageWithExpiry("username");
-  form.value.username = username.value;
 });
 
 const handleCancel = () => {

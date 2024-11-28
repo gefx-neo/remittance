@@ -40,22 +40,27 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { useStepStore } from "@/stores/stepStore";
+import { useAuthStore, useStepStore } from "@/stores/index.js";
 import StepOne from "./components/StepOne.vue";
 import StepTwo from "./components/StepTwo.vue";
 import StepThree from "./components/StepThree.vue";
-import { getLocalStorageWithExpiry } from "@/services/localStorageService.js";
 import { useValidation } from "@/composables/useValidation";
 import { useRouter } from "vue-router";
 const router = useRouter();
+const authStore = useAuthStore();
 const stepStore = useStepStore();
 const { scrollToTop } = useValidation();
 
-const username = ref("");
 const form = ref({});
 const handleSubmit = () => {
+  form.value.username = authStore.username;
+  console.log(form.value.username);
   // Logic for submitting form data
-  console.log(form.value);
+  const transactionForm = {
+    username: form.value.username,
+    ...form.value,
+  };
+  console.log(transactionForm);
 };
 
 const nextStep = () => {
@@ -71,8 +76,6 @@ const prevStep = () => {
 onMounted(() => {
   stepStore.setSteps(["Beneficiary", "Amount", "Final"]);
   stepStore.setCurrentStep(1);
-  username.value = getLocalStorageWithExpiry("username");
-  form.value.username = username.value;
 });
 
 const handleCancel = () => {

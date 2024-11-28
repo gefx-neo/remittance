@@ -1,10 +1,6 @@
 import { defineStore } from "pinia";
 import apiService from "@/services/apiService";
-import { useStore } from "@/stores/useStore";
-import {
-  setLocalStorageWithExpiry,
-  getLocalStorageWithExpiry,
-} from "@/services/localStorageService.js";
+import { useStore, useAuthStore } from "@/stores/index.js";
 
 export const useProfileStore = defineStore("profile", {
   state: () => ({
@@ -14,36 +10,30 @@ export const useProfileStore = defineStore("profile", {
   actions: {
     async getProfileDetail() {
       const store = useStore();
+      const authStore = useAuthStore();
       store.isLoading = true;
       try {
-        // Retrieve the username from localStorage
-        const username = getLocalStorageWithExpiry("username");
-        if (!username) {
-          throw new Error("No username found in localStorage");
-        }
-
-        // Call the API with username as a query parameter
         const response = await apiService.getRequest(
-          `/Profile/user?username=${username}`
+          `/profile/user?username=${authStore.username}`
         );
-        if (response.status !== 1) {
-          // If response status is not 1, log out the user and redirect to login
-          this.clearProfileDetails();
-          localStorage.removeItem("token"); // Clear any sensitive data
-          localStorage.removeItem("username");
-          router.push("/login"); // Redirect user to login page
-          throw new Error("Invalid profile details. You have been logged out.");
-        }
-        this.profileDetails = response;
-        setLocalStorageWithExpiry("token", response.token, 4);
-        setLocalStorageWithExpiry("username", username, 4);
+        if (response.status === 1) {
+          this.profileDetails = response;
 
-        console.log("profile response token", response.token);
+          if (response.token) {
+            authStore.refreshSession(response.token, authStore.username);
+          }
+
+          console.log("profile response token", response.token);
+        } else {
+          this.error = response.message;
+        }
+
         return response;
       } catch (error) {
         this.error =
-          error.response?.data?.message || "Failed to fetch profile details";
-        console.error("Error while fetching profile details:", error);
+          error.message ||
+          "Get profile failed due to network issues or server error.";
+        throw error;
       } finally {
         store.isLoading = false;
       }
@@ -66,8 +56,8 @@ export const useProfileStore = defineStore("profile", {
     },
     async verifyAccount(form) {
       const store = useStore();
+      const authStore = useAuthStore();
       store.isLoading = true;
-      this.error = null;
 
       try {
         console.log(form);
@@ -78,11 +68,11 @@ export const useProfileStore = defineStore("profile", {
         );
 
         if (response.status === 1) {
-          setLocalStorageWithExpiry("token", response.token, 4);
-          setLocalStorageWithExpiry("username", username, 4);
+          if (response.token) {
+            authStore.refreshSession(response.token, payload.username);
+          }
 
-          console.log("profile response token", response.token);
-          return response;
+          console.log("beneficiary response token", response.token);
         } else {
           this.error = response.message;
         }

@@ -70,12 +70,11 @@ import { ref, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../../stores/authStore.js";
 import { useStore } from "@/stores/useStore";
-import { getLocalStorageWithExpiry } from "@/services/localStorageService.js";
 
 const authStore = useAuthStore();
 const store = useStore();
 const router = useRouter();
-const username = ref("");
+const username = authStore.username;
 const profileDropdown = ref(null);
 const logout = async () => {
   try {
@@ -107,10 +106,6 @@ const routes = [
   //   label: "Audit Log",
   // },
 ];
-
-onMounted(async () => {
-  username.value = getLocalStorageWithExpiry("username");
-});
 
 const handleClickOutside = (event) => {
   if (profileDropdown.value && !profileDropdown.value.contains(event.target)) {

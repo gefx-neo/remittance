@@ -100,8 +100,7 @@ import { toRef, watch, defineProps, defineEmits, onMounted } from "vue";
 import { Input, InputFile } from "@/components/Form";
 import { useValidation } from "@/composables/useValidation";
 import { formValidation } from "./schemas/stepThreeSchema";
-import { useStore } from "@/stores/useStore";
-import { useAlertStore } from "@/stores/alertStore";
+import { useAlertStore, useStore } from "@/stores/index.js";
 import Modal from "@/components/Modal.vue";
 import { useRoute } from "vue-router";
 

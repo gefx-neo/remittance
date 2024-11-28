@@ -87,7 +87,7 @@ import { watch, reactive } from "vue";
 import { Input, InputBeneficiaryCountry, Select } from "@/components/Form";
 import { useValidation } from "@/composables/useValidation";
 import { formValidation } from "./schemas/stepTwoSchema";
-import { useAlertStore } from "@/stores/alertStore";
+import { useAlertStore } from "@/stores/index.js";
 import { paymentTypes } from "@/data/data";
 
 const props = defineProps({

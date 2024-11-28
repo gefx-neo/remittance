@@ -53,11 +53,13 @@ import { ref, reactive, watch, onMounted } from "vue";
 import StepOne from "./components/StepOne.vue";
 import StepTwo from "./components/StepTwo.vue";
 import StepThree from "./components/StepThree.vue";
-import { useCountryCodeStore } from "@/stores/countryCodeStore";
-import { useProfileStore } from "@/stores/profileStore";
-import { useStepStore } from "@/stores/stepStore";
-import { useStore } from "@/stores/useStore";
-import { useAlertStore } from "@/stores/alertStore";
+import {
+  useAlertStore,
+  useCountryCodeStore,
+  useProfileStore,
+  useStepStore,
+  useStore,
+} from "@/stores/index.js";
 import {
   entityTypes,
   fundSource,
@@ -322,7 +324,7 @@ const handleSubmit = async () => {
 
     if (verifyResponse.status === 1) {
       alertStore.alert("success", "You have submitted successfully.");
-      router.push({ path: "/profile" });
+      window.location.href = "/#/profile";
 
       console.log("Account verification successful!");
     } else {

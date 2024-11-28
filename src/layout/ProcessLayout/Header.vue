@@ -74,7 +74,6 @@ import { ref, onMounted, onUnmounted } from "vue";
 import { useRouter, RouterLink } from "vue-router";
 import { useAuthStore } from "../../stores/authStore.js";
 import { useStore } from "@/stores/useStore";
-import { getLocalStorageWithExpiry } from "@/services/localStorageService.js";
 import StepBullets from "@/components/Form/StepBullets.vue";
 import { useStepStore } from "@/stores/stepStore.js";
 
@@ -82,12 +81,12 @@ const authStore = useAuthStore();
 const store = useStore();
 const stepStore = useStepStore();
 const router = useRouter();
-const username = ref("");
+const username = authStore.username;
 const profileDropdown = ref(null);
 
 const logout = async () => {
   try {
-    await authStore.logout(username.value);
+    await authStore.logout(username);
   } catch (error) {
     console.error("Failed to get username to logout:", error);
   }
@@ -96,10 +95,6 @@ const logout = async () => {
 const setStep = (step) => {
   stepStore.setCurrentStep(step);
 };
-
-onMounted(async () => {
-  username.value = getLocalStorageWithExpiry("username");
-});
 
 const handleClickOutside = (event) => {
   if (profileDropdown.value && !profileDropdown.value.contains(event.target)) {

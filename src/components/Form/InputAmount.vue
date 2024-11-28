@@ -45,7 +45,7 @@ import { ref, computed, onMounted, onBeforeUnmount, watch } from "vue";
 import CurrencyDropdown from "@/components/Dropdown/CurrencyDropdown.vue";
 import { sendingCurrencies, receivingCurrencies } from "@/data/data";
 import { useStore } from "@/stores/useStore";
-import { useAlertStore } from "@/stores/alertStore";
+import { useAlertStore } from "@/stores/index.js";
 
 const props = defineProps({
   label: String,

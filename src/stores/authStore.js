@@ -12,31 +12,42 @@ import {
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
-    user: getLocalStorageWithExpiry("username") || null,
+    username: getLocalStorageWithExpiry("username") || null,
+    token: getLocalStorageWithExpiry("token") || null,
     error: null,
     cookieRefreshed: false,
     hex: null,
     iv: null,
   }),
   actions: {
-    checkSession() {
+    refreshSession(token, username) {
+      if (token) {
+        setLocalStorageWithExpiry("token", token, 4); // Update token with 4-hour expiry
+      }
+      if (username) {
+        setLocalStorageWithExpiry("username", username, 4); // Update username with 4-hour expiry
+        this.username = username; // Update the state
+      }
+    },
+
+    async checkSession() {
       const token = getLocalStorageWithExpiry("token");
       const username = getLocalStorageWithExpiry("username");
 
       if (token && username) {
-        // If both token and username are found, assume the user is logged in
-        this.user = true;
+        this.user = username;
         console.log("User session found with token:", token);
-      } else if (!token || !username) {
-        // If token or username are missing or expired, clear them and log out the user
-        removeLocalStorageWithExpiry("token");
-        removeLocalStorageWithExpiry("username");
-        this.user = null;
-      } else if (token === null) {
-        this.logout;
       } else {
-        this.user = false;
+        this.clearSession();
       }
+    },
+
+    clearSession() {
+      removeLocalStorageWithExpiry("token");
+      removeLocalStorageWithExpiry("username");
+      this.username = null;
+      this.token = null;
+      console.log("Session cleared.");
     },
 
     // Step 1: Fetch reqKey (hex and iv) for the username
@@ -88,20 +99,15 @@ export const useAuthStore = defineStore("auth", {
         });
 
         if (response.status === 1) {
-          this.user = true;
           this.error = null;
 
-          // Set token and username in localStorage with a 4-hour expiration
-          setLocalStorageWithExpiry("token", response.token, 4);
-          setLocalStorageWithExpiry("username", form.username, 4);
+          this.refreshSession(response.token, form.username);
 
           router.push({ name: "dashboard" });
         } else {
-          this.user = false;
           this.error = response.message;
         }
       } catch (error) {
-        this.user = false;
         this.error = error.response?.message;
       } finally {
         store.isLoading = false;
@@ -120,10 +126,10 @@ export const useAuthStore = defineStore("auth", {
           this.user = false;
           this.error = null;
 
+          // Clear session and redirect
           removeLocalStorageWithExpiry("token");
           removeLocalStorageWithExpiry("username");
-          router.push("/");
-
+          router.push("/"); // Redirect here works perfectly
           console.log("Logged out successfully and session cleared.");
         } else {
           this.error = response.message || "Logout failed";

@@ -1,15 +1,13 @@
 import { defineStore } from "pinia";
 import apiService from "@/services/apiService";
 import { useStore } from "@/stores/useStore";
-import {
-  setLocalStorageWithExpiry,
-  getLocalStorageWithExpiry,
-} from "@/services/localStorageService.js";
+import { useAuthStore } from "@/stores/authStore";
 
 export const useBeneficiaryStore = defineStore("beneficiaryStore", {
   state: () => ({
     beneficiaryList: null,
     error: null,
+    selectedBeneficiary: null,
     beneficiaries: [
       {
         id: 1,
@@ -112,7 +110,6 @@ export const useBeneficiaryStore = defineStore("beneficiaryStore", {
         accountCurrency: "MYR account ending in 6222",
       },
     ],
-    selectedBeneficiary: null,
   }),
   getters: {
     localPaymentBeneficiaries: (state) =>
@@ -125,92 +122,64 @@ export const useBeneficiaryStore = defineStore("beneficiaryStore", {
       ),
   },
   actions: {
-    // Toggle favourite status for a beneficiary by ID
-    toggleFavourite(id) {
-      const beneficiary = this.beneficiaries.find((b) => b.id === id);
-      if (beneficiary) {
-        beneficiary.favouriteStatus = !beneficiary.favouriteStatus;
-      }
-    },
     async getBeneficiaryList() {
       const store = useStore();
+      const authStore = useAuthStore();
       store.isLoading = true;
       try {
-        // Retrieve the username from localStorage
-        const username = getLocalStorageWithExpiry("username");
-        if (!username) {
-          throw new Error("No username found in localStorage");
-        }
-
-        // Call the API with username as a query parameter
         const response = await apiService.getRequest(
-          `/bene/list?username=${username}`
+          `/bene/list?username=${authStore.username}`
         );
-        if (response.status !== 1) {
-          // If response status is not 1, log out the user and redirect to login
-          this.clearBeneficiaryList();
-          localStorage.removeItem("token");
-          localStorage.removeItem("username");
-          router.push("/login");
-          throw new Error(
-            "Invalid beneficiary list. You have been logged out."
-          );
-        }
-        this.beneficiaryList = response;
-        setLocalStorageWithExpiry("token", response.token, 4);
-        setLocalStorageWithExpiry("username", username, 4);
+        if (response.status === 1) {
+          if (response.token) {
+            authStore.refreshSession(response.token, authStore.username);
+          }
 
-        console.log("beneficiary response token", response.token);
+          console.log("beneficiary response token", response.token);
+        } else {
+          this.error = response.message;
+        }
+
         return response;
       } catch (error) {
         this.error =
-          error.response?.data?.message || "Failed to fetch beneficiary list";
-        console.error("Error while fetching beneficiary list:", error);
+          error.message ||
+          "Delete beneficiary failed due to network issues or server error.";
+        throw error;
       } finally {
         store.isLoading = false;
       }
     },
-    async getBeneficiaryDetail(beneId) {
+    async getBeneficiaryDetail(id) {
       const store = useStore();
+      const authStore = useAuthStore();
       store.isLoading = true;
       try {
-        // Retrieve the username from localStorage
-        const username = getLocalStorageWithExpiry("username");
-        if (!username) {
-          throw new Error("No username found in localStorage");
-        }
-
-        // Call the API with nickname and username as query parameters
         const response = await apiService.getRequest(
-          `/bene/details?username=${username}&beneId=1`
+          `/bene/details?username=${authStore.username}&beneId=${id}`
         );
 
-        if (response.status !== 1) {
-          // If response status is not 1, handle the error by logging out the user
-          this.clearProfileDetails();
-          localStorage.removeItem("token");
-          localStorage.removeItem("username");
-          router.push("/login");
-          throw new Error(
-            "Invalid beneficiary detail. You have been logged out."
-          );
+        if (response.status === 1) {
+          if (response.token) {
+            authStore.refreshSession(response.token, authStore.username);
+          }
+
+          console.log("beneficiary response token", response.token);
+        } else {
+          this.error = response.message;
         }
 
-        // Assuming this.beneficiaryDetail is where you store the details
-        this.beneficiaryDetail = response;
-        setLocalStorageWithExpiry("token", response.token, 4);
-        setLocalStorageWithExpiry("username", username, 4);
-
-        console.log("beneficiary detail response token", response.token);
         return response;
       } catch (error) {
         this.error =
-          error.response?.data?.message || "Failed to fetch beneficiary detail";
-        console.error("Error while fetching beneficiary detail:", error);
+          error.message ||
+          "Delete beneficiary failed due to network issues or server error.";
+        throw error;
       } finally {
         store.isLoading = false;
       }
     },
+
     async uploadFiles(formData) {
       try {
         // Use the apiService to send the FormData object
@@ -227,22 +196,22 @@ export const useBeneficiaryStore = defineStore("beneficiaryStore", {
         throw error;
       }
     },
-    async addBeneficiary(form) {
+    async addBeneficiary(payload) {
       const store = useStore();
+      const authStore = useAuthStore();
       store.isLoading = true;
-      this.error = null;
 
       try {
-        console.log(form);
         const response = await apiService.postRequest(
           "/bene/addBeneficiary",
-          form,
+          payload,
           { format: "raw" }
         );
 
         if (response.status === 1) {
-          setLocalStorageWithExpiry("token", response.token, 4);
-          setLocalStorageWithExpiry("username", form.username, 4);
+          if (response.token) {
+            authStore.refreshSession(response.token, payload.username);
+          }
 
           console.log("beneficiary response token", response.token);
         } else {
@@ -253,58 +222,57 @@ export const useBeneficiaryStore = defineStore("beneficiaryStore", {
       } catch (error) {
         this.error =
           error.message ||
-          "Verification failed due to network issues or server error.";
+          "Process failed due to network issues or server error.";
         throw error;
       } finally {
         store.isLoading = false;
       }
     },
-    async updateFavourite(nickname, status) {
-      const store = useStore();
-      store.isLoading = true;
-      this.error = null;
+    async updateFavourite(payload) {
+      const authStore = useAuthStore();
 
       try {
-        const payload = { nickname, status };
-
-        const response = await apiService.postRequest(
+        const response = await apiService.putRequest(
           "/bene/updateFavourite",
           payload
         );
 
         if (response.status === 1) {
-          this.error = null;
+          console.log("Beneficiary status updated successfully", response);
+
+          if (response.token) {
+            authStore.refreshSession(response.token, payload.username);
+          }
         } else {
-          this.error = response.message;
+          console.warn(
+            "Failed to update beneficiary status:",
+            response.message
+          );
         }
 
+        // Return the response for component handling
         return response;
       } catch (error) {
-        this.error =
-          error.message ||
-          "Failed to update favourite status due to network issues or server error.";
-        console.error("Error updating favourite status:", error);
+        console.error("Error in updateFavourite:", error);
         throw error;
-      } finally {
-        store.isLoading = false;
       }
     },
 
-    async deleteBeneficiary(beneId) {
+    async deleteBeneficiary(id) {
       const store = useStore();
+      const authStore = useAuthStore();
       store.isLoading = true;
-      this.error = null;
-
       try {
         const response = await apiService.deleteRequest(
-          "/bene/deleteBeneficiary",
-          {
-            beneId,
-          }
+          `/bene/deleteBeneficiary?username=${authStore.username}&beneId=${id}`
         );
 
         if (response.status === 1) {
-          this.error = null;
+          if (response.token) {
+            authStore.refreshSession(response.token, authStore.username);
+          }
+
+          console.log("beneficiary response token", response.token);
         } else {
           this.error = response.message;
         }
@@ -313,13 +281,13 @@ export const useBeneficiaryStore = defineStore("beneficiaryStore", {
       } catch (error) {
         this.error =
           error.message ||
-          "Failed to delete beneficiary due to network issues or server error.";
-        console.error("Error deleting beneficiary:", error);
+          "Delete beneficiary failed due to network issues or server error.";
         throw error;
       } finally {
         store.isLoading = false;
       }
     },
+
     setSelectedBeneficiary(beneficiary) {
       this.selectedBeneficiary = beneficiary;
     },

@@ -97,10 +97,13 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useBeneficiaryStore } from "@/stores/beneficiaryStore";
-import { useTransactionStore } from "@/stores/transactionStore";
-import { useStore } from "@/stores/useStore";
-import { useAlertStore } from "@/stores/alertStore";
+
+import {
+  useAlertStore,
+  useBeneficiaryStore,
+  useTransactionStore,
+  useStore,
+} from "@/stores/index.js";
 import Modal from "@/components/Modal.vue";
 import { storeToRefs } from "pinia";
 

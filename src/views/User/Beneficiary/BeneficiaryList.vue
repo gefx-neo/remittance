@@ -23,7 +23,7 @@
             <span class="mobile">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
                 <path
-                  d="M96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM0 482.3C0 383.8 79.8 304 178.3 304l91.4 0C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7L29.7 512C13.3 512 0 498.7 0 482.3zM504 312l0-64-64 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l64 0 0-64c0-13.3 10.7-24 24-24s24 10.7 24 24l0 64 64 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-64 0 0 64c0 13.3-10.7 24-24 24s-24-10.7-24-24z"
+                  d="M96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM0 482.3C0 383.8 79.8 304 178.3 304l91.4 0C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7L29.7 512C13.3 512 0 498.7 0 482.3zM504 312l0-64-64 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l64 0 0-64c0-13.3 10.7-24 24-24s24 10.7 24 24l0 64 64 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-64 0 0 64c0-13.3-10.7 24-24 24s-24-10.7-24-24z"
                 />
               </svg>
             </span>
@@ -31,7 +31,7 @@
         </div>
       </div>
 
-      <div class="payment-category">
+      <div class="payment-category" v-if="localPaymentBeneficiaries.length > 0">
         <h4>Local Payment</h4>
         <div class="item-section">
           <div
@@ -42,43 +42,143 @@
             @click="navigateToBeneficiaryDetail(beneficiary)"
           >
             <div class="favourite-group">
-              <FavouriteButton :beneficiaryId="beneficiary.id" @click.stop />
+              <FavouriteButton
+                :beneficiaryId="beneficiary.id"
+                :isFav="!!beneficiary.isFav"
+                @click.stop
+              />
             </div>
             <div class="detail">
-              <span class="icon-round"
-                >{{ beneficiary.initials }}
-                <img :src="getCurrencyImagePath(beneficiary.currency)" />
+              <span class="icon-round">
+                {{ getInitials(beneficiary.beneName) }}
+                <img
+                  :src="getCurrencyImagePath(beneficiary.currency)"
+                  alt="Currency"
+                />
               </span>
-              <span>{{ beneficiary.name }}</span>
-              <span>{{ beneficiary.accountType }}</span>
+              <span class="name">{{ beneficiary.beneName }}</span>
+
+              <span>
+                {{ getAccountTypeLabel(beneficiary.accountType) }}
+              </span>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="payment-category">
-        <h4>Swift Payment</h4>
+      <div
+        class="payment-category"
+        v-if="swiftSHAPaymentBeneficiaries.length > 0"
+      >
+        <h4>Swift SHA Payment</h4>
         <div class="item-section">
           <div
-            v-for="(beneficiary, index) in swiftPaymentBeneficiaries"
+            v-for="(beneficiary, index) in swiftSHAPaymentBeneficiaries"
             :key="'swift-' + index"
             class="item"
             tabindex="0"
             @click="navigateToBeneficiaryDetail(beneficiary)"
           >
-            <FavouriteButton :beneficiaryId="beneficiary.id" @click.stop />
+            <div class="favourite-group">
+              <FavouriteButton
+                :beneficiaryId="beneficiary.id"
+                :isFav="!!beneficiary.isFav"
+                @click.stop
+              />
+            </div>
             <div class="detail">
-              <span class="icon-round"
-                >{{ beneficiary.initials }}
-                <img :src="getCurrencyImagePath(beneficiary.currency)" />
+              <span class="icon-round">
+                {{ getInitials(beneficiary.beneName) }}
+                <img
+                  :src="getCurrencyImagePath(beneficiary.currency)"
+                  alt="Currency"
+                />
               </span>
-              <span>{{ beneficiary.name }}</span>
-              <span>{{ beneficiary.accountType }}</span>
+              <span class="name">{{ beneficiary.beneName }}</span>
+
+              <span>
+                {{ getAccountTypeLabel(beneficiary.accountType) }}
+              </span>
             </div>
           </div>
         </div>
       </div>
 
+      <div
+        class="payment-category"
+        v-if="swiftBENPaymentBeneficiaries.length > 0"
+      >
+        <h4>Swift BEN Payment</h4>
+        <div class="item-section">
+          <div
+            v-for="(beneficiary, index) in swiftBENPaymentBeneficiaries"
+            :key="'swift-' + index"
+            class="item"
+            tabindex="0"
+            @click="navigateToBeneficiaryDetail(beneficiary)"
+          >
+            <div class="favourite-group">
+              <FavouriteButton
+                :beneficiaryId="beneficiary.id"
+                :isFav="!!beneficiary.isFav"
+                @click.stop
+              />
+            </div>
+            <div class="detail">
+              <span class="icon-round">
+                {{ getInitials(beneficiary.beneName) }}
+                <img
+                  :src="getCurrencyImagePath(beneficiary.currency)"
+                  alt="Currency"
+                />
+              </span>
+              <span class="name">{{ beneficiary.beneName }}</span>
+
+              <span>
+                {{ getAccountTypeLabel(beneficiary.accountType) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="payment-category"
+        v-if="swiftOURPaymentBeneficiaries.length > 0"
+      >
+        <h4>Swift OUR Payment</h4>
+        <div class="item-section">
+          <div
+            v-for="(beneficiary, index) in swiftOURPaymentBeneficiaries"
+            :key="'swift-' + index"
+            class="item"
+            tabindex="0"
+            @click="navigateToBeneficiaryDetail(beneficiary)"
+          >
+            <div class="favourite-group">
+              <FavouriteButton
+                :beneficiaryId="beneficiary.id"
+                :isFav="!!beneficiary.isFav"
+                @click.stop
+              />
+            </div>
+            <div class="detail">
+              <span class="icon-round">
+                {{ getInitials(beneficiary.beneName) }}
+                <img
+                  :src="getCurrencyImagePath(beneficiary.currency)"
+                  alt="Currency"
+                />
+              </span>
+              <span class="name">{{ beneficiary.beneName }}</span>
+
+              <span>
+                {{ getAccountTypeLabel(beneficiary.accountType) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
       <button class="btn-load">Load more</button>
       <router-view></router-view>
     </div>
@@ -88,29 +188,60 @@
 <script setup>
 import { useRouter } from "vue-router";
 import { ref, computed, onMounted } from "vue";
-import { useBeneficiaryStore } from "@/stores/beneficiaryStore";
+import { useBeneficiaryStore } from "@/stores/index.js";
 import FavouriteButton from "./components/FavouriteButton.vue";
-import { getLocalStorageWithExpiry } from "@/services/localStorageService.js";
 
 const router = useRouter();
 const beneficiaryStore = useBeneficiaryStore();
-const username = ref("");
-
-const localPaymentBeneficiaries = computed(
-  () => beneficiaryStore.localPaymentBeneficiaries
-);
-const swiftPaymentBeneficiaries = computed(
-  () => beneficiaryStore.swiftPaymentBeneficiaries
-);
-
-const getCurrencyImagePath = (currencyCode) => {
-  return `/src/assets/currency/${currencyCode.toLowerCase()}.svg`;
-};
+const beneficiaries = ref([]);
 
 onMounted(async () => {
-  await beneficiaryStore.getBeneficiaryList();
-  username.value = getLocalStorageWithExpiry("username");
+  const response = await beneficiaryStore.getBeneficiaryList();
+  beneficiaries.value = response.beneficiaries || [];
+  // Sort by `isFav`, with `isFav: 1` first
+  beneficiaries.value.sort((a, b) => b.isFav - a.isFav);
 });
+
+const localPaymentBeneficiaries = computed(() =>
+  beneficiaries.value
+    .filter((beneficiary) => beneficiary.paymentType === "Local Payment")
+    .sort((a, b) => b.isFav - a.isFav)
+);
+
+const swiftSHAPaymentBeneficiaries = computed(() =>
+  beneficiaries.value
+    .filter((beneficiary) => beneficiary.paymentType.includes("Swift SHA"))
+    .sort((a, b) => b.isFav - a.isFav)
+);
+
+const swiftBENPaymentBeneficiaries = computed(() =>
+  beneficiaries.value
+    .filter((beneficiary) => beneficiary.paymentType.includes("Swift BEN"))
+    .sort((a, b) => b.isFav - a.isFav)
+);
+
+const swiftOURPaymentBeneficiaries = computed(() =>
+  beneficiaries.value
+    .filter((beneficiary) => beneficiary.paymentType.includes("Swift OUR"))
+    .sort((a, b) => b.isFav - a.isFav)
+);
+
+const getInitials = (name) => {
+  if (!name) return "";
+  const words = name.split(" ");
+  return words.length > 1
+    ? words[0][0].toUpperCase() + words[1][0].toUpperCase()
+    : name[0].toUpperCase();
+};
+
+const getAccountTypeLabel = (accountType) =>
+  accountType === "1" ? "Business" : "Individual";
+
+const getCurrencyImagePath = (currencyCode) => {
+  return currencyCode
+    ? `/src/assets/currency/${currencyCode.toLowerCase()}.svg`
+    : `/src/assets/currency/default.svg`;
+};
 
 const navigateToBeneficiaryDetail = (beneficiary) => {
   router.push({
@@ -123,6 +254,7 @@ const navigateToAddBeneficiary = () => {
   router.push({ name: "addbeneficiary" });
 };
 </script>
+
 <style scoped>
 .content-area {
   display: flex;

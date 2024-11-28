@@ -18,46 +18,55 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref } from "vue";
 import { useBeneficiaryStore } from "@/stores/beneficiaryStore";
-import { useAlertStore } from "@/stores/alertStore";
+import { useAlertStore, useAuthStore } from "@/stores/index.js";
 
 const props = defineProps({
   beneficiaryId: {
-    type: Number,
+    type: String, // Expecting a string from the parent
+    required: true,
+  },
+  isFav: {
+    type: Boolean,
     required: true,
   },
 });
 
+const authStore = useAuthStore();
 const beneficiaryStore = useBeneficiaryStore();
 const alertStore = useAlertStore();
 
-const beneficiary = computed(() =>
-  beneficiaryStore.beneficiaries.find((b) => b.id === props.beneficiaryId)
+const isFavourite = ref(props.isFav);
+const tooltipContent = ref(
+  isFavourite.value ? "Remove favourite" : "Add favourite"
 );
-
-const isFavourite = computed(() => beneficiary.value?.favouriteStatus);
-const tooltipContent = ref("");
 
 const toggleFavourite = async () => {
   try {
-    const newStatus = !isFavourite.value;
-    await beneficiaryStore.updateFavourite(beneficiary.value?.name, newStatus);
-    beneficiaryStore.toggleFavourite(props.beneficiaryId);
-    updateTooltipContent();
+    const username = authStore.username;
+
+    const form = {
+      beneId: Number(props.beneficiaryId), // Ensure ID is a number
+      status: isFavourite.value ? 0 : 1,
+      username: username,
+    };
+
+    const response = await beneficiaryStore.updateFavourite(form);
+
+    if (response.status === 1) {
+      isFavourite.value = !isFavourite.value;
+      tooltipContent.value = isFavourite.value
+        ? "Remove favourite"
+        : "Add favourite";
+      alertStore.alert("success", "You have updated the beneficiary status");
+    } else {
+      console.error("Failed to update favourite status:", response.message);
+    }
   } catch (error) {
-    alertStore.alert("error", "Failed to update favourite status");
+    console.error("Error while updating favourite status:", error);
   }
 };
-
-const updateTooltipContent = () => {
-  tooltipContent.value = isFavourite.value
-    ? "Remove favourite"
-    : "Add favourite";
-};
-
-watch(isFavourite, updateTooltipContent);
-updateTooltipContent();
 </script>
 
 <style scoped>
