@@ -67,17 +67,35 @@ const handleSubmit = async () => {
 
   // Only perform file upload if beneficiaryType === 0
   if (form.value.beneficiaryType === 0) {
+    // Helper function to generate a random string
+    const generateRandomString = (length) => {
+      const characters =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      let result = "";
+      const charactersLength = characters.length;
+      for (let i = 0; i < length; i++) {
+        result += characters.charAt(
+          Math.floor(Math.random() * charactersLength)
+        );
+      }
+      return result;
+    };
+
     // Helper function to upload a single file
     const uploadFile = async (file) => {
+      const randomString = generateRandomString(5); // Generate a random string of 5 characters
+      const newFileName = `${file.name
+        .split(".")
+        .slice(0, -1)
+        .join(".")}_${randomString}.${file.name.split(".").pop()}`;
+
       const formData = new FormData();
-      formData.append("file", file); // Add the file to FormData
+      formData.append("file", file, newFileName); // Add the file to FormData with the new name
 
       // Log the time before the upload starts
       const fileStartTime = new Date();
       console.log(
-        `Uploading ${
-          file.name
-        } started at: ${fileStartTime.toLocaleTimeString()}`
+        `Uploading ${newFileName} started at: ${fileStartTime.toLocaleTimeString()}`
       );
 
       // Upload the file
@@ -86,12 +104,10 @@ const handleSubmit = async () => {
       // Log the time after the upload finishes
       const fileEndTime = new Date();
       console.log(
-        `Finished uploading ${
-          file.name
-        } at: ${fileEndTime.toLocaleTimeString()}`
+        `Finished uploading ${newFileName} at: ${fileEndTime.toLocaleTimeString()}`
       );
       console.log(
-        `Time taken to upload ${file.name}: ${
+        `Time taken to upload ${newFileName}: ${
           (fileEndTime - fileStartTime) / 1000
         } seconds`
       );
@@ -105,11 +121,21 @@ const handleSubmit = async () => {
       if (Array.isArray(files)) {
         files.forEach((file) => {
           uploadPromises.push(uploadFile(file));
-          fileNames.push(file.name); // Collect file names
+          const randomString = generateRandomString(5); // Generate a random string of 5 characters
+          const newFileName = `${file.name
+            .split(".")
+            .slice(0, -1)
+            .join(".")}_${randomString}.${file.name.split(".").pop()}`;
+          fileNames.push(newFileName); // Collect new file names
         });
       } else if (files) {
         uploadPromises.push(uploadFile(files[0])); // Single file upload
-        fileNames.push(files[0].name); // Collect file name
+        const randomString = generateRandomString(5); // Generate a random string of 5 characters
+        const newFileName = `${files[0].name
+          .split(".")
+          .slice(0, -1)
+          .join(".")}_${randomString}.${files[0].name.split(".").pop()}`;
+        fileNames.push(newFileName); // Collect new file name
       }
 
       return { uploadPromises, fileNames };

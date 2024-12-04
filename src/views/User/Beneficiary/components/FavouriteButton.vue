@@ -1,5 +1,5 @@
 <template>
-  <button type="button" class="favourite" @click="toggleFavourite">
+  <button type="button" class="favourite" @click="handleToggle">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
       <path
         v-if="isFavourite"
@@ -32,6 +32,7 @@ const props = defineProps({
     required: true,
   },
 });
+const emit = defineEmits(["update-list"]);
 
 const authStore = useAuthStore();
 const beneficiaryStore = useBeneficiaryStore();
@@ -42,7 +43,7 @@ const tooltipContent = ref(
   isFavourite.value ? "Remove favourite" : "Add favourite"
 );
 
-const toggleFavourite = async () => {
+const handleToggle = async () => {
   try {
     const username = authStore.username;
 
@@ -60,6 +61,7 @@ const toggleFavourite = async () => {
         ? "Remove favourite"
         : "Add favourite";
       alertStore.alert("success", "You have updated the beneficiary status");
+      emit("update-list");
     } else {
       console.error("Failed to update favourite status:", response.message);
     }

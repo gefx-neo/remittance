@@ -17,6 +17,7 @@
           v-if="stepStore.currentStep === 1"
           v-model="form"
           @nextStep="nextStep"
+          :beneficiaries="beneficiaries"
         />
 
         <StepTwo
@@ -24,6 +25,7 @@
           v-model="form"
           @nextStep="nextStep"
           @prevStep="prevStep"
+          :beneficiaries="beneficiaries"
         />
         <StepThree
           v-if="stepStore.currentStep === 3"
@@ -40,7 +42,11 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { useAuthStore, useStepStore } from "@/stores/index.js";
+import {
+  useAuthStore,
+  useStepStore,
+  useBeneficiaryStore,
+} from "@/stores/index.js";
 import StepOne from "./components/StepOne.vue";
 import StepTwo from "./components/StepTwo.vue";
 import StepThree from "./components/StepThree.vue";
@@ -49,9 +55,13 @@ import { useRouter } from "vue-router";
 const router = useRouter();
 const authStore = useAuthStore();
 const stepStore = useStepStore();
+const beneficiaryStore = useBeneficiaryStore();
+
 const { scrollToTop } = useValidation();
 
 const form = ref({});
+const beneficiaries = ref([]);
+
 const handleSubmit = () => {
   form.value.username = authStore.username;
   console.log(form.value.username);
@@ -73,10 +83,65 @@ const prevStep = () => {
   scrollToTop();
 };
 
-onMounted(() => {
+onMounted(async () => {
+  // Initialize the step store with step names
   stepStore.setSteps(["Beneficiary", "Amount", "Final"]);
   stepStore.setCurrentStep(1);
+
+  const response = await beneficiaryStore.getBeneficiaryList();
+  beneficiaries.value = response.beneficiaries || [];
+
+  beneficiaries.value.sort((a, b) => b.isFav - a.isFav);
+
+  // Handle query parameters
+  // const query = router.currentRoute.value.query;
+  // const { beneName, currency } = query;
+
+  // if (beneName && currency) {
+  //   // If `beneName` and `currency` are passed as query params, set step to StepTwo
+  //   stepStore.setCurrentStep(2);
+
+  //   // Find the selected beneficiary using the query parameters
+  //   const selectedBeneficiary = beneficiaries.value.find(
+  //     (bene) => bene.beneName === beneName && bene.currency === currency
+  //   );
+
+  //   if (selectedBeneficiary) {
+  //     // Populate the form with the selected beneficiary details
+  //     form.value.selectedBeneficiary = selectedBeneficiary;
+  //     console.log("Selected Beneficiary:", selectedBeneficiary);
+  //   } else {
+  //     console.error(
+  //       "Beneficiary not found for beneName and currency:",
+  //       beneName,
+  //       currency
+  //     );
+  //   }
+  // } else {
+  //   // Default behavior: start with StepOne if no query params are passed
+  //   stepStore.setCurrentStep(1);
+  // }
 });
+
+// onMounted(async () => {
+//   const query = router.currentRoute.value.query;
+
+//   // Check for all required query parameters
+//   const hasAllQueryParams =
+//     query.sendingAmount &&
+//     query.sendingCurrency &&
+//     query.receivingAmount &&
+//     query.receivingCurrency &&
+//     query.beneName &&
+//     query.currency;
+
+//   if (hasAllQueryParams) {
+//     stepStore.setCurrentStep(2);
+//     console.log("Navigating to Step 2 due to query parameters.");
+//   } else {
+//     stepStore.setCurrentStep(1);
+//   }
+// });
 
 const handleCancel = () => {
   router.push({ path: "/transaction" });

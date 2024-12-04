@@ -29,7 +29,9 @@
           <div>{{ beneficiaryDetails.accountCurrency }}</div>
         </div>
         <div class="button-group">
-          <button class="btn-red">Send money</button>
+          <button class="btn-red" @click="redirectToTransaction">
+            Send money
+          </button>
           <button class="btn-delete" @click="store.openModal">Delete</button>
         </div>
       </div>
@@ -94,7 +96,7 @@
             </div>
             <div class="item" v-if="beneficiaryDetails.otherBankCountry">
               <span>Other bank country</span>
-              <span>{{ getNationality(beneficiaryDetails.bankCountry) }}</span>
+              <span>{{ beneficiaryDetails.bankCountry }}</span>
             </div>
             <div class="item">
               <span>Bank address</span>
@@ -120,7 +122,9 @@
             </div>
             <div class="item" v-if="isBusiness">
               <span>Country of incorporation</span>
-              <span>{{ beneficiaryDetails.registrationPlace }}</span>
+              <span>{{
+                getNationality(beneficiaryDetails.registrationPlace)
+              }}</span>
             </div>
             <div class="item" v-if="isIndividual">
               <span>Nationality</span>
@@ -246,7 +250,7 @@
         :showAction="true"
         @close="store.closeModal"
         @submit="handleSubmit"
-        @cancel="handleCancel"
+        @cancel="store.closeModal"
       >
         <template #body>
           <p>Are you sure you want to delete this beneficiary?</p>
@@ -293,13 +297,12 @@ const activeTab = ref("details");
 const setActiveTab = (tab) => {
   activeTab.value = tab;
 };
-
 const isIndividual = computed(() => {
-  return beneficiaryDetails.value?.accountType === 0;
+  return parseInt(beneficiaryDetails.value?.accountType) === 0;
 });
 
 const isBusiness = computed(() => {
-  return beneficiaryDetails.value?.accountType === 1;
+  return parseInt(beneficiaryDetails.value?.accountType) === 1;
 });
 
 const handleSubmit = async () => {
@@ -320,15 +323,14 @@ const handleSubmit = async () => {
     alertStore.alert("error", "Failed to delete beneficiary");
   }
 };
-
 const getNationality = (id) => {
   const country = beneficiaryCountries.find((item) => item.id === parseInt(id));
-  return country.name;
+  return country ? country.name : "Unknown Nationality";
 };
 
 const getAccountType = (value) => {
   const type = beneficiaryTypes.find((item) => item.value === parseInt(value));
-  return type.name;
+  return type ? type.name : "Unknown Account Type";
 };
 
 const getBusinessCategory = (id) => {
@@ -340,18 +342,19 @@ const getBusinessCategory = (id) => {
       return subcategory.name;
     }
   }
+  return "Unknown Business Category";
 };
 
 const getRemittancePurpose = (code) => {
   const purpose = purposeOfIntendedTransactions.find(
     (item) => item.id === parseInt(code)
   );
-  return purpose.name;
+  return purpose ? purpose.name : "Unknown Purpose";
 };
 
 const getFundSource = (code) => {
   const source = fundSource.find((item) => item.id === parseInt(code));
-  return source.name;
+  return source ? source.name : "Unknown Source of Funds";
 };
 
 const getInitials = (name) => {
@@ -378,6 +381,16 @@ onMounted(async () => {
     console.error("Error fetching beneficiary details:", error);
   }
 });
+
+const redirectToTransaction = () => {
+  const { beneName, currency } = beneficiaryDetails.value;
+
+  // Redirect to AddTransaction.vue with beneName and currency as query parameters
+  router.push({
+    path: "/transaction/addtransaction",
+    query: { beneName, currency },
+  });
+};
 
 const goBack = () => {
   router.go(-1);
@@ -502,6 +515,7 @@ const goBack = () => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   row-gap: var(--size-24);
+  column-gap: var(--size-48);
   padding: 0 var(--size-24);
   padding-bottom: var(--size-24);
   border-bottom: 1px solid var(--light-grey);

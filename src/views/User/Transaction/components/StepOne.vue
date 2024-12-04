@@ -37,7 +37,7 @@
           <h4>Local Payment</h4>
           <div class="item-section">
             <div
-              v-for="(beneficiary, index) in filteredLocalPaymentBeneficiaries"
+              v-for="(beneficiary, index) in localPaymentBeneficiaries"
               :key="'local-' + index"
               class="item"
               tabindex="0"
@@ -49,26 +49,37 @@
               @click="selectBeneficiary(beneficiary)"
             >
               <div class="favourite-group">
-                <FavouriteButton :beneficiaryId="beneficiary.id" @click.stop />
+                <FavouriteButton
+                  :beneficiaryId="beneficiary.id"
+                  :isFav="!!beneficiary.isFav"
+                  @update-list="refreshPage"
+                  @click.stop
+                />
               </div>
               <div class="detail">
                 <span class="icon-round">
-                  {{ beneficiary.initials }}
-                  <img :src="getCurrencyImagePath(beneficiary.currency)" />
+                  {{ getInitials(beneficiary.beneName) }}
+                  <img
+                    :src="getCurrencyImagePath(beneficiary.currency)"
+                    alt="Currency"
+                  />
                 </span>
-                <span>{{ beneficiary.name }}</span>
-                <span>{{ beneficiary.accountType }}</span>
+                <span class="name">{{ beneficiary.beneName }}</span>
+
+                <span>
+                  {{ getAccountType(beneficiary.accountType) }}
+                </span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Swift Payment Section -->
+        <!-- Swift SHA Payment Section -->
         <div class="payment-category">
-          <h4>Swift Payment</h4>
+          <h4>Swift SHA Payment</h4>
           <div class="item-section">
             <div
-              v-for="(beneficiary, index) in filteredSwiftPaymentBeneficiaries"
+              v-for="(beneficiary, index) in swiftSHAPaymentBeneficiaries"
               :key="'swift-' + index"
               class="item"
               tabindex="0"
@@ -79,14 +90,105 @@
               }"
               @click="selectBeneficiary(beneficiary)"
             >
-              <FavouriteButton :beneficiaryId="beneficiary.id" @click.stop />
+              <FavouriteButton
+                :beneficiaryId="beneficiary.id"
+                :isFav="!!beneficiary.isFav"
+                @update-list="refreshPage"
+                @click.stop
+              />
               <div class="detail">
                 <span class="icon-round">
-                  {{ beneficiary.initials }}
-                  <img :src="getCurrencyImagePath(beneficiary.currency)" />
+                  {{ getInitials(beneficiary.beneName) }}
+                  <img
+                    :src="getCurrencyImagePath(beneficiary.currency)"
+                    alt="Currency"
+                  />
                 </span>
-                <span>{{ beneficiary.name }}</span>
-                <span>{{ beneficiary.accountType }}</span>
+                <span class="name">{{ beneficiary.beneName }}</span>
+
+                <span>
+                  {{ getAccountType(beneficiary.accountType) }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Swift BEN Payment Section -->
+        <div class="payment-category">
+          <h4>Swift BEN Payment</h4>
+          <div class="item-section">
+            <div
+              v-for="(beneficiary, index) in swiftBENPaymentBeneficiaries"
+              :key="'swift-' + index"
+              class="item"
+              tabindex="0"
+              :class="{
+                selected:
+                  selectedBeneficiary &&
+                  selectedBeneficiary.id === beneficiary.id,
+              }"
+              @click="selectBeneficiary(beneficiary)"
+            >
+              <FavouriteButton
+                :beneficiaryId="beneficiary.id"
+                :isFav="!!beneficiary.isFav"
+                @update-list="refreshPage"
+                @click.stop
+              />
+              <div class="detail">
+                <span class="icon-round">
+                  {{ getInitials(beneficiary.beneName) }}
+                  <img
+                    :src="getCurrencyImagePath(beneficiary.currency)"
+                    alt="Currency"
+                  />
+                </span>
+                <span class="name">{{ beneficiary.beneName }}</span>
+
+                <span>
+                  {{ getAccountType(beneficiary.accountType) }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Swift OUR Payment Section -->
+        <div class="payment-category">
+          <h4>Swift OUR Payment</h4>
+          <div class="item-section">
+            <div
+              v-for="(beneficiary, index) in swiftOURPaymentBeneficiaries"
+              :key="'swift-' + index"
+              class="item"
+              tabindex="0"
+              :class="{
+                selected:
+                  selectedBeneficiary &&
+                  selectedBeneficiary.id === beneficiary.id,
+              }"
+              @click="selectBeneficiary(beneficiary)"
+            >
+              <FavouriteButton
+                :beneficiaryId="beneficiary.id"
+                :isFav="!!beneficiary.isFav"
+                @update-list="refreshPage"
+                @click.stop
+              />
+              <div class="detail">
+                <span class="icon-round">
+                  {{ getInitials(beneficiary.beneName) }}
+                  <img
+                    :src="getCurrencyImagePath(beneficiary.currency)"
+                    alt="Currency"
+                  />
+                </span>
+                <span class="name">{{ beneficiary.beneName }}</span>
+
+                <span>
+                  {{ getAccountType(beneficiary.accountType) }}
+                </span>
               </div>
             </div>
           </div>
@@ -110,12 +212,17 @@
 </template>
 
 <script setup>
-import { computed, watch, toRef, ref, onMounted } from "vue";
+import { computed, watch, reactive, ref, onMounted } from "vue";
 import { useValidation } from "@/composables/useValidation";
 import { formValidation } from "./schemas/stepTwoSchema";
 import { useAlertStore, useBeneficiaryStore } from "@/stores/index.js";
 import FavouriteButton from "../../Beneficiary/components/FavouriteButton.vue";
 import { useRouter } from "vue-router";
+import {
+  getInitials,
+  getAccountType,
+  getCurrencyImagePath,
+} from "@/utils/beneficiaryUtils.js";
 
 const beneficiaryStore = useBeneficiaryStore();
 const alertStore = useAlertStore();
@@ -128,81 +235,138 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  beneficiaries: {
+    type: Array,
+    default: () => [],
+  },
 });
+
 const emit = defineEmits(["update:modelValue", "nextStep", "prevStep"]);
 
 const searchQuery = ref("");
-const localForm = toRef(props, "modelValue");
+const localForm = reactive({});
 const selectedBeneficiary = ref(null);
 
-const getCurrencyImagePath = (currencyCode) => {
-  return `/src/assets/currency/${currencyCode.toLowerCase()}.svg`;
+// Computed properties for filtered and sorted beneficiaries
+const localPaymentBeneficiaries = computed(() =>
+  props.beneficiaries
+    .filter((beneficiary) => beneficiary.paymentType === "Local Payment")
+    .sort((a, b) => b.isFav - a.isFav)
+);
+
+const swiftSHAPaymentBeneficiaries = computed(() =>
+  props.beneficiaries
+    .filter((beneficiary) => beneficiary.paymentType.includes("Swift SHA"))
+    .sort((a, b) => b.isFav - a.isFav)
+);
+
+const swiftBENPaymentBeneficiaries = computed(() =>
+  props.beneficiaries
+    .filter((beneficiary) => beneficiary.paymentType.includes("Swift BEN"))
+    .sort((a, b) => b.isFav - a.isFav)
+);
+
+const swiftOURPaymentBeneficiaries = computed(() =>
+  props.beneficiaries
+    .filter((beneficiary) => beneficiary.paymentType.includes("Swift OUR"))
+    .sort((a, b) => b.isFav - a.isFav)
+);
+
+// Sync the beneficiary state from query parameters
+const syncBeneficiaryFromQuery = () => {
+  const { beneName, currency } = router.currentRoute.value.query;
+
+  if (beneName && currency) {
+    const beneficiary = props.beneficiaries.find(
+      (b) => b.beneName === beneName && b.currency === currency
+    );
+
+    if (beneficiary) {
+      selectedBeneficiary.value = beneficiary;
+      beneficiaryStore.setSelectedBeneficiary(beneficiary);
+
+      // Sync with localForm
+      emit("update:modelValue", {
+        ...localForm,
+        selectedBeneficiary: beneficiary,
+      });
+    } else {
+      // If no match is found, clear the state
+      selectedBeneficiary.value = null;
+      beneficiaryStore.setSelectedBeneficiary(null);
+    }
+  }
 };
 
-// Update computed properties to include the formatted currency image path
-const filteredLocalPaymentBeneficiaries = computed(() =>
-  beneficiaryStore.localPaymentBeneficiaries
-    .map((beneficiary) => ({
-      ...beneficiary,
-      currencyPath: getCurrencyImagePath(beneficiary.currency), // Set currency image path
-    }))
-    .filter((beneficiary) =>
-      beneficiary.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
-);
-
-const filteredSwiftPaymentBeneficiaries = computed(() =>
-  beneficiaryStore.swiftPaymentBeneficiaries
-    .map((beneficiary) => ({
-      ...beneficiary,
-      currencyPath: getCurrencyImagePath(beneficiary.currency), // Set currency image path
-    }))
-    .filter((beneficiary) =>
-      beneficiary.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
-);
-
+// Handle beneficiary selection and update the query parameters
 const selectBeneficiary = (beneficiary) => {
   selectedBeneficiary.value = beneficiary;
   beneficiaryStore.setSelectedBeneficiary(beneficiary);
-  localForm.value.beneficiaryInfo = {
-    id: beneficiary.id,
-    name: beneficiary.name,
-    accountType: beneficiary.accountType,
-    currency: beneficiary.currency,
-  };
-  console.log("Selected Beneficiary:", beneficiary);
+
+  // Update the query parameters
+  router.push({
+    query: {
+      ...router.currentRoute.value.query,
+      beneName: beneficiary.beneName,
+      currency: beneficiary.currency,
+    },
+  });
+
+  emit("update:modelValue", {
+    ...localForm,
+    selectedBeneficiary: beneficiary,
+  });
 };
 
-onMounted(() => {
-  if (beneficiaryStore.selectedBeneficiary) {
-    selectedBeneficiary.value = beneficiaryStore.selectedBeneficiary;
-    localForm.value.beneficiaryInfo = {
-      id: selectedBeneficiary.value.id,
-      name: selectedBeneficiary.value.name,
-      accountType: selectedBeneficiary.value.accountType,
-      currency: selectedBeneficiary.value.currency,
-    };
+// Watch for query parameter changes and reinitialize the state
+watch(
+  () => router.currentRoute.value.query,
+  () => {
+    syncBeneficiaryFromQuery();
+  },
+  { immediate: true }
+);
+
+// Ensure beneficiaries list is loaded before processing query parameters
+watch(
+  () => props.beneficiaries,
+  (newBeneficiaries) => {
+    if (newBeneficiaries.length > 0) {
+      syncBeneficiaryFromQuery();
+    }
   }
-});
-
-const navigateToAddBeneficiary = () => {
-  emit("nextStep");
-};
+);
 
 const handleNext = () => {
-  // Check if a beneficiary is selected
   if (!selectedBeneficiary.value) {
     alertStore.alert("error", "Please select a beneficiary before proceeding.");
     return; // Stop execution if no beneficiary is selected
   }
 
-  // Proceed with form validation if a beneficiary is selected
-  const form = localForm.value;
-  const schema = formValidation(form);
+  // Check if receivingCurrency exists and validate against it
+  const receivingCurrency = router.currentRoute.value.query?.receivingCurrency;
+  if (
+    receivingCurrency &&
+    selectedBeneficiary.value.currency !== receivingCurrency
+  ) {
+    alertStore.alert(
+      "error",
+      `Selected beneficiary's currency (${selectedBeneficiary.value.currency}) does not match the receiving currency (${receivingCurrency}).`
+    );
+    return; // Stop execution if the currencies don't match
+  }
 
-  const isValid = validateForm(form, schema);
+  const schema = formValidation(localForm);
+
+  const isValid = validateForm(localForm, schema);
+  console.log("Validation Errors:", errors);
+
   if (isValid) {
+    // Emit the updated form state, including the selected beneficiary
+    emit("update:modelValue", {
+      ...localForm,
+      selectedBeneficiary: selectedBeneficiary.value,
+    });
     emit("nextStep");
   } else {
     alertStore.alert("error", "Please fill in all the required inputs.");
@@ -210,17 +374,13 @@ const handleNext = () => {
   }
 };
 
-watch(
-  localForm,
-  (newVal) => {
-    emit("update:modelValue", newVal);
-  },
-  { deep: true }
-);
-
 const handleCancel = () => {
   beneficiaryStore.setSelectedBeneficiary(null);
   router.push({ path: "/dashboard" });
+};
+
+const refreshPage = () => {
+  window.location.reload();
 };
 </script>
 

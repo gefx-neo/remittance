@@ -45,6 +45,7 @@
               <FavouriteButton
                 :beneficiaryId="beneficiary.id"
                 :isFav="!!beneficiary.isFav"
+                @update-list="refreshPage"
                 @click.stop
               />
             </div>
@@ -59,7 +60,7 @@
               <span class="name">{{ beneficiary.beneName }}</span>
 
               <span>
-                {{ getAccountTypeLabel(beneficiary.accountType) }}
+                {{ getAccountType(beneficiary.accountType) }}
               </span>
             </div>
           </div>
@@ -83,6 +84,7 @@
               <FavouriteButton
                 :beneficiaryId="beneficiary.id"
                 :isFav="!!beneficiary.isFav"
+                @update-list="refreshPage"
                 @click.stop
               />
             </div>
@@ -97,7 +99,7 @@
               <span class="name">{{ beneficiary.beneName }}</span>
 
               <span>
-                {{ getAccountTypeLabel(beneficiary.accountType) }}
+                {{ getAccountType(beneficiary.accountType) }}
               </span>
             </div>
           </div>
@@ -121,6 +123,7 @@
               <FavouriteButton
                 :beneficiaryId="beneficiary.id"
                 :isFav="!!beneficiary.isFav"
+                @update-list="refreshPage"
                 @click.stop
               />
             </div>
@@ -135,7 +138,7 @@
               <span class="name">{{ beneficiary.beneName }}</span>
 
               <span>
-                {{ getAccountTypeLabel(beneficiary.accountType) }}
+                {{ getAccountType(beneficiary.accountType) }}
               </span>
             </div>
           </div>
@@ -159,6 +162,7 @@
               <FavouriteButton
                 :beneficiaryId="beneficiary.id"
                 :isFav="!!beneficiary.isFav"
+                @update-list="refreshPage"
                 @click.stop
               />
             </div>
@@ -173,7 +177,7 @@
               <span class="name">{{ beneficiary.beneName }}</span>
 
               <span>
-                {{ getAccountTypeLabel(beneficiary.accountType) }}
+                {{ getAccountType(beneficiary.accountType) }}
               </span>
             </div>
           </div>
@@ -190,10 +194,19 @@ import { useRouter } from "vue-router";
 import { ref, computed, onMounted } from "vue";
 import { useBeneficiaryStore } from "@/stores/index.js";
 import FavouriteButton from "./components/FavouriteButton.vue";
+import {
+  getInitials,
+  getAccountType,
+  getCurrencyImagePath,
+} from "@/utils/beneficiaryUtils.js";
 
 const router = useRouter();
 const beneficiaryStore = useBeneficiaryStore();
 const beneficiaries = ref([]);
+
+const refreshPage = () => {
+  window.location.reload();
+};
 
 onMounted(async () => {
   const response = await beneficiaryStore.getBeneficiaryList();
@@ -225,23 +238,6 @@ const swiftOURPaymentBeneficiaries = computed(() =>
     .filter((beneficiary) => beneficiary.paymentType.includes("Swift OUR"))
     .sort((a, b) => b.isFav - a.isFav)
 );
-
-const getInitials = (name) => {
-  if (!name) return "";
-  const words = name.split(" ");
-  return words.length > 1
-    ? words[0][0].toUpperCase() + words[1][0].toUpperCase()
-    : name[0].toUpperCase();
-};
-
-const getAccountTypeLabel = (accountType) =>
-  accountType === "1" ? "Business" : "Individual";
-
-const getCurrencyImagePath = (currencyCode) => {
-  return currencyCode
-    ? `/src/assets/currency/${currencyCode.toLowerCase()}.svg`
-    : `/src/assets/currency/default.svg`;
-};
 
 const navigateToBeneficiaryDetail = (beneficiary) => {
   router.push({

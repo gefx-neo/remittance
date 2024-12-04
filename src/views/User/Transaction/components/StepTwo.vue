@@ -20,11 +20,19 @@
           :modelValue="localForm.receivingAmount ?? 0"
           :modelCurrency="localForm.receivingCurrency"
           :isSending="false"
+          :disableDropdown="
+            !!route.query.receivingCurrency ||
+            !!route.query.currency ||
+            localForm.selectedBeneficiary.currency
+          "
           @update:modelValue="(value) => (localForm.receivingAmount = value)"
           @update:modelCurrency="
             (currency) => (localForm.receivingCurrency = currency)
           "
         />
+        <div>
+          {{ localForm.selectedBeneficiary?.beneName || "" }}
+        </div>
 
         <Select
           label="Payment type"
@@ -74,12 +82,12 @@
 
 <script setup>
 import TransactionSummary from "./TransactionSummary.vue";
-import { toRef, watch, defineProps, defineEmits } from "vue";
+import { onMounted, reactive, watch, defineProps, defineEmits } from "vue";
 import { InputAmount, Select } from "@/components/Form";
 import { paymentTypes, gefxBanks } from "@/data/data";
 import { useValidation } from "@/composables/useValidation";
 import { formValidation } from "./schemas/stepOneSchema";
-import { useAlertStore } from "@/stores/index.js";
+import { useAlertStore, useBeneficiaryStore } from "@/stores/index.js";
 import { useRoute } from "vue-router";
 
 const props = defineProps({
@@ -87,19 +95,26 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  beneficiaries: {
+    type: Array,
+    default: () => [], // Default to an empty array
+  },
 });
-const emit = defineEmits(["update:modelValue", "nextStep"]);
+const emit = defineEmits(["update:modelValue", "nextStep", "prevStep"]);
 const { errors, validateForm, clearErrors, scrollToErrors } = useValidation();
 const route = useRoute();
 const alertStore = useAlertStore();
+const beneficiaryStore = useBeneficiaryStore();
 
-const localForm = toRef(props, "modelValue");
+const localForm = reactive({
+  selectedBeneficiary: beneficiaryStore.selectedBeneficiary || null,
+});
 
 const handleNext = () => {
-  const form = localForm.value;
-  const schema = formValidation(form);
+  const schema = formValidation(localForm);
 
-  const isValid = validateForm(form, schema);
+  const isValid = validateForm(localForm, schema);
+  console.log("Validation Errors:", errors);
 
   if (isValid) {
     emit("nextStep");
@@ -122,20 +137,90 @@ watch(
 watch(
   () => route.query,
   (query) => {
-    Object.assign(localForm.value, {
+    Object.assign(localForm, {
       sendingAmount: Number(query.sendingAmount) || 0,
       sendingCurrency: query.sendingCurrency || "SGD",
       receivingAmount: Number(query.receivingAmount) || 0,
-      receivingCurrency: query.receivingCurrency || "USD",
+      receivingCurrency:
+        query.currency || localForm.selectedBeneficiary?.currency,
     });
-    emit("update:modelValue", { ...localForm.value });
+    emit("update:modelValue", { ...localForm });
   },
   { immediate: true, deep: true }
+);
+
+watch(
+  () => props.modelValue,
+  (newVal) => {
+    Object.assign(localForm, newVal);
+    if (localForm.selectedBeneficiary) {
+      console.log(
+        "Updated Selected Beneficiary in StepTwo:",
+        localForm.selectedBeneficiary
+      );
+    }
+  },
+  { immediate: true }
+);
+
+watch(
+  () => localForm.receivingCurrency,
+  (newCurrency) => {
+    console.log("Receiving Currency Updated in Parent:", newCurrency);
+  },
+  { immediate: true }
 );
 
 const handleBack = () => {
   emit("prevStep");
 };
+
+onMounted(() => {
+  const query = route.query;
+
+  // Check for required query parameters
+  const hasAllQueryParams =
+    query.sendingAmount &&
+    query.sendingCurrency &&
+    query.receivingAmount &&
+    query.receivingCurrency &&
+    query.beneName &&
+    query.currency;
+
+  if (hasAllQueryParams) {
+    // Initialize form values from the query
+    Object.assign(localForm, {
+      sendingAmount: Number(query.sendingAmount),
+      sendingCurrency: query.sendingCurrency,
+      receivingAmount: Number(query.receivingAmount),
+      receivingCurrency: query.receivingCurrency,
+      selectedBeneficiary: {
+        beneName: query.beneName,
+        currency: query.currency,
+      },
+    });
+
+    // Emit the form model to parent
+    emit("update:modelValue", { ...localForm });
+    console.log("Navigated directly to Step 2 with query parameters.");
+  } else {
+    console.log("Required query parameters are missing. Default behavior.");
+  }
+});
+
+watch(
+  () => props.modelValue,
+  (newVal) => {
+    Object.assign(localForm, newVal);
+    if (localForm.selectedBeneficiary) {
+      console.log(
+        "Selected Beneficiary in StepTwo after update:",
+        localForm.selectedBeneficiary
+      );
+    }
+  },
+  { immediate: true, deep: true }
+);
 </script>
 
 <style scoped>

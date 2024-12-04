@@ -20,11 +20,15 @@
           <button
             type="button"
             @click="toggleDropdown"
-            :class="{ open: isDropdownOpen }"
+            :class="{ open: isDropdownOpen, disabled: props.disableDropdown }"
+            :disabled="props.disableDropdown"
           >
             <img :src="selectedCurrencyIcon" alt="currency-icon" />
             <span>{{ selectedCurrency }}</span>
-            <font-awesome-icon :icon="['fa', 'chevron-down']" />
+            <font-awesome-icon
+              :icon="['fa', 'chevron-down']"
+              v-if="!props.disableDropdown"
+            />
           </button>
           <CurrencyDropdown
             :isDropdownOpen="isDropdownOpen"
@@ -58,6 +62,10 @@ const props = defineProps({
   error: String,
   isSending: Boolean,
   isDashboard: Boolean,
+  disableDropdown: {
+    type: [String, Boolean], // Accept both String and Boolean
+    default: false, // Default value if none is provided
+  },
 });
 
 const emit = defineEmits(["update:modelValue", "update:modelCurrency"]);
@@ -69,6 +77,9 @@ const selectedCurrency = ref(props.modelCurrency || "");
 const dropdownContainer = ref(null);
 
 const toggleDropdown = () => {
+  if (props.disableDropdown) {
+    return;
+  }
   isDropdownOpen.value = !isDropdownOpen.value;
 };
 
@@ -178,6 +189,14 @@ watch(
     }
   },
   { immediate: true } // Ensures the watcher reacts immediately on mount
+);
+
+watch(
+  () => props.modelCurrency,
+  (newCurrency) => {
+    console.log("Updated modelCurrency in InputAmount:", newCurrency);
+  },
+  { immediate: true }
 );
 
 onMounted(() => {
