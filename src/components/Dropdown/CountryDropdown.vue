@@ -9,18 +9,21 @@
         </svg>
       </div>
     </div>
+    <div class="search-item">
+      <input type="text" v-model="searchQuery" placeholder="Search country" />
+    </div>
     <div class="body">
-      <div class="title">Selected country</div>
+      <!-- <div class="title">Selected country</div>
       <div class="item" @click="selectCountry(item)">
         <div class="country">
           <span class="name">{{ selectedCountryName }}</span>
         </div>
         <font-awesome-icon :icon="['fas', 'check']" class="icon-check" />
-      </div>
+      </div> -->
 
       <div class="title">All countries</div>
       <div
-        v-for="item in countries"
+        v-for="item in filteredCountries"
         :key="item.value"
         @click="selectCountry(item)"
         class="item"
@@ -47,20 +50,17 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from "vue";
 
-// Props definition
 const props = defineProps({
   isDropdownOpen: Boolean,
   selectedCountry: [String, Number],
   countries: Array,
 });
 
-// Emits definition
 const emit = defineEmits(["updateCountry", "closeDropdown"]);
 
-// Local refs and variables
 const dropdownMenuRef = ref(null);
+const searchQuery = ref("");
 
-// Track the selected country from the parent
 const selectedCountryName = computed(() => {
   const country = props.countries.find(
     (country) => country.value === props.selectedCountry
@@ -68,28 +68,29 @@ const selectedCountryName = computed(() => {
   return country ? country.name : "";
 });
 
-// Helper to check if the country is active
 const isActive = (item) => item.value === props.selectedCountry;
 
-// Select a country and emit the value
 const selectCountry = (item) => {
   emit("updateCountry", item.value);
   emit("closeDropdown"); // Close dropdown on country selection
 };
 
-// Close the dropdown
+const filteredCountries = computed(() => {
+  return props.countries.filter((country) =>
+    country.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+  );
+});
+
 const handleClose = () => {
   emit("closeDropdown");
 };
 
-// Handle click outside the dropdown to close it
 const handleClickOutside = (event) => {
   if (dropdownMenuRef.value && !dropdownMenuRef.value.contains(event.target)) {
     handleClose(); // Close the dropdown if click is outside
   }
 };
 
-// Lifecycle hooks to manage click event listener
 onMounted(() => {
   document.addEventListener("click", handleClickOutside);
 });
@@ -125,6 +126,15 @@ onUnmounted(() => {
 
 .dropdown-menu .header {
   display: none;
+}
+
+.dropdown-menu .search-item {
+  padding: var(--size-12);
+  padding-bottom: 0;
+}
+
+.dropdown-menu .search-item input {
+  width: 100%;
 }
 
 .dropdown-menu .body {

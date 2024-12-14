@@ -1,46 +1,115 @@
 import { validationService } from "@/services/validationService";
 
-export const formValidation = (form) => ({
-  bankName: {
-    value: form.bankName || "",
-    label: "Beneficiary's bank name",
-    rules: [validationService.isRequired],
-  },
-  bankAccountNo: {
-    value: form.bankAccountNo || "",
-    label: "Beneficiary's bank account number",
-    rules: [validationService.isRequired],
-  },
-  bankCountry: {
-    value: form.bankCountry || "",
-    label: "Beneficiary's bank country",
-    rules: [validationService.isRequired],
-  },
-  ...(form.bankCountry === "OTHERS" && {
-    otherBankCountry: {
-      value: form.otherBankCountry || "",
-      label: "Other beneficiary's bank country",
-      rules: [validationService.isRequired],
+export const fieldMapping = {
+  1: {
+    MYR: {
+      bankName: { include: true, rules: [validationService.isRequired] },
+      bankAccountNo: { include: true, rules: [validationService.isRequired] },
+      fullName: { include: true, rules: [validationService.isRequired] },
+      bankCountry: { include: true, rules: [validationService.isRequired] },
+      bankAddress: { include: false, rules: [] },
+      paymentType: { include: true, rules: [validationService.isRequired] },
+      swiftCode: { include: true, rules: [validationService.isRequired] },
+      primaryBIC: { include: false, rules: [] },
+      secondaryBIC: { include: false, rules: [] },
     },
-  }),
-  bankAddress: {
-    value: form.bankAddress || "",
-    label: "Bank address",
-    rules: [validationService.isRequired],
+    IDR: {
+      bankName: { include: true, rules: [validationService.isRequired] },
+      bankAccountNo: { include: true, rules: [validationService.isRequired] },
+      fullName: { include: true, rules: [validationService.isRequired] },
+      bankCountry: { include: true, rules: [validationService.isRequired] },
+      bankAddress: { include: false, rules: [] },
+      paymentType: { include: true, rules: [validationService.isRequired] },
+      swiftCode: { include: true, rules: [validationService.isRequired] },
+      primaryBIC: { include: false, rules: [] },
+      secondaryBIC: { include: false, rules: [] },
+    },
   },
-  swiftCode: {
-    value: form.swiftCode || "",
-    label: "Bank code / Swift",
-    rules: [validationService.isRequired],
+  0: {
+    MYR: {
+      bankName: { include: true, rules: [validationService.isRequired] },
+      bankAccountNo: { include: true, rules: [validationService.isRequired] },
+      fullName: { include: true, rules: [validationService.isRequired] },
+      bankCountry: { include: true, rules: [] },
+      bankAddress: { include: false, rules: [] },
+      paymentType: { include: true, rules: [validationService.isRequired] },
+      swiftCode: { include: true, rules: [validationService.isRequired] },
+      primaryBIC: { include: false, rules: [] },
+      secondaryBIC: { include: false, rules: [] },
+    },
+    IDR: {
+      bankName: { include: true, rules: [validationService.isRequired] },
+      bankAccountNo: { include: true, rules: [validationService.isRequired] },
+      fullName: { include: true, rules: [validationService.isRequired] },
+      bankCountry: { include: true, rules: [] },
+      bankAddress: { include: false, rules: [] },
+      paymentType: { include: true, rules: [validationService.isRequired] },
+      swiftCode: { include: true, rules: [validationService.isRequired] },
+      primaryBIC: { include: false, rules: [] },
+      secondaryBIC: { include: false, rules: [] },
+    },
   },
-  primaryBIC: {
-    value: form.primaryBIC || "",
-    label: "ACH routing number / IBAN no / BSB / ABA / Sort code / Bank code",
-    rules: [validationService.isRequired],
-  },
-  branchCode: {
-    value: form.secondaryBIC || "",
-    label: "Branch code",
-    rules: [validationService.isRequired],
-  },
-});
+};
+
+export const formValidation = (form) => {
+  const currentMapping =
+    (fieldMapping[form.beneficiaryType] || {})[form.currency] || {};
+
+  return {
+    ...(currentMapping.bankName?.include && {
+      bankName: {
+        value: form.bankName || "",
+        rules: currentMapping.bankName.rules || [],
+      },
+    }),
+    ...(currentMapping.bankAccountNo?.include && {
+      bankAccountNo: {
+        value: form.bankAccountNo || "",
+        rules: currentMapping.bankAccountNo.rules || [],
+      },
+    }),
+    ...(currentMapping.fullName?.include && {
+      fullName: {
+        value: form.fullName || "",
+        rules: currentMapping.fullName.rules || [],
+      },
+    }),
+    ...(currentMapping.bankCountry?.include && {
+      bankCountry: {
+        value: form.bankCountry || "",
+        rules: currentMapping.bankCountry.rules || [],
+      },
+    }),
+    ...(form.bankCountry === 280 &&
+      currentMapping.bankCountry?.include && {
+        otherBankCountry: {
+          value: form.otherBankCountry || "",
+          rules: [validationService.isRequired],
+        },
+      }),
+    ...(currentMapping.bankAddress?.include && {
+      bankAddress: {
+        value: form.bankAddress || "",
+        rules: currentMapping.bankAddress.rules || [],
+      },
+    }),
+    ...(currentMapping.swiftCode?.include && {
+      swiftCode: {
+        value: form.swiftCode || "",
+        rules: currentMapping.swiftCode.rules || [],
+      },
+    }),
+    ...(currentMapping.primaryBIC?.include && {
+      primaryBIC: {
+        value: form.primaryBIC || "",
+        rules: currentMapping.primaryBIC.rules || [],
+      },
+    }),
+    ...(currentMapping.secondaryBIC?.include && {
+      secondaryBIC: {
+        value: form.secondaryBIC || "",
+        rules: currentMapping.secondaryBIC.rules || [],
+      },
+    }),
+  };
+};

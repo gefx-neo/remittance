@@ -197,7 +197,7 @@
       />
 
       <Input
-        label="Permanent postal code"
+        label="Permanent address postal code"
         id="postalCode"
         v-model="individualForm.postalCode"
         :error="errors.postalCode"
@@ -360,7 +360,6 @@
 <script setup>
 import { ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "@/stores/useStore";
 import { useAlertStore, useStore } from "@/stores/index.js";
 import {
   Input,

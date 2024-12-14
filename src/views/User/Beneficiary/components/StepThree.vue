@@ -1,21 +1,23 @@
 <template>
   <div class="third-form" @keydown.enter.prevent="handleSubmit">
     <fieldset>
-      <Input
-        label="Payment details / instructions"
+      <TextArea
+        label="Payment details"
         id="paymentDetail"
         v-model="localForm.paymentDetail"
         :error="errors.paymentDetail"
       />
 
       <Input
-        label="Purpose and intended nature of account relationship and/or relevant business transaction undertaken"
+        v-if="fieldVisibility('rel')"
+        label="Purpose of account relationship/transaction"
         id="rel"
         v-model="localForm.rel"
         :error="errors.rel"
       />
 
       <Select
+        v-if="fieldVisibility('purposeOfIntendedTransactions')"
         label="Purpose of intended transactions"
         id="purposeOfIntendedTransactions"
         v-model="localForm.purposeOfIntendedTransactions"
@@ -33,6 +35,7 @@
       />
 
       <Select
+        v-if="fieldVisibility('fundSource')"
         label="Source of funds"
         id="fundSource"
         v-model="localForm.fundSource"
@@ -51,13 +54,14 @@
     </fieldset>
 
     <div class="footer">
-      <button
+      <ButtonAPI
+        :disabled="isLoading"
         type="button"
-        @click="handleSubmit"
         class="btn-red standard-button"
+        @click="handleSubmit"
       >
         Submit
-      </button>
+      </ButtonAPI>
       <button
         type="button"
         @click="handleBack"
@@ -71,10 +75,10 @@
 
 <script setup>
 import { watch, reactive } from "vue";
-import { Input, Select } from "@/components/Form";
+import { Input, Select, TextArea, ButtonAPI } from "@/components/Form";
 import { purposeOfIntendedTransactions, fundSource } from "@/data/data";
 import { useValidation } from "@/composables/useValidation";
-import { formValidation } from "./schemas/stepThreeSchema";
+import { formValidation, fieldMapping } from "./schemas/stepThreeSchema";
 import { useAlertStore } from "@/stores/index.js";
 
 const props = defineProps({
@@ -88,9 +92,8 @@ const { errors, validateForm, clearErrors, scrollToErrors } = useValidation();
 const alertStore = useAlertStore();
 
 const localForm = reactive({
-  purposeOfIntendedTransactions:
-    props.modelValue.purposeOfIntendedTransactions ?? 1,
-  fundSource: props.modelValue.fundSource ?? 1,
+  purposeOfIntendedTransactions: props.modelValue.purposeOfIntendedTransactions,
+  fundSource: props.modelValue.fundSource,
   ...props.modelValue,
 });
 
@@ -131,6 +134,13 @@ watch(
   },
   { deep: true }
 );
+
+const fieldVisibility = (field) => {
+  const mapping = fieldMapping[localForm.beneficiaryType] || {};
+  const currentMapping = mapping[localForm.currency] || {};
+  return currentMapping[field]?.include || false;
+};
+
 const handleBack = () => {
   emit("prevStep");
 };

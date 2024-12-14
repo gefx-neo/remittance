@@ -2,6 +2,7 @@
   <div class="second-form" @keydown.enter.prevent="handleNext">
     <fieldset>
       <Input
+        v-if="fieldVisibility('bankName')"
         label="Beneficiary's bank name"
         id="bankName"
         v-model="localForm.bankName"
@@ -9,21 +10,31 @@
       />
 
       <Input
+        v-if="fieldVisibility('bankAccountNo')"
         label="Beneficiary's bank account number"
         id="bankAccountNo"
         v-model="localForm.bankAccountNo"
         :error="errors.bankAccountNo"
       />
 
+      <Input
+        v-if="fieldVisibility('fullName')"
+        label="Account holder name"
+        id="name"
+        v-model="localForm.fullName"
+        :error="errors.fullName"
+      />
+
       <InputBeneficiaryCountry
-        label="Beneficiary's bank country"
+        v-if="fieldVisibility('bankCountry')"
+        :label="generateLabel('bankCountry')"
         id="bankCountry"
         v-model:modelValue="localForm.bankCountry"
         :error="errors.bankCountry"
       />
 
       <Input
-        v-if="localForm.bankCountry === 280"
+        v-if="localForm.bankCountry === 280 && fieldVisibility('bankCountry')"
         label="Other beneficiary's bank country"
         id="otherBankCountry"
         v-model="localForm.otherBankCountry"
@@ -31,6 +42,7 @@
       />
 
       <Input
+        v-if="fieldVisibility('bankAddress')"
         label="Bank address"
         id="bankAddress"
         v-model="localForm.bankAddress"
@@ -38,14 +50,23 @@
       />
 
       <Select
+        v-if="fieldVisibility('paymentType')"
         label="Payment type"
         id="paymentType"
         v-model="localForm.paymentType"
         :options="paymentTypes"
         :error="errors.paymentType"
+        :tooltip="true"
+        tooltipText=" <div>1. No preference: The best payment type for the transaction will be recommended.</div>
+    <div>2. Local Payment: Domestic payment with lower fees.</div>
+    <div>3. Swift SHA (Shared): Sender and beneficiary split bank charges.</div>
+    <div>4. Swift BEN (Beneficiary): Beneficiary pays all bank charges.</div>
+    <div>5. Swift OUR (US): Sender pays all bank charges, beneficiary gets full amount.</div>"
+        :isLongTooltip="true"
       />
 
       <Input
+        v-if="fieldVisibility('swiftCode')"
         label="Bank code / Swift"
         id="swiftCode"
         v-model="localForm.swiftCode"
@@ -53,6 +74,7 @@
       />
 
       <Input
+        v-if="fieldVisibility('primaryBIC')"
         label="ACH routing number / IBAN no / BSB / ABA / Sort code / Bank code"
         id="primaryBIC"
         v-model="localForm.primaryBIC"
@@ -60,6 +82,7 @@
       />
 
       <Input
+        v-if="fieldVisibility('secondaryBIC')"
         label="Branch code"
         id="secondaryBIC"
         v-model="localForm.secondaryBIC"
@@ -86,7 +109,7 @@
 import { watch, reactive } from "vue";
 import { Input, InputBeneficiaryCountry, Select } from "@/components/Form";
 import { useValidation } from "@/composables/useValidation";
-import { formValidation } from "./schemas/stepTwoSchema";
+import { formValidation, fieldMapping } from "./schemas/stepTwoSchema";
 import { useAlertStore } from "@/stores/index.js";
 import { paymentTypes } from "@/data/data";
 
@@ -101,8 +124,7 @@ const { errors, validateForm, clearErrors, scrollToErrors } = useValidation();
 const alertStore = useAlertStore();
 
 const localForm = reactive({
-  paymentType: props.modelValue.paymentType || "Local Payment",
-
+  paymentType: props.modelValue.paymentType,
   ...props.modelValue,
 });
 
@@ -140,6 +162,29 @@ watch(
   },
   { deep: true }
 );
+
+const fieldVisibility = (field) => {
+  const mapping = fieldMapping[localForm.beneficiaryType] || {};
+  const currentMapping = mapping[localForm.currency] || {};
+  return currentMapping[field]?.include || false;
+};
+
+const generateLabel = (fieldName) => {
+  const mapping = fieldMapping[localForm.beneficiaryType] || {};
+  const currentMapping = mapping[localForm.currency] || {};
+
+  const field = currentMapping[fieldName];
+  let baseLabel = "";
+
+  if (fieldName === "bankCountry") {
+    baseLabel = "Beneficiary's bank country";
+  }
+
+  const isOptional =
+    field?.include && (!field.rules || field.rules.length === 0);
+
+  return isOptional ? `${baseLabel} (optional)` : baseLabel;
+};
 
 const handleBack = () => {
   emit("prevStep");

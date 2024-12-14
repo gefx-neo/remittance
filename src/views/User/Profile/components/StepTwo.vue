@@ -87,7 +87,7 @@
       </div>
 
       <Input
-        label="Purpose and intended nature of account relationship and/or relevant business transaction undertaken"
+        label="Purpose of account relationship/transaction"
         id="purposeAccRel"
         v-model="corporateForm.purposeAccRel"
         :error="errors.purposeAccRel"

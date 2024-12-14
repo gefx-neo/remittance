@@ -30,7 +30,7 @@
             <div class="item">
               <div class="label">Account holder name</div>
               <div class="value">
-                {{ localForm.beneficiaryInfo?.name || "N/A" }}
+                {{ localForm.selectedBeneficiary?.beneName || "" }}
               </div>
             </div>
             <div class="item" v-if="localForm.beneficiaryInfo?.accountType">
@@ -96,7 +96,7 @@
 
 <script setup>
 import TransactionSummary from "./TransactionSummary.vue";
-import { toRef, watch, defineProps, defineEmits, onMounted } from "vue";
+import { reactive, watch, defineProps, defineEmits, onMounted } from "vue";
 import { Input, InputFile } from "@/components/Form";
 import { useValidation } from "@/composables/useValidation";
 import { formValidation } from "./schemas/stepThreeSchema";
@@ -116,13 +116,14 @@ const route = useRoute();
 const store = useStore();
 const alertStore = useAlertStore();
 
-const localForm = toRef(props, "modelValue");
+const localForm = reactive({
+  ...props.modelValue,
+});
 
 const handleSubmit = () => {
-  const form = localForm.value;
-  const schema = formValidation(form);
+  const schema = formValidation(localForm);
 
-  const isValid = validateForm(form, schema);
+  const isValid = validateForm(localForm, schema);
   console.log("Validation Errors:", errors);
 
   if (isValid) {
@@ -152,33 +153,33 @@ watch(
   { deep: true }
 );
 
-onMounted(() => {
-  if (
-    localForm.value.sendingAmount === undefined ||
-    localForm.value.sendingAmount === null
-  ) {
-    localForm.value.sendingAmount = route.query.sendingAmount
-      ? parseFloat(route.query.sendingAmount)
-      : 0.0;
-  }
+// onMounted(() => {
+//   if (
+//     localForm.value.sendingAmount === undefined ||
+//     localForm.value.sendingAmount === null
+//   ) {
+//     localForm.value.sendingAmount = route.query.sendingAmount
+//       ? parseFloat(route.query.sendingAmount)
+//       : 0.0;
+//   }
 
-  if (!localForm.value.sendingCurrency) {
-    localForm.value.sendingCurrency = route.query.sendingCurrency || "SGD";
-  }
+//   if (!localForm.value.sendingCurrency) {
+//     localForm.value.sendingCurrency = route.query.sendingCurrency || "SGD";
+//   }
 
-  if (
-    localForm.value.receivingAmount === undefined ||
-    localForm.value.receivingAmount === null
-  ) {
-    localForm.value.receivingAmount = route.query.receivingAmount
-      ? parseFloat(route.query.receivingAmount)
-      : 0.0;
-  }
+//   if (
+//     localForm.value.receivingAmount === undefined ||
+//     localForm.value.receivingAmount === null
+//   ) {
+//     localForm.value.receivingAmount = route.query.receivingAmount
+//       ? parseFloat(route.query.receivingAmount)
+//       : 0.0;
+//   }
 
-  if (!localForm.value.receivingCurrency) {
-    localForm.value.receivingCurrency = route.query.receivingCurrency || "MYR";
-  }
-});
+//   if (!localForm.value.receivingCurrency) {
+//     localForm.value.receivingCurrency = route.query.receivingCurrency || "MYR";
+//   }
+// });
 
 const handleBack = () => {
   emit("prevStep");

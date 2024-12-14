@@ -1,4 +1,3 @@
-<!-- StepOne.vue -->
 <template>
   <div class="first-form" @keydown.enter.prevent="handleNext">
     <fieldset>
@@ -8,7 +7,7 @@
         :options="beneficiaryTypes"
       />
       <Select
-        label="Is this your account?"
+        label="Are you adding your own account?"
         id="isYourAccount"
         v-model="localForm.isYourAccount"
         :options="isYourAccount"
@@ -25,21 +24,18 @@
         v-model="localForm.name"
         :error="errors.name"
       />
-      <Input
-        label="Account holder name"
-        id="name"
-        v-model="localForm.fullName"
-        :error="errors.fullName"
-      />
+
       <div v-if="localForm.beneficiaryType === 1">
         <Input
-          label="Beneficiary's company registration number"
+          v-if="fieldVisibility('registrationNo')"
+          :label="generateLabel('registrationNo')"
           id="registrationNo"
           v-model="localForm.registrationNo"
           :error="errors.registrationNo"
         />
         <InputBeneficiaryCountry
-          label="Beneficiary's country of incorporation"
+          v-if="fieldVisibility('registrationPlace')"
+          :label="generateLabel('registrationPlace')"
           id="registrationPlace"
           v-model:modelValue="localForm.registrationPlace"
           :error="errors.registrationPlace"
@@ -95,35 +91,36 @@
           :error="errors.docIC"
         />
 
-        <Input
-          label="Date of birth"
+        <!-- <Input
+          v-if="fieldVisibility('dob')"
+          :label="generateLabel('dob')"
           type="date"
           id="dob"
           v-model="localForm.dob"
           :error="errors.dob"
-        />
+        /> -->
       </div>
 
       <Input
-        label="Contact no. (Mobile)"
+        label="Contact no. (Mobile) (optional)"
         id="contactMobile"
         v-model="localForm.contactMobile"
-        :error="errors.contactMobile"
       />
 
       <Input
-        label="Address"
+        v-if="fieldVisibility('address')"
+        :label="generateLabel('address')"
         id="address"
         v-model="localForm.address"
         :error="errors.address"
       />
       <!-- <InputPhone
-        label="Telephone number"
-        id="telNum"
-        v-model="localForm.telNum"
-        @update:countryID="localForm.telCode = $event"
-        :error="errors.telNum"
-      /> -->
+          label="Telephone number"
+          id="telNum"
+          v-model="localForm.telNum"
+          @update:countryID="localForm.telCode = $event"
+          :error="errors.telNum"
+        /> -->
     </fieldset>
 
     <div class="footer">
@@ -154,7 +151,7 @@ import {
 } from "@/components/Form";
 import { beneficiaryTypes, isYourAccount } from "@/data/data";
 import { useValidation } from "@/composables/useValidation";
-import { formValidation } from "./schemas/stepOneSchema";
+import { formValidation, fieldMapping } from "./schemas/stepOneSchema";
 import { useAlertStore } from "@/stores/index.js";
 import { useRouter } from "vue-router";
 
@@ -222,12 +219,11 @@ const handleNext = () => {
 watch(
   localForm,
   (newVal) => {
-    // Handle changes based on beneficiary type
     if (newVal.beneficiaryType === 1) {
       // Corporate-specific cleanup
       delete newVal.nationality;
       delete newVal.docIC;
-      delete newVal.dob;
+      // delete newVal.dob;
     } else if (newVal.beneficiaryType === 0) {
       // Individual-specific cleanup
       delete newVal.registrationNo;
@@ -250,48 +246,43 @@ watch(
   { deep: true }
 );
 
-// watch(
-//   localForm,
-//   (newVal) => {
-//     if (newVal.beneficiaryType === 1) {
-//       // Remove individual-specific fields when beneficiaryType is 1
-//       delete newVal.nationality;
-//       delete newVal.docIC;
-//       delete newVal.dob;
-//     } else if (newVal.beneficiaryType === 0) {
-//       // Remove corporate-specific fields when beneficiaryType is 0
-//       delete newVal.registrationNo;
-//       delete newVal.registrationPlace;
-//       delete newVal.otherRegistrationPlace;
-//       delete newVal.businessCategory;
-//       delete newVal.companyContactNo;
-//     }
+const fieldVisibility = (field) => {
+  const mapping = fieldMapping[localForm.beneficiaryType] || {};
+  const currentMapping = mapping[localForm.currency] || {};
+  return currentMapping[field]?.include || false;
+};
 
-//     emit("update:modelValue", { ...newVal }); // Emit a shallow copy to avoid reactivity issues
-//   },
-//   { deep: true }
-// );
+const generateLabel = (fieldName) => {
+  const mapping = fieldMapping[localForm.beneficiaryType] || {};
+  const currentMapping = mapping[localForm.currency] || {};
 
-// // Watch for changes in local form and emit them to the parent
-// watch(
-//   localForm,
-//   (newVal) => {
-//     if (newVal.registrationPlace !== "OTHERS") {
-//       delete newVal.otherRegistrationPlace;
-//     }
-//     if (newVal.nationality !== "OTHERS") {
-//       delete newVal.otherNationality;
-//     }
+  const field = currentMapping[fieldName];
+  let baseLabel = "";
 
-//     emit("update:modelValue", newVal);
-//   },
-//   { deep: true }
-// );
+  if (fieldName === "address") {
+    baseLabel =
+      localForm.beneficiaryType === 1 ? "Business address" : "Address";
+  }
+  if (fieldName === "registrationNo") {
+    baseLabel = "Beneficiary's company registration number";
+  }
+  if (fieldName === "registrationPlace") {
+    baseLabel = "Beneficiary's country of incorporation";
+  }
+  // if (fieldName === "dob") {
+  //   baseLabel = "Date of birth";
+  // }
+
+  const isOptional =
+    field?.include && (!field.rules || field.rules.length === 0);
+
+  return isOptional ? `${baseLabel} (optional)` : baseLabel;
+};
 
 watch(
   () => localForm.beneficiaryType,
   () => {
-    clearErrors(); // Clear all errors when beneficiaryType changes
+    clearErrors();
   }
 );
 

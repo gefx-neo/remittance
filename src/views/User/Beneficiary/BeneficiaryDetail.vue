@@ -18,7 +18,7 @@
             />
           </span>
           <div>
-            <span>{{ beneficiaryDetails.name }}</span>
+            <span>{{ beneficiaryDetails.beneName }}</span>
             <span>
               <FavouriteButton
                 :beneficiaryId="beneficiaryDetails.id || route.params.id"
@@ -75,22 +75,22 @@
               <span>Payment type</span>
               <span>{{ beneficiaryDetails.paymentType }}</span>
             </div>
-            <div class="item">
+            <div class="item" v-if="beneficiaryDetails.swiftCode.length > 0">
               <span>Swift code</span>
               <span>{{ beneficiaryDetails.swiftCode }}</span>
             </div>
-            <div class="item">
+            <div class="item" v-if="beneficiaryDetails.primaryBIC">
               <span
                 >ACH routing number / IBAN no / BSB / ABA / Sort code / Bank
                 code</span
               >
               <span>{{ beneficiaryDetails.primaryBIC }}</span>
             </div>
-            <div class="item">
+            <div class="item" v-if="beneficiaryDetails.secondaryBIC">
               <span>Branch code </span>
               <span>{{ beneficiaryDetails.secondaryBIC }}</span>
             </div>
-            <div class="item">
+            <div class="item" v-if="beneficiaryDetails.bankCountry">
               <span>Bank country</span>
               <span>{{ getNationality(beneficiaryDetails.bankCountry) }}</span>
             </div>
@@ -98,7 +98,7 @@
               <span>Other bank country</span>
               <span>{{ beneficiaryDetails.bankCountry }}</span>
             </div>
-            <div class="item">
+            <div class="item" v-if="beneficiaryDetails.bankAddress">
               <span>Bank address</span>
               <span>{{ beneficiaryDetails.bankAddress }}</span>
             </div>
@@ -107,7 +107,7 @@
           <div class="title">Personal details</div>
           <div class="item-group">
             <div class="item">
-              <span>Full name</span>
+              <span>Friendly name</span>
               <span>{{ beneficiaryDetails.name }}</span>
             </div>
             <div class="item" v-if="isBusiness">
@@ -116,11 +116,17 @@
                 getBusinessCategory(beneficiaryDetails.businessCategory)
               }}</span>
             </div>
-            <div class="item" v-if="isBusiness">
+            <div
+              class="item"
+              v-if="isBusiness && beneficiaryDetails.registrationNo"
+            >
               <span>Company registration number</span>
               <span>{{ beneficiaryDetails.registrationNo }}</span>
             </div>
-            <div class="item" v-if="isBusiness">
+            <div
+              class="item"
+              v-if="isBusiness && beneficiaryDetails.registrationPlace"
+            >
               <span>Country of incorporation</span>
               <span>{{
                 getNationality(beneficiaryDetails.registrationPlace)
@@ -137,7 +143,7 @@
               <span>Other nationality</span>
               <span>{{ beneficiaryDetails.otherNationality }}</span>
             </div>
-            <div class="item" v-if="isIndividual">
+            <div class="item" v-if="isIndividual && beneficiaryDetails.dob">
               <span>Date of birth</span>
               <span>{{ beneficiaryDetails.dob }}</span>
             </div>
@@ -149,7 +155,7 @@
               <span>Phone number</span>
               <span>{{ beneficiaryDetails.contactMobile }}</span>
             </div>
-            <div class="item">
+            <div class="item" v-if="beneficiaryDetails.address">
               <span>Address</span>
               <span>{{ beneficiaryDetails.address }}</span>
             </div>
@@ -273,13 +279,14 @@ import FavouriteButton from "./components/FavouriteButton.vue";
 import Modal from "@/components/Modal.vue";
 import { storeToRefs } from "pinia";
 import {
-  beneficiaryTypes,
-  beneficiaryCountries,
-  businessCategories,
-  purposeOfIntendedTransactions,
-  fundSource,
-} from "@/data/data.js";
-
+  getInitials,
+  getAccountType,
+  getNationality,
+  getBusinessCategory,
+  getRemittancePurpose,
+  getFundSource,
+  getCurrencyImagePath,
+} from "@/utils/beneficiaryUtils.js";
 const route = useRoute();
 const router = useRouter();
 
@@ -322,53 +329,6 @@ const handleSubmit = async () => {
   } catch (error) {
     alertStore.alert("error", "Failed to delete beneficiary");
   }
-};
-const getNationality = (id) => {
-  const country = beneficiaryCountries.find((item) => item.id === parseInt(id));
-  return country ? country.name : "Unknown Nationality";
-};
-
-const getAccountType = (value) => {
-  const type = beneficiaryTypes.find((item) => item.value === parseInt(value));
-  return type ? type.name : "Unknown Account Type";
-};
-
-const getBusinessCategory = (id) => {
-  for (const category of businessCategories) {
-    const subcategory = category.subcategories.find(
-      (sub) => sub.id === parseInt(id)
-    );
-    if (subcategory) {
-      return subcategory.name;
-    }
-  }
-  return "Unknown Business Category";
-};
-
-const getRemittancePurpose = (code) => {
-  const purpose = purposeOfIntendedTransactions.find(
-    (item) => item.id === parseInt(code)
-  );
-  return purpose ? purpose.name : "Unknown Purpose";
-};
-
-const getFundSource = (code) => {
-  const source = fundSource.find((item) => item.id === parseInt(code));
-  return source ? source.name : "Unknown Source of Funds";
-};
-
-const getInitials = (name) => {
-  if (!name) return "";
-  const words = name.split(" ");
-  return words.length > 1
-    ? words[0][0].toUpperCase() + words[1][0].toUpperCase()
-    : name[0].toUpperCase();
-};
-
-const getCurrencyImagePath = (currencyCode) => {
-  return currencyCode
-    ? `/src/assets/currency/${currencyCode.toLowerCase()}.svg`
-    : `/src/assets/currency/default.svg`;
 };
 
 onMounted(async () => {

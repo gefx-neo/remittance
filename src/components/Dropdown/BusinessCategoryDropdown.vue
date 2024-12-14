@@ -15,7 +15,7 @@
       <input
         type="text"
         v-model="searchQuery"
-        placeholder="Search all subcategories..."
+        placeholder="Search business category"
       />
     </div>
     <div class="body">
@@ -60,23 +60,18 @@ const props = defineProps({
   businessCategories: Array,
 });
 
-// Emits definition
 const emit = defineEmits(["updateCategory", "closeDropdown"]);
 
-// Local refs and variables
 const dropdownMenuRef = ref(null);
-const searchQuery = ref(""); // Global search term for filtering
+const searchQuery = ref("");
 
-// Helper to check if the subcategory is active
 const isActive = (subCategory) => subCategory.id === props.selectedCategory;
 
-// Select a subcategory and emit the value
 const selectCategory = (subCategory) => {
   emit("updateCategory", subCategory.id);
-  emit("closeDropdown"); // Close dropdown on subcategory selection
+  emit("closeDropdown");
 };
 
-// Close the dropdown
 const handleClose = () => {
   emit("closeDropdown");
 };

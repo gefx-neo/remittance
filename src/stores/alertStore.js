@@ -2,23 +2,20 @@ import { defineStore } from "pinia";
 
 export const useAlertStore = defineStore("alert", {
   state: () => ({
-    alerts: [], // Array to hold multiple alerts
+    alerts: [],
   }),
   actions: {
     alert(type, message) {
-      const id = Date.now(); // Unique identifier for each alert
+      const id = Date.now();
       const alert = { id, type, message, isVisible: true };
 
-      // Add the new alert to the array
       this.alerts.push(alert);
 
-      // Automatically hide the alert after a few seconds
       setTimeout(() => {
         this.clearAlert(id);
-      }, 3000); // Display alert for 3 seconds
+      }, 3000);
     },
     clearAlert(id) {
-      // Find the alert by id and remove it
       this.alerts = this.alerts.filter((alert) => alert.id !== id);
     },
   },

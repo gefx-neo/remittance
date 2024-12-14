@@ -61,13 +61,12 @@ export const useBeneficiaryStore = defineStore("beneficiaryStore", {
       } catch (error) {
         this.error =
           error.message ||
-          "Delete beneficiary failed due to network issues or server error.";
+          "Get beneficiary detail failed due to network issues or server error.";
         throw error;
       } finally {
         store.isLoading = false;
       }
     },
-
     async uploadFiles(formData) {
       try {
         // Use the apiService to send the FormData object
@@ -145,7 +144,6 @@ export const useBeneficiaryStore = defineStore("beneficiaryStore", {
         throw error;
       }
     },
-
     async deleteBeneficiary(id) {
       const store = useStore();
       const authStore = useAuthStore();
@@ -175,7 +173,6 @@ export const useBeneficiaryStore = defineStore("beneficiaryStore", {
         store.isLoading = false;
       }
     },
-
     setSelectedBeneficiary(beneficiary) {
       this.selectedBeneficiary = beneficiary;
     },

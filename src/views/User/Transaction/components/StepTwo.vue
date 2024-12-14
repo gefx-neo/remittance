@@ -5,7 +5,7 @@
         <InputAmount
           id="sendingAmount"
           label="Sending amount"
-          :modelValue="localForm.sendingAmount ?? 0"
+          v-model:modelValue="localForm.sendingAmount"
           :modelCurrency="localForm.sendingCurrency"
           :isSending="true"
           @update:modelValue="(value) => (localForm.sendingAmount = value)"
@@ -17,13 +17,11 @@
         <InputAmount
           id="receivingAmount"
           label="Receiving amount"
-          :modelValue="localForm.receivingAmount ?? 0"
+          :modelValue="localForm.receivingAmount"
           :modelCurrency="localForm.receivingCurrency"
           :isSending="false"
           :disableDropdown="
-            !!route.query.receivingCurrency ||
-            !!route.query.currency ||
-            localForm.selectedBeneficiary.currency
+            !!route.query.currency || localForm.selectedBeneficiary.currency
           "
           @update:modelValue="(value) => (localForm.receivingAmount = value)"
           @update:modelCurrency="
@@ -39,6 +37,10 @@
           id="paymentType"
           v-model="localForm.paymentType"
           :options="paymentTypes"
+          :error="errors.paymentType"
+          :tooltip="true"
+          tooltipText="1. No preference: The best payment type for the transaction will be recommended <br/> 2. Local Payment: Domestic payment with lower fees. <br/> 3. Swift SHA (Shared): Sender and beneficiary split bank charges. <br/> 4. Swift BEN (Beneficiary): Beneficiary pays all bank charges. <br/> 5. Swift OUR (US): Sender pays all bank charges, beneficiary gets full amount.
+"
         />
 
         <Select
@@ -82,13 +84,20 @@
 
 <script setup>
 import TransactionSummary from "./TransactionSummary.vue";
-import { onMounted, reactive, watch, defineProps, defineEmits } from "vue";
+import {
+  onMounted,
+  reactive,
+  watch,
+  defineProps,
+  defineEmits,
+  nextTick,
+} from "vue";
 import { InputAmount, Select } from "@/components/Form";
 import { paymentTypes, gefxBanks } from "@/data/data";
 import { useValidation } from "@/composables/useValidation";
 import { formValidation } from "./schemas/stepOneSchema";
 import { useAlertStore, useBeneficiaryStore } from "@/stores/index.js";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 const props = defineProps({
   modelValue: {
@@ -103,11 +112,17 @@ const props = defineProps({
 const emit = defineEmits(["update:modelValue", "nextStep", "prevStep"]);
 const { errors, validateForm, clearErrors, scrollToErrors } = useValidation();
 const route = useRoute();
+const router = useRouter();
+
 const alertStore = useAlertStore();
 const beneficiaryStore = useBeneficiaryStore();
 
 const localForm = reactive({
   selectedBeneficiary: beneficiaryStore.selectedBeneficiary || null,
+  sendingAmount: props.modelValue.sendingAmount,
+  paymentType: props.modelValue.paymentType,
+  gefxBank: props.modelValue.gefxBank ?? "dbs_sgd",
+  ...props.modelValue,
 });
 
 const handleNext = () => {
@@ -138,29 +153,15 @@ watch(
   () => route.query,
   (query) => {
     Object.assign(localForm, {
-      sendingAmount: Number(query.sendingAmount) || 0,
+      sendingAmount: Number(query.sendingAmount) || localForm.sendingAmount,
       sendingCurrency: query.sendingCurrency || "SGD",
-      receivingAmount: Number(query.receivingAmount) || 0,
-      receivingCurrency:
-        query.currency || localForm.selectedBeneficiary?.currency,
+      receivingAmount:
+        Number(query.receivingAmount) || localForm.receivingAmount,
+      receivingCurrency: query.currency,
     });
     emit("update:modelValue", { ...localForm });
   },
   { immediate: true, deep: true }
-);
-
-watch(
-  () => props.modelValue,
-  (newVal) => {
-    Object.assign(localForm, newVal);
-    if (localForm.selectedBeneficiary) {
-      console.log(
-        "Updated Selected Beneficiary in StepTwo:",
-        localForm.selectedBeneficiary
-      );
-    }
-  },
-  { immediate: true }
 );
 
 watch(
@@ -175,51 +176,81 @@ const handleBack = () => {
   emit("prevStep");
 };
 
-onMounted(() => {
+onMounted(async () => {
+  await nextTick(); // Wait for the router to fully update the query params
   const query = route.query;
+  console.log("local form sending", localForm.sendingAmount);
 
-  // Check for required query parameters
-  const hasAllQueryParams =
-    query.sendingAmount &&
-    query.sendingCurrency &&
-    query.receivingAmount &&
-    query.receivingCurrency &&
-    query.beneName &&
-    query.currency;
+  const hasAllQueryParams = query.beneName && query.currency;
 
   if (hasAllQueryParams) {
-    // Initialize form values from the query
     Object.assign(localForm, {
-      sendingAmount: Number(query.sendingAmount),
-      sendingCurrency: query.sendingCurrency,
-      receivingAmount: Number(query.receivingAmount),
-      receivingCurrency: query.receivingCurrency,
       selectedBeneficiary: {
         beneName: query.beneName,
         currency: query.currency,
       },
     });
 
-    // Emit the form model to parent
     emit("update:modelValue", { ...localForm });
-    console.log("Navigated directly to Step 2 with query parameters.");
+    console.log("Initialized StepTwo with updated query parameters.");
   } else {
-    console.log("Required query parameters are missing. Default behavior.");
+    console.log("Required query parameters are missing.");
   }
 });
 
 watch(
+  () => route.query,
+  (query) => {
+    const hasAllQueryParams = query.beneName && query.currency;
+
+    if (hasAllQueryParams) {
+      Object.assign(localForm, {
+        selectedBeneficiary: {
+          beneName: query.beneName,
+          currency: query.currency,
+        },
+      });
+
+      emit("update:modelValue", { ...localForm });
+      console.log("Updated StepTwo with new query parameters.");
+    }
+  },
+  { immediate: true }
+);
+
+watch(
+  () => localForm.sendingAmount,
+  (newValue) => {
+    console.log("sendingAmount updated:", newValue);
+  }
+);
+
+watch(
   () => props.modelValue,
   (newVal) => {
-    Object.assign(localForm, newVal);
+    Object.assign(localForm, newVal); // Sync localForm with the updated props
     if (localForm.selectedBeneficiary) {
       console.log(
-        "Selected Beneficiary in StepTwo after update:",
+        "Updated Selected Beneficiary in StepTwo:",
         localForm.selectedBeneficiary
       );
     }
   },
   { immediate: true, deep: true }
+);
+
+watch(
+  () => localForm.sendingCurrency,
+  (newCurrency) => {
+    console.log("Sending Currency Updated:", newCurrency);
+    // Update the query parameter without reloading the page
+    router.replace({
+      query: {
+        ...route.query,
+        sendingCurrency: newCurrency,
+      },
+    });
+  }
 );
 </script>
 

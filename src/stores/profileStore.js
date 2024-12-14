@@ -1,7 +1,11 @@
 import { defineStore } from "pinia";
 import apiService from "@/services/apiService";
 import { useStore, useAuthStore } from "@/stores/index.js";
-
+import {
+  setLocalStorageWithExpiry,
+  getLocalStorageWithExpiry,
+  removeLocalStorageWithExpiry,
+} from "@/services/localStorageService.js";
 export const useProfileStore = defineStore("profile", {
   state: () => ({
     profileDetails: null,
@@ -21,6 +25,9 @@ export const useProfileStore = defineStore("profile", {
 
           if (response.token) {
             authStore.refreshSession(response.token, authStore.username);
+          }
+          if (response.userStatus) {
+            setLocalStorageWithExpiry("userStatus", response.userStatus);
           }
 
           console.log("profile response token", response.token);

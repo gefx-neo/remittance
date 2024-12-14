@@ -129,13 +129,18 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { useTransactionStore } from "@/stores/transactionStore";
+import { ref, onMounted } from "vue";
+import { useTransactionStore, useProfileStore } from "@/stores/index";
 import { InputAmount, ButtonAPI } from "@/components/Form";
 import { storeToRefs } from "pinia";
 import { sendingCurrencies, receivingCurrencies } from "@/data/data";
 import { useRouter } from "vue-router";
-import { useAlertStore, useDashboardStore, useStore } from "@/stores/index.js";
+import {
+  useAlertStore,
+  useDashboardStore,
+  useStore,
+  useAuthStore,
+} from "@/stores/index.js";
 import { useValidation } from "@/composables/useValidation";
 import {
   formValidation,
@@ -144,8 +149,10 @@ import {
 
 const router = useRouter();
 const transactionStore = useTransactionStore();
+const profileStore = useProfileStore();
 const { transactions } = storeToRefs(transactionStore);
 const store = useStore();
+const authStore = useAuthStore();
 const dashboardStore = useDashboardStore();
 const alertStore = useAlertStore();
 const { errors, validateSendingAmount, validateReceivingAmount } =
@@ -328,6 +335,13 @@ const handleSubmit = () => {
     },
   });
 };
+
+// onMounted(async () => {
+//   if (authStore.userStatus === "0") {
+//     await profileStore.getProfileDetail();
+//     console.log("Checking if user is verified");
+//   }
+// });
 </script>
 
 <style scoped>

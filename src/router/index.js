@@ -6,7 +6,7 @@ import AdminLayout from "../layout/AdminLayout/AdminLayout.vue"; // Admin layout
 import ErrorLayout from "../layout/ErrorLayout/ErrorLayout.vue";
 import Login from "../views/Guest/Login.vue"; // Static import
 import AdminLogin from "../views/Guest/AdminLogin.vue"; // Admin Login
-import { useAuthStore } from "../stores/authStore.js";
+import { useAuthStore, useAlertStore } from "../stores/index.js";
 import { useAdminAuthStore } from "../stores/admin/adminAuthStore.js";
 
 const guestGuard = (to, from, next) => {
@@ -28,9 +28,18 @@ const authGuard = (to, from, next) => {
 
   // If the route requires authentication and the user is not logged in
   if (!authStore.user) {
-    next({ name: "login" });
+    next({ name: "login" }); // Redirect to login if the user is not logged in
+  } else if (
+    authStore.userStatus === "0" &&
+    (to.name === "transaction" || to.name === "addtransaction")
+  ) {
+    const alertStore = useAlertStore();
+    alertStore.alert("pending", "Please verify your account");
+
+    // Redirect users with userStatus === 0 to account verification
+    next({ name: "profiledetail" });
   } else {
-    next();
+    next(); // Allow navigation for other cases
   }
 };
 
@@ -92,6 +101,7 @@ const routes = [
       },
       {
         path: "beneficiary",
+        beforeEnter: authGuard,
         children: [
           {
             path: "",
@@ -110,6 +120,7 @@ const routes = [
       },
       {
         path: "transaction",
+        beforeEnter: authGuard,
         children: [
           {
             path: "",

@@ -1,9 +1,10 @@
 <template>
   <div class="tooltip" @mouseover="showTooltip" @mouseleave="hideTooltip">
     <slot></slot>
-    <div :class="['item', { visible: isVisible }]">
-      {{ text }}
-    </div>
+    <div
+      :class="['item', { visible: isVisible, 'long-tooltip': isLongTooltip }]"
+      v-html="text"
+    ></div>
   </div>
 </template>
 
@@ -18,6 +19,10 @@ const props = defineProps({
   position: {
     type: String,
     default: "top",
+  },
+  isLongTooltip: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -35,6 +40,9 @@ const hideTooltip = () => {
 <style scoped>
 .tooltip {
   position: relative;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
 }
 
 .tooltip .item {
@@ -49,6 +57,7 @@ const hideTooltip = () => {
   padding: var(--size-8);
   border-radius: var(--border-sm);
   white-space: nowrap;
+  word-wrap: break-word;
   overflow: hidden;
   font-size: var(--text-sm);
   pointer-events: none;
@@ -59,5 +68,14 @@ const hideTooltip = () => {
 .tooltip .item.visible {
   opacity: 1;
   visibility: visible;
+}
+
+@media (max-width: 767px) {
+  .tooltip .item.long-tooltip {
+    white-space: normal;
+    max-width: 300px;
+    width: 300px;
+    left: 290%;
+  }
 }
 </style>

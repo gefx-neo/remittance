@@ -1,6 +1,7 @@
 <template>
   <div class="content-area">
-    <div class="profile">
+    <div v-if="store.isLoading">Loading</div>
+    <div v-else class="profile">
       <div class="user-section">
         <div class="user-group">
           <span class="icon-round">{{ initials }}</span>
@@ -128,7 +129,7 @@ const initials = computed(() => {
 
 const handleReminder = async () => {
   try {
-    const response = await profileStore.sendReminder(username.value);
+    const response = await profileStore.sendReminder(username);
 
     if (response.status === 1) {
       cookieService.setCookie("reminderSent", "true", 365);

@@ -33,6 +33,7 @@
           @nextStep="nextStep"
           @prevStep="prevStep"
           @submit="handleSubmit"
+          :beneficiaries="beneficiaries"
         />
       </form>
       <button type="button" @click="handleSubmit">Submit</button>
@@ -92,35 +93,6 @@ onMounted(async () => {
   beneficiaries.value = response.beneficiaries || [];
 
   beneficiaries.value.sort((a, b) => b.isFav - a.isFav);
-
-  // Handle query parameters
-  // const query = router.currentRoute.value.query;
-  // const { beneName, currency } = query;
-
-  // if (beneName && currency) {
-  //   // If `beneName` and `currency` are passed as query params, set step to StepTwo
-  //   stepStore.setCurrentStep(2);
-
-  //   // Find the selected beneficiary using the query parameters
-  //   const selectedBeneficiary = beneficiaries.value.find(
-  //     (bene) => bene.beneName === beneName && bene.currency === currency
-  //   );
-
-  //   if (selectedBeneficiary) {
-  //     // Populate the form with the selected beneficiary details
-  //     form.value.selectedBeneficiary = selectedBeneficiary;
-  //     console.log("Selected Beneficiary:", selectedBeneficiary);
-  //   } else {
-  //     console.error(
-  //       "Beneficiary not found for beneName and currency:",
-  //       beneName,
-  //       currency
-  //     );
-  //   }
-  // } else {
-  //   // Default behavior: start with StepOne if no query params are passed
-  //   stepStore.setCurrentStep(1);
-  // }
 });
 
 // onMounted(async () => {
@@ -142,6 +114,21 @@ onMounted(async () => {
 //     stepStore.setCurrentStep(1);
 //   }
 // });
+
+// For beneficiary detail
+onMounted(async () => {
+  const query = router.currentRoute.value.query;
+
+  // Check for all required query parameters
+  const hasAllQueryParams = query.beneName && query.currency;
+
+  if (hasAllQueryParams) {
+    stepStore.setCurrentStep(2);
+    console.log("Navigating to Step 2 due to query parameters.");
+  } else {
+    stepStore.setCurrentStep(1);
+  }
+});
 
 const handleCancel = () => {
   router.push({ path: "/transaction" });

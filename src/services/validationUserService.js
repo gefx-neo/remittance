@@ -44,9 +44,9 @@ export const validationService = {
   },
 
   isPasswordRules(value) {
-    const passwordPattern = /^(?=.*[A-Z])(?=.*[!@#$&*]).{8,20}$/;
+    const passwordPattern = /^(?!.*[;':"])(?=.*[A-Z])(?=.*[!@#$&*]).{8,20}$/;
     if (!passwordPattern.test(value)) {
-      return "Password must be 8 to 20 characters long, include at least one capital letter and one special character.";
+      return "Password must be 8-20 characters, include atleast one capital letter, and one special character";
     }
     return null;
   },

@@ -1,39 +1,82 @@
 import { validationService } from "@/services/validationService";
 
-export const formValidation = (form) => ({
-  paymentDetail: {
-    value: form.paymentDetail || "",
-    label: "Payment details / instructions",
-    rules: [validationService.isRequired],
+export const fieldMapping = {
+  1: {
+    MYR: {
+      purposeOfIntendedTransactions: {
+        include: true,
+        rules: [validationService.isRequired],
+      },
+      rel: { include: true, rules: [validationService.isRequired] },
+      fundSource: { include: true, rules: [validationService.isRequired] },
+    },
+    IDR: {
+      purposeOfIntendedTransactions: {
+        include: true,
+        rules: [validationService.isRequired],
+      },
+      rel: { include: true, rules: [validationService.isRequired] },
+      fundSource: { include: true, rules: [validationService.isRequired] },
+    },
   },
-  paymentDetail: {
-    value: form.rel || "",
-    label:
-      "Purpose and intended nature of account relationship and/or relevant business transaction undertaken",
-    rules: [validationService.isRequired],
+  0: {
+    MYR: {
+      purposeOfIntendedTransactions: {
+        include: true,
+        rules: [validationService.isRequired],
+      },
+      rel: { include: true, rules: [validationService.isRequired] },
+      fundSource: { include: true, rules: [validationService.isRequired] },
+    },
+    IDR: {
+      purposeOfIntendedTransactions: {
+        include: true,
+        rules: [validationService.isRequired],
+      },
+      rel: { include: true, rules: [validationService.isRequired] },
+      fundSource: { include: true, rules: [validationService.isRequired] },
+    },
   },
-  purposeOfIntendedTransactions: {
-    value: form.purposeOfIntendedTransactions || "",
-    label: "Purpose of intended transactions",
-    rules: [validationService.isRequired],
-  },
-  ...(form.purposeOfIntendedTransactions === "Others" && {
-    otherPurposeOfIntendedTransactions: {
-      value: form.otherPurposeOfIntendedTransactions || "",
-      label: "Other purpose of intended transactions",
+};
+
+export const formValidation = (form) => {
+  const currentMapping =
+    (fieldMapping[form.beneficiaryType] || {})[form.currency] || {};
+
+  return {
+    paymentDetail: {
+      value: form.paymentDetail || "",
       rules: [validationService.isRequired],
     },
-  }),
-  fundSource: {
-    value: form.fundSource || "",
-    label: "Source of funds",
-    rules: [validationService.isRequired],
-  },
-  ...(form.fundSource === "Others" && {
-    otherFundSource: {
-      value: form.otherFundSource || "",
-      label: "Other source of funds",
-      rules: [validationService.isRequired],
-    },
-  }),
-});
+    ...(currentMapping.rel?.include && {
+      rel: {
+        value: form.rel || "",
+        rules: currentMapping.rel.rules || [],
+      },
+    }),
+    ...(currentMapping.purposeOfIntendedTransactions?.include && {
+      purposeOfIntendedTransactions: {
+        value: form.purposeOfIntendedTransactions || "",
+        rules: currentMapping.purposeOfIntendedTransactions.rules || [],
+      },
+    }),
+    ...(form.purposeOfIntendedTransactions === "Others" && {
+      otherPurposeOfIntendedTransactions: {
+        value: form.otherPurposeOfIntendedTransactions || "",
+        rules: [validationService.isRequired],
+      },
+    }),
+    ...(currentMapping.fundSource?.include && {
+      fundSource: {
+        value: form.fundSource || "",
+        rules: currentMapping.fundSource.rules || [],
+      },
+    }),
+    ...(form.fundSource === "Others" && {
+      otherFundSource: {
+        value: form.otherFundSource || "",
+        rules: [validationService.isRequired],
+      },
+    }),
+  };
+};

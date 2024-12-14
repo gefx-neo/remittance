@@ -20,13 +20,12 @@
         </div>
         <div class="item">
           <div class="label">
-            <span>Change language</span>
+            <span>Language</span>
             <span>English</span>
           </div>
         </div>
       </div>
 
-      <!-- Password Modal -->
       <Modal
         :isModalOpen="isPasswordModalOpen"
         @close="closePasswordModal"

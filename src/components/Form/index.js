@@ -10,5 +10,6 @@ export { default as InputBusinessCategory } from "./InputBusinessCategory.vue";
 export { default as Select } from "./Select.vue";
 export { default as RadioGroup } from "./RadioGroup.vue";
 export { default as Switch } from "./Switch.vue";
+export { default as TextArea } from "./TextArea.vue";
 export { default as StepBullets } from "./StepBullets.vue";
 export { default as ButtonAPI } from "./ButtonAPI.vue";

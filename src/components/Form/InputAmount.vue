@@ -45,7 +45,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watch } from "vue";
+import {
+  ref,
+  computed,
+  onMounted,
+  onBeforeUnmount,
+  watch,
+  watchEffect,
+} from "vue";
 import CurrencyDropdown from "@/components/Dropdown/CurrencyDropdown.vue";
 import { sendingCurrencies, receivingCurrencies } from "@/data/data";
 import { useStore } from "@/stores/useStore";
@@ -199,6 +206,11 @@ watch(
   { immediate: true }
 );
 
+watchEffect(() => {
+  selectedCurrency.value = props.modelCurrency || "";
+  console.log("Selected currency updated:", selectedCurrency.value);
+});
+
 onMounted(() => {
   document.addEventListener("click", handleClickOutside);
 });
@@ -246,7 +258,7 @@ onBeforeUnmount(() => {
   right: 0;
   top: 0;
   bottom: 0;
-  gap: 6px;
+  gap: var(--size-6);
   padding: 0;
   padding-right: var(--size-16);
   color: var(--slate-blue);

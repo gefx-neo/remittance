@@ -39,6 +39,9 @@
       </div>
 
       <div class="footer">
+        <div class="message" v-if="redirectToLogin">
+          Please check your e-mail for temporary password
+        </div>
         <a href="/" v-if="redirectToLogin" class="message">
           Redirect to login page
         </a>
@@ -50,13 +53,14 @@
           >
             Cancel
           </button>
-          <button
+          <ButtonAPI
+            :disabled="isLoading"
             type="button"
-            @click="emitSubmit"
             class="btn-blue standard-button"
+            @click="emitSubmit"
           >
             Confirm
-          </button>
+          </ButtonAPI>
         </div>
         <slot name="footer"></slot>
       </div>
@@ -67,6 +71,7 @@
 <script setup>
 import { watch } from "vue";
 import { useStore } from "@/stores/useStore";
+import { ButtonAPI } from "@/components/Form";
 
 const props = defineProps({
   isModalOpen: {
@@ -203,17 +208,20 @@ const emitSubmit = () => emit("submit");
   fill: var(--white);
 }
 
-.modal .footer a {
+.modal .footer {
   display: flex;
   justify-content: center;
   font-weight: var(--semi-bold);
-  text-decoration: underline;
-  color: var(--grey);
+}
+
+.modal .footer .message {
+  font-weight: var(--semi-bold);
 }
 
 .modal .action {
   display: flex;
   justify-content: space-between;
+  width: 100%;
 }
 
 .modal .action button {

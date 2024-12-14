@@ -116,7 +116,7 @@ export const individualValidation = (
   },
   postalCode: {
     value: individualForm?.postalCode || "",
-    label: "Permanent postal code",
+    label: "Permanent address postal code",
     rules: [validationService.isRequired],
   },
   mailAddress: {

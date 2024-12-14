@@ -96,6 +96,7 @@
     <div class="footer">
       <ButtonAPI
         :disabled="isLoading"
+        type="button"
         class="btn-red standard-button"
         @click="handleSubmit"
       >

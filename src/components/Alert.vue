@@ -16,13 +16,20 @@
           />
         </svg>
       </button>
+      <button class="icon" v-if="alert.type === 'pending'">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 512">
+          <path
+            d="M96 64c0-17.7-14.3-32-32-32S32 46.3 32 64l0 256c0 17.7 14.3 32 32 32s32-14.3 32-32L96 64zM64 480a40 40 0 1 0 0-80 40 40 0 1 0 0 80z"
+          />
+        </svg>
+      </button>
       <div v-if="alert.type === 'loading'" class="loader">
         <div></div>
         <div></div>
         <div></div>
         <div></div>
       </div>
-      <span v-else>{{ alert.message }}</span>
+      <span v-else class="message">{{ alert.message }}</span>
     </div>
   </transition-group>
 </template>
@@ -97,10 +104,25 @@ const clearAlert = (id) => alertStore.clearAlert(id);
   fill: var(--white);
 }
 
+.alert-item.pending .icon {
+  background: var(--dark-yellow);
+}
+
+.alert-item.pending .icon svg {
+  fill: var(--black);
+}
+
 .alert-item.loading {
   background: var(--lighter-grey);
   border-radius: var(--border-circle);
   padding: var(--size-12);
+}
+
+.alert-item .message {
+  display: flex;
+  align-items: center;
+  min-height: var(--size-32);
+  max-height: var(--size-32);
 }
 
 .loader {

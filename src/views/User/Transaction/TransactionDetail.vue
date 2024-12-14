@@ -95,7 +95,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import {
@@ -105,31 +105,16 @@ import {
   useStore,
 } from "@/stores/index.js";
 import Modal from "@/components/Modal.vue";
-import { storeToRefs } from "pinia";
 
 const route = useRoute();
 const router = useRouter();
 
-const id = route.params.id; // Extract beneficiary ID from params
+const id = route.params.id;
 const beneficiaryStore = useBeneficiaryStore();
 const transactionStore = useTransactionStore();
 const store = useStore();
 const alertStore = useAlertStore();
-
-const beneficiary = computed(() => {
-  return beneficiaryStore.beneficiaries.find((b) => b.id === Number(id));
-});
-const { transactions } = storeToRefs(transactionStore);
-
-const goBack = () => {
-  router.go(-1);
-};
-
-const activeTab = ref("details");
-
-const setActiveTab = (tab) => {
-  activeTab.value = tab;
-};
+const transactionDetails = ref(null);
 
 const handleSubmit = async () => {
   try {
@@ -155,13 +140,23 @@ const handleSubmit = async () => {
   }
 };
 
-onMounted(() => {
-  console.log("Beneficiary ID:", id);
-  console.log("Beneficiary Object:", beneficiary.value);
+onMounted(async () => {
+  try {
+    const response = await beneficiaryStore.getTransactionDetail(trxnNum);
+    if (response?.trxnDetails) {
+      transactionDetails.value = response.trxnDetails;
+    }
+  } catch (error) {
+    console.error("Error fetching beneficiary details:", error);
+  }
 });
 
 const getCurrencyImagePath = (currencyCode) => {
   return `/src/assets/currency/${currencyCode.toLowerCase()}.svg`;
+};
+
+const goBack = () => {
+  router.go(-1);
 };
 </script>
 

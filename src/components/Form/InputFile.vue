@@ -76,6 +76,10 @@ watch(
   gap: var(--size-8);
 }
 
+.file-label .tooltip {
+  margin-bottom: var(--size-4);
+}
+
 .file-label .tooltip svg {
   min-width: var(--size-16);
   max-width: var(--size-16);
