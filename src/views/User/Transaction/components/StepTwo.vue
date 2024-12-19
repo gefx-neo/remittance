@@ -2,16 +2,16 @@
   <div class="second-form" @keydown.enter.prevent="handleNext">
     <fieldset>
       <div class="left-form">
+        <!-- Sending Amount Input -->
         <InputAmount
           id="sendingAmount"
           label="Sending amount"
-          v-model:modelValue="localForm.sendingAmount"
+          :modelValue="localForm.sendingAmount"
           :modelCurrency="localForm.sendingCurrency"
           :isSending="true"
-          @update:modelValue="(value) => (localForm.sendingAmount = value)"
-          @update:modelCurrency="
-            (currency) => (localForm.sendingCurrency = currency)
-          "
+          @update:modelValue="updateSendingAmount"
+          @update:modelCurrency="updateSendingCurrency"
+          :error="errors.sendingAmount"
         />
 
         <InputAmount
@@ -20,17 +20,18 @@
           :modelValue="localForm.receivingAmount"
           :modelCurrency="localForm.receivingCurrency"
           :isSending="false"
-          :disableDropdown="
-            !!route.query.currency || localForm.selectedBeneficiary.currency
-          "
-          @update:modelValue="(value) => (localForm.receivingAmount = value)"
-          @update:modelCurrency="
-            (currency) => (localForm.receivingCurrency = currency)
-          "
+          @update:modelValue="updateReceivingAmount"
+          @update:modelCurrency="updateReceivingCurrency"
+          :disableDropdown="localForm.selectedBeneficiary.currency"
+          :error="errors.receivingAmount"
         />
-        <div>
+        <!-- :disableDropdown="
+            !!route.query.currency || localForm.selectedBeneficiary.currency
+          " -->
+        <!-- <div>
           {{ localForm.selectedBeneficiary?.beneName || "" }}
-        </div>
+          {{ localForm.selectedBeneficiary?.id || "" }}
+        </div> -->
 
         <Select
           label="Payment type"
@@ -48,6 +49,8 @@
           id="gefxBank"
           v-model="localForm.gefxBank"
           :options="gefxBanks"
+          :error="errors.gefxBank"
+          submitKey="id"
         />
       </div>
       <div class="right-form">
@@ -56,9 +59,8 @@
           :sendingCurrency="localForm.sendingCurrency"
           :receivingAmount="localForm.receivingAmount"
           :receivingCurrency="localForm.receivingCurrency"
-          processingFees="8 SGD"
-          exchangeRate="1 SGD = 0.7424 USD"
-          totalPayment="2,000 SGD"
+          :fee="transactionStore.fee"
+          :rate="transactionStore.rate"
         />
 
         <div class="footer">
@@ -95,8 +97,13 @@ import {
 import { InputAmount, Select } from "@/components/Form";
 import { paymentTypes, gefxBanks } from "@/data/data";
 import { useValidation } from "@/composables/useValidation";
-import { formValidation } from "./schemas/stepOneSchema";
-import { useAlertStore, useBeneficiaryStore } from "@/stores/index.js";
+import { formValidation } from "./schemas/stepTwoSchema";
+import {
+  useStore,
+  useAlertStore,
+  useBeneficiaryStore,
+  useTransactionStore,
+} from "@/stores/index.js";
 import { useRoute, useRouter } from "vue-router";
 
 const props = defineProps({
@@ -108,20 +115,23 @@ const props = defineProps({
     type: Array,
     default: () => [], // Default to an empty array
   },
+  selectedBeneficiary: Object,
 });
 const emit = defineEmits(["update:modelValue", "nextStep", "prevStep"]);
 const { errors, validateForm, clearErrors, scrollToErrors } = useValidation();
 const route = useRoute();
 const router = useRouter();
 
+const store = useStore();
 const alertStore = useAlertStore();
 const beneficiaryStore = useBeneficiaryStore();
+const transactionStore = useTransactionStore();
 
 const localForm = reactive({
   selectedBeneficiary: beneficiaryStore.selectedBeneficiary || null,
   sendingAmount: props.modelValue.sendingAmount,
   paymentType: props.modelValue.paymentType,
-  gefxBank: props.modelValue.gefxBank ?? "dbs_sgd",
+  gefxBank: props.modelValue.gefxBank,
   ...props.modelValue,
 });
 
@@ -139,6 +149,12 @@ const handleNext = () => {
   }
 };
 
+// *** Maintain beneficiary state at StepTwo and StepThree ***
+onMounted(async () => {
+  beneficiaryStore.setSelectedBeneficiary(localForm.selectedBeneficiary);
+});
+// *** Maintain beneficiary state at StepTwo and StepThree ***
+
 watch(
   localForm,
   (newVal) => {
@@ -153,16 +169,142 @@ watch(
   () => route.query,
   (query) => {
     Object.assign(localForm, {
-      sendingAmount: Number(query.sendingAmount) || localForm.sendingAmount,
+      sendingAmount: parseFloat(query.sendingAmount) || localForm.sendingAmount,
       sendingCurrency: query.sendingCurrency || "SGD",
       receivingAmount:
-        Number(query.receivingAmount) || localForm.receivingAmount,
+        parseFloat(query.receivingAmount) || localForm.receivingAmount,
       receivingCurrency: query.currency,
     });
     emit("update:modelValue", { ...localForm });
   },
   { immediate: true, deep: true }
 );
+
+const updateSendingAmount = async (amount) => {
+  const formattedAmount = parseFloat(amount).toFixed(2);
+
+  if (localForm.sendingAmount === formattedAmount) return;
+
+  localForm.sendingAmount = parseFloat(formattedAmount); // Convert back to number
+  store.setLoading(true);
+
+  try {
+    const response = await transactionStore.getLockedAmount(
+      localForm.sendingAmount,
+      "pay"
+    );
+    if (response && response.status === 1) {
+      localForm.receivingAmount = parseFloat(response.getAmount);
+    }
+  } catch (error) {
+    console.error("Error in updateSendingAmount:", error);
+  } finally {
+    store.setLoading(false);
+  }
+};
+
+// Update receiving amount logic (from Dashboard.vue)
+const updateReceivingAmount = async (amount) => {
+  const formattedAmount = parseFloat(amount).toFixed(2);
+  if (localForm.receivingAmount === formattedAmount) return;
+
+  localForm.receivingAmount = parseFloat(formattedAmount); // Convert back to number
+  store.setLoading(true);
+
+  try {
+    const response = await transactionStore.getLockedAmount(
+      localForm.receivingAmount,
+      "get"
+    );
+    if (response && response.status === 1) {
+      localForm.sendingAmount = parseFloat(response.payAmount);
+      console.log(typeof localForm.sendingAmount, localForm.sendingAmount); // Should output: "number"
+    }
+  } catch (error) {
+    console.error("Error in updateReceivingAmount:", error);
+  } finally {
+    store.setLoading(false);
+  }
+};
+
+// Update sending currency logic (from Dashboard.vue)
+const updateSendingCurrency = async (currency) => {
+  if (localForm.sendingCurrency === currency) return;
+
+  localForm.sendingCurrency = currency;
+  store.setLoading(true);
+
+  try {
+    const lockedRateResponse = await transactionStore.getLockedRate(
+      localForm.receivingCurrency,
+      localForm.sendingCurrency
+    );
+    if (lockedRateResponse && lockedRateResponse.status === 1) {
+      transactionStore.setLockedRate(lockedRateResponse.rate);
+
+      if (localForm.sendingAmount) {
+        const response = await transactionStore.getLockedAmount(
+          localForm.sendingAmount,
+          "pay"
+        );
+        if (response && response.status === 1) {
+          localForm.receivingAmount = parseFloat(response.getAmount);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Failed to update sending currency:", error);
+  } finally {
+    store.setLoading(false);
+  }
+};
+
+// Update receiving currency logic (from Dashboard.vue)
+const updateReceivingCurrency = async (currency) => {
+  if (localForm.receivingCurrency === currency) return;
+
+  localForm.receivingCurrency = currency;
+  store.setLoading(true);
+
+  try {
+    const lockedRateResponse = await transactionStore.getLockedRate(
+      localForm.receivingCurrency,
+      localForm.sendingCurrency
+    );
+    if (lockedRateResponse && lockedRateResponse.status === 1) {
+      transactionStore.setLockedRate(lockedRateResponse.rate);
+
+      if (localForm.receivingAmount) {
+        const response = await transactionStore.getLockedAmount(
+          localForm.receivingAmount,
+          "get"
+        );
+        if (response && response.status === 1) {
+          localForm.sendingAmount = parseFloat(response.payAmount);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Failed to update receiving currency:", error);
+  } finally {
+    store.setLoading(false);
+  }
+};
+
+onMounted(() => {
+  if (route.query.sendingAmount) {
+    localForm.sendingAmount = parseFloat(route.query.sendingAmount) || 0;
+  }
+  if (route.query.receivingAmount) {
+    localForm.receivingAmount = parseFloat(route.query.receivingAmount) || 0;
+  }
+  if (route.query.sendingCurrency) {
+    localForm.sendingCurrency = route.query.sendingCurrency;
+  }
+  if (route.query.receivingCurrency) {
+    localForm.receivingCurrency = route.query.receivingCurrency;
+  }
+});
 
 watch(
   () => localForm.receivingCurrency,
@@ -176,67 +318,11 @@ const handleBack = () => {
   emit("prevStep");
 };
 
-onMounted(async () => {
-  await nextTick(); // Wait for the router to fully update the query params
-  const query = route.query;
-  console.log("local form sending", localForm.sendingAmount);
-
-  const hasAllQueryParams = query.beneName && query.currency;
-
-  if (hasAllQueryParams) {
-    Object.assign(localForm, {
-      selectedBeneficiary: {
-        beneName: query.beneName,
-        currency: query.currency,
-      },
-    });
-
-    emit("update:modelValue", { ...localForm });
-    console.log("Initialized StepTwo with updated query parameters.");
-  } else {
-    console.log("Required query parameters are missing.");
-  }
-});
-
-watch(
-  () => route.query,
-  (query) => {
-    const hasAllQueryParams = query.beneName && query.currency;
-
-    if (hasAllQueryParams) {
-      Object.assign(localForm, {
-        selectedBeneficiary: {
-          beneName: query.beneName,
-          currency: query.currency,
-        },
-      });
-
-      emit("update:modelValue", { ...localForm });
-      console.log("Updated StepTwo with new query parameters.");
-    }
-  },
-  { immediate: true }
-);
-
 watch(
   () => localForm.sendingAmount,
   (newValue) => {
     console.log("sendingAmount updated:", newValue);
   }
-);
-
-watch(
-  () => props.modelValue,
-  (newVal) => {
-    Object.assign(localForm, newVal); // Sync localForm with the updated props
-    if (localForm.selectedBeneficiary) {
-      console.log(
-        "Updated Selected Beneficiary in StepTwo:",
-        localForm.selectedBeneficiary
-      );
-    }
-  },
-  { immediate: true, deep: true }
 );
 
 watch(

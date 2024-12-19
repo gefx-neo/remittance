@@ -269,7 +269,7 @@
 <script setup>
 import { computed, watch, reactive, ref } from "vue";
 import { useValidation } from "@/composables/useValidation";
-import { formValidation } from "./schemas/stepTwoSchema";
+import { formValidation } from "./schemas/stepOneSchema";
 import { useAlertStore, useBeneficiaryStore } from "@/stores/index.js";
 import FavouriteButton from "../../Beneficiary/components/FavouriteButton.vue";
 import { useRouter } from "vue-router";
@@ -344,60 +344,44 @@ const filteredSwiftOURPaymentBeneficiaries = computed(() =>
   )
 );
 
-// Sync the beneficiary state from query parameters
-const syncBeneficiaryFromQuery = () => {
-  const { beneName, currency } = router.currentRoute.value.query;
+const selectBeneficiary = (beneficiary) => {
+  selectedBeneficiary.value = beneficiary;
+  beneficiaryStore.setSelectedBeneficiary(beneficiary);
+  // Update only the local form state
+  emit("update:modelValue", {
+    ...localForm,
+    beneficiary,
+  });
+};
 
-  if (beneName && currency) {
-    const beneficiary = props.beneficiaries.find(
-      (b) => b.beneName === beneName && b.currency === currency
-    );
+const syncBeneficiaryFromQuery = () => {
+  const { beneId } = router.currentRoute.value.query;
+
+  if (beneId) {
+    const beneficiary = props.beneficiaries.find((b) => b.id === beneId);
 
     if (beneficiary) {
       selectedBeneficiary.value = beneficiary;
       beneficiaryStore.setSelectedBeneficiary(beneficiary);
 
-      // Sync with localForm
       emit("update:modelValue", {
         ...localForm,
-        selectedBeneficiary: beneficiary,
       });
     } else {
-      // If no match is found, clear the state
       selectedBeneficiary.value = null;
       beneficiaryStore.setSelectedBeneficiary(null);
     }
   }
 };
 
-const selectBeneficiary = (beneficiary) => {
-  selectedBeneficiary.value = beneficiary;
-  beneficiaryStore.setSelectedBeneficiary(beneficiary);
-
-  // Update only the local form state
-  emit("update:modelValue", {
-    ...localForm,
-    selectedBeneficiary: beneficiary,
-  });
-};
-
-// Watch for query parameter changes and reinitialize the state
 watch(
-  () => router.currentRoute.value.query,
-  () => {
-    syncBeneficiaryFromQuery();
-  },
-  { immediate: true }
-);
-
-// Ensure beneficiaries list is loaded before processing query parameters
-watch(
-  () => props.beneficiaries,
-  (newBeneficiaries) => {
-    if (newBeneficiaries.length > 0) {
+  [() => router.currentRoute.value.query, () => props.beneficiaries],
+  ([query, beneficiaries]) => {
+    if (beneficiaries.length > 0) {
       syncBeneficiaryFromQuery();
     }
-  }
+  },
+  { immediate: true }
 );
 
 const handleNext = () => {
@@ -429,7 +413,7 @@ const handleNext = () => {
     router.push({
       query: {
         ...router.currentRoute.value.query,
-        beneName: selectedBeneficiary.value.beneName,
+        beneId: selectedBeneficiary.value.id,
         currency: selectedBeneficiary.value.currency,
       },
     });

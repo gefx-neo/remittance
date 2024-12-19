@@ -1280,10 +1280,8 @@ export const paymentTypes = [
 ];
 
 export const gefxBanks = [
-  { name: "DBS SGD", value: "dbs_sgd" },
-  { name: "DBS USD", value: "dbs_usd" },
-  { name: "OCBC SGD", value: "ocbc_sgd" },
-  { name: "OCBC USD", value: "ocbc_usd" },
+  { id: 1, name: "DBS", value: "DBS" },
+  { id: 2, name: "OCBC", value: "OCBC" },
 ];
 
 export const beneficiaryCountries = [

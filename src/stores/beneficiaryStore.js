@@ -181,4 +181,14 @@ export const useBeneficiaryStore = defineStore("beneficiaryStore", {
       this.error = null;
     },
   },
+  persist: {
+    enabled: true, // Enable persistence
+    strategies: [
+      {
+        key: "beneficiaryStore", // Key in localStorage
+        storage: localStorage, // Use localStorage
+        paths: ["selectedBeneficiary"], // Only persist the selectedBeneficiary
+      },
+    ],
+  },
 });

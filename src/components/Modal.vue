@@ -39,9 +39,9 @@
       </div>
 
       <div class="footer">
-        <div class="message" v-if="redirectToLogin">
+        <!-- <div class="message" v-if="redirectToLogin">
           Please check your e-mail for temporary password
-        </div>
+        </div> -->
         <a href="/" v-if="redirectToLogin" class="message">
           Redirect to login page
         </a>

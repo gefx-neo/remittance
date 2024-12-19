@@ -129,7 +129,7 @@ const routes = [
               import("../views/User/Transaction/TransactionList.vue"),
           },
           {
-            path: ":id",
+            path: ":memoId",
             name: "transaction-detail",
             component: () =>
               import("../views/User/Transaction/TransactionDetail.vue"),

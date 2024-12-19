@@ -239,7 +239,7 @@ const navigateToAccountVerification = () => {
   max-height: var(--size-12);
   position: absolute;
   left: 50%;
-  top: 50%;
+  top: 46%;
   transform: translate(-50%, -50%);
 }
 

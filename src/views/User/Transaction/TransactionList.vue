@@ -6,7 +6,11 @@
       </div>
       <div class="search-section">
         <div class="input-group">
-          <input type="text" placeholder="Search past transactions" />
+          <input
+            type="text"
+            v-model="searchQuery"
+            placeholder="Search past transactions"
+          />
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
             <path
               d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"
@@ -31,64 +35,108 @@
       </div>
       <div class="item-section">
         <div
-          v-for="(transaction, index) in transactions"
+          v-for="(transaction, index) in filteredTransactions"
           :key="index"
           class="item"
           tabindex="0"
-          @click="navigateToTransactionDetail(transaction)"
+          @click="navigateToTransactionDetail(transaction.memoId)"
         >
           <div class="detail">
             <div class="first-column">
               <div class="first-row">
-                <span>{{ transaction.date }}</span>
+                <span>{{ formatDateTime(transaction.date) }}</span>
                 <span
                   :class="{
-                    unpaid: transaction.status === 'Unpaid',
-                    pending: transaction.status.includes('Pending'),
-                    completed: transaction.status === 'Completed',
-                    failed: transaction.status === 'Failed',
+                    unpaid:
+                      getTransactionStatus(transaction.status) === 'Unpaid',
+                    pending:
+                      getTransactionStatus(transaction.status) === 'Pending',
+                    completed:
+                      getTransactionStatus(transaction.status) === 'Success',
+                    failed:
+                      getTransactionStatus(transaction.status) === 'Rejected',
                   }"
-                  >{{ transaction.status }}</span
                 >
+                  {{ getTransactionStatus(transaction.status) }}
+                </span>
               </div>
               <div class="second-row">
-                <span>{{ transaction.beneficiaryName }}&nbsp;</span>
-                <span>{{ transaction.beneficiaryBankName }}&nbsp;</span>
-                <span>{{ transaction.beneficiaryBankAccountNumber }}</span>
+                <span>{{ transaction.beneName }}&nbsp;</span>
+                <span>{{ transaction.bank }}&nbsp;</span>
+                <span>{{ transaction.bankAccountNumber }}</span>
               </div>
               <div class="number">
-                <span>{{ transaction.number }}</span>
+                <span>{{ transaction.memoId }}</span>
               </div>
             </div>
             <div class="second-column">
               <div class="first-row">
-                {{ transaction.sendingAmount }}
+                {{ formatNumber(transaction.payAmount) }}
+                {{ transaction.payCurrency }}
               </div>
-              <div class="second-row">{{ transaction.receivingAmount }}</div>
+              <div class="second-row">
+                {{ formatNumber(transaction.getAmount) }}
+                {{ transaction.getCurrency }}
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <button class="btn-load">Load more</button>
+      <!-- <button class="btn-load">Load more</button> -->
     </div>
   </div>
 </template>
 
 <script setup>
+import { ref, computed, onMounted } from "vue";
 import { useTransactionStore } from "@/stores/transactionStore";
-import { storeToRefs } from "pinia";
 import { useRouter } from "vue-router";
+import {
+  formatNumber,
+  getTransactionStatus,
+  formatDateTime,
+} from "@/utils/transactionUtils";
 
 const router = useRouter();
-
 const transactionStore = useTransactionStore();
-const { transactions } = storeToRefs(transactionStore);
+const transactions = ref([]);
+const searchQuery = ref("");
 
-const navigateToTransactionDetail = (transaction) => {
-  router.push({
-    name: "transaction-detail",
-    params: { id: transaction.id, transaction },
+onMounted(async () => {
+  const response = await transactionStore.getTransactionList();
+  transactions.value = response.trxns || [];
+  transactions.value.sort((a, b) => new Date(b.date) - new Date(a.date));
+});
+
+const filteredTransactions = computed(() => {
+  const query = searchQuery.value.toLowerCase();
+  return transactions.value.filter((transaction) => {
+    return (
+      formatDateTime(transaction.date).toLowerCase().includes(query) ||
+      getTransactionStatus(transaction.status).toLowerCase().includes(query) ||
+      transaction.beneName.toLowerCase().includes(query) ||
+      transaction.bank.toLowerCase().includes(query) ||
+      transaction.bankAccountNumber.toLowerCase().includes(query) ||
+      transaction.memoId.toLowerCase().includes(query) ||
+      transaction.payAmount.toString().includes(query) ||
+      transaction.payCurrency.toLowerCase().includes(query) ||
+      transaction.getAmount.toString().includes(query) ||
+      transaction.getCurrency.toLowerCase().includes(query)
+    );
   });
+});
+
+const navigateToTransactionDetail = async (memoId) => {
+  const transaction = transactions.value.find((txn) => txn.memoId === memoId);
+
+  if (transaction) {
+    router.push({
+      name: "transaction-detail",
+      params: { memoId: transaction.memoId },
+    });
+  } else {
+    console.error("Transaction not found with memoId:", memoId);
+  }
 };
 
 const navigateToAddTransaction = () => {

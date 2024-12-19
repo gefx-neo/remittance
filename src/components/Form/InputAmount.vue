@@ -130,9 +130,44 @@ const formatNumber = (value) => {
 const formattedValue = ref(formatNumber(props.modelValue));
 const debounceTimeout = ref(null);
 
+// const onInput = (event) => {
+//   const inputElement = event.target;
+//   let inputValue = inputElement.value;
+
+//   // Ensure only one decimal point
+//   const parts = inputValue.split(".");
+//   if (parts.length > 2) {
+//     inputValue = parts[0] + "." + parts.slice(1).join("");
+//   }
+
+//   // Debug: Show the value being entered
+//   console.log("User Input (raw):", inputValue);
+
+//   // Update the input field value
+//   formattedValue.value = inputValue;
+
+//   // Cancel previous debounce
+//   if (debounceTimeout.value) {
+//     clearTimeout(debounceTimeout.value);
+//   }
+
+//   debounceTimeout.value = setTimeout(() => {
+//     if (formattedValue.value !== "") {
+//       const rawValue = parseFloat(formattedValue.value.replace(/,/g, "")) || 0;
+
+//       // Debug: Show the parsed numeric value being emitted
+//       console.log("Emitted Value (numeric):", rawValue);
+
+//       emit("update:modelValue", rawValue); // Emit numeric value
+//       formattedValue.value = formatNumber(rawValue); // Update display value
+//     } else {
+//       emit("update:modelValue", null); // Emit null for cleared input
+//     }
+//   }, 1000);
+// };
+
 const onInput = (event) => {
   const inputElement = event.target;
-
   let inputValue = inputElement.value;
 
   // Ensure only one decimal point
@@ -140,6 +175,9 @@ const onInput = (event) => {
   if (parts.length > 2) {
     inputValue = parts[0] + "." + parts.slice(1).join("");
   }
+
+  // Debug: Show the value being entered
+  console.log("User Input (raw):", inputValue);
 
   // Update the input field value
   formattedValue.value = inputValue;
@@ -149,32 +187,77 @@ const onInput = (event) => {
     clearTimeout(debounceTimeout.value);
   }
 
-  // Trigger formatting after a delay
   debounceTimeout.value = setTimeout(() => {
     if (formattedValue.value !== "") {
       const rawValue = parseFloat(formattedValue.value.replace(/,/g, "")) || 0;
-      const formatted = formatNumber(rawValue);
 
-      formattedValue.value = formatted; // Update display value with commas
-      emit("update:modelValue", rawValue); // Emit raw numeric value
+      // Debug: Show the parsed numeric value being emitted
+      console.log("Emitted Value (numeric):", rawValue);
+
+      emit("update:modelValue", rawValue); // Emit numeric value
+      formattedValue.value = formatNumber(rawValue); // Update display value
     } else {
-      // Handle the case where the input is cleared
-      emit("update:modelValue", null); // Emit null or 0 depending on your requirements
+      emit("update:modelValue", 0); // Emit 0 for cleared input
     }
-
-    // Remove focus from the input and set loading to false
-    inputElement.blur();
   }, 1000);
 };
 
 const onBlur = () => {
-  // Ensure formatting and emit on blur
-  const rawValue = parseFloat(formattedValue.value.replace(/,/g, ""));
-  const formatted = formatNumber(rawValue);
+  const rawValue = parseFloat(formattedValue.value.replace(/,/g, "")) || 0;
 
-  formattedValue.value = formatted; // Update the input with the formatted value
-  emit("update:modelValue", rawValue); // Emit raw numeric value
+  // Debug: Show the value being emitted on blur
+  console.log("Blur Event Emitted Value (numeric):", rawValue);
+
+  formattedValue.value = formatNumber(rawValue); // Update with formatted value
+  emit("update:modelValue", rawValue); // Emit numeric value
 };
+
+// const onInput = (event) => {
+//   const inputElement = event.target;
+
+//   let inputValue = inputElement.value;
+
+//   // Ensure only one decimal point
+//   const parts = inputValue.split(".");
+//   if (parts.length > 2) {
+//     inputValue = parts[0] + "." + parts.slice(1).join("");
+//   }
+
+//   // Update the input field value
+//   formattedValue.value = inputValue;
+
+//   // Cancel previous debounce
+//   if (debounceTimeout.value) {
+//     clearTimeout(debounceTimeout.value);
+//   }
+
+//   // Trigger formatting after a delay
+//   debounceTimeout.value = setTimeout(() => {
+//     if (formattedValue.value !== "") {
+//       const rawValue = parseFloat(formattedValue.value.replace(/,/g, "")) || 0;
+//       const formatted = formatNumber(rawValue);
+//       //       // Debug: Show the parsed numeric value being emitted
+//       console.log("Emitted Value (numeric):", rawValue);
+//       formattedValue.value = formatted; // Update display value with commas
+//       emit("update:modelValue", rawValue); // Emit raw numeric value
+//     } else {
+//       // Handle the case where the input is cleared
+//       emit("update:modelValue", null); // Emit null or 0 depending on your requirements
+//     }
+
+//     // Remove focus from the input and set loading to false
+//     inputElement.blur();
+//   }, 1000);
+// };
+
+// const onBlur = () => {
+//   // Ensure formatting and emit on blur
+//   const rawValue = parseFloat(formattedValue.value.replace(/,/g, ""));
+//   const formatted = formatNumber(rawValue);
+
+//   formattedValue.value = formatted; // Update the input with the formatted value
+//   emit("update:modelValue", rawValue); // Emit raw numeric value
+// };
 
 const preventInvalidCharacters = (event) => {
   const invalidCharacters = /[^0-9.,]/; // Regex for invalid characters
@@ -182,6 +265,14 @@ const preventInvalidCharacters = (event) => {
     event.preventDefault(); // Prevent the invalid character from being typed
   }
 };
+
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    formattedValue.value = formatNumber(newValue); // Update local formattedValue
+  },
+  { immediate: true } // Ensure it runs on component initialization
+);
 
 watch(
   () => store.isLoading,

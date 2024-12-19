@@ -25,7 +25,6 @@
           v-model="form"
           @nextStep="nextStep"
           @prevStep="prevStep"
-          :beneficiaries="beneficiaries"
         />
         <StepThree
           v-if="stepStore.currentStep === 3"
@@ -33,45 +32,178 @@
           @nextStep="nextStep"
           @prevStep="prevStep"
           @submit="handleSubmit"
-          :beneficiaries="beneficiaries"
         />
       </form>
-      <button type="button" @click="handleSubmit">Submit</button>
     </div>
   </div>
+  <Timer />
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch, nextTick } from "vue";
 import {
   useAuthStore,
+  useAlertStore,
   useStepStore,
   useBeneficiaryStore,
+  useTransactionStore,
 } from "@/stores/index.js";
 import StepOne from "./components/StepOne.vue";
 import StepTwo from "./components/StepTwo.vue";
 import StepThree from "./components/StepThree.vue";
 import { useValidation } from "@/composables/useValidation";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
+import Timer from "./components/Timer.vue";
+
+const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+const alertStore = useAlertStore();
 const stepStore = useStepStore();
 const beneficiaryStore = useBeneficiaryStore();
+const transactionStore = useTransactionStore();
 
 const { scrollToTop } = useValidation();
 
 const form = ref({});
 const beneficiaries = ref([]);
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   form.value.username = authStore.username;
-  console.log(form.value.username);
-  // Logic for submitting form data
-  const transactionForm = {
-    username: form.value.username,
-    ...form.value,
+
+  let allUploadPromises = [];
+  let fileNames = {};
+
+  const generateRandomString = (length) => {
+    const characters =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let result = "";
+    const charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
   };
-  console.log(transactionForm);
+
+  // Helper function to upload a single file
+  const uploadFile = async (file) => {
+    const randomString = generateRandomString(5); // Generate a random string of 5 characters
+    const newFileName = `${file.name
+      .split(".")
+      .slice(0, -1)
+      .join(".")}_${randomString}.${file.name.split(".").pop()}`;
+
+    const formData = new FormData();
+    formData.append("file", file, newFileName); // Add the file to FormData with the new name
+
+    // Log the time before the upload starts
+    const fileStartTime = new Date();
+    console.log(
+      `Uploading ${newFileName} started at: ${fileStartTime.toLocaleTimeString()}`
+    );
+
+    // Upload the file
+    await transactionStore.uploadFiles(formData);
+
+    // Log the time after the upload finishes
+    const fileEndTime = new Date();
+    console.log(
+      `Finished uploading ${newFileName} at: ${fileEndTime.toLocaleTimeString()}`
+    );
+    console.log(
+      `Time taken to upload ${newFileName}: ${
+        (fileEndTime - fileStartTime) / 1000
+      } seconds`
+    );
+  };
+
+  // Helper function to gather all file upload promises and return file names
+  const prepareFileUploads = (files) => {
+    const uploadPromises = [];
+    const fileNames = [];
+
+    if (Array.isArray(files)) {
+      files.forEach((file) => {
+        uploadPromises.push(uploadFile(file));
+        const randomString = generateRandomString(5); // Generate a random string of 5 characters
+        const newFileName = `${file.name
+          .split(".")
+          .slice(0, -1)
+          .join(".")}_${randomString}.${file.name.split(".").pop()}`;
+        fileNames.push(newFileName); // Collect new file names
+      });
+    } else if (files) {
+      uploadPromises.push(uploadFile(files[0])); // Single file upload
+      const randomString = generateRandomString(5); // Generate a random string of 5 characters
+      const newFileName = `${files[0].name
+        .split(".")
+        .slice(0, -1)
+        .join(".")}_${randomString}.${files[0].name.split(".").pop()}`;
+      fileNames.push(newFileName); // Collect new file name
+    }
+
+    return { uploadPromises, fileNames };
+  };
+
+  // Prepare files for upload
+  const file = prepareFileUploads(form.value.beneficiaryUploadSupportingFile);
+
+  // Collect all promises
+  allUploadPromises = [...file.uploadPromises];
+
+  // Collect file names
+  fileNames = {
+    beneficiaryUploadSupportingFile: file.fileNames.join(","),
+  };
+
+  try {
+    await Promise.all(allUploadPromises);
+
+    console.log(
+      "Form value after file uploads:",
+      JSON.stringify(form.value, null, 2)
+    );
+
+    const {
+      selectedBeneficiary,
+      sendingAmount,
+      sendingCurrency,
+      receivingAmount,
+      receivingCurrency,
+      ...rest
+    } = form.value;
+
+    // Explicitly assign the required fields
+    const transactionForm = {
+      username: form.value.username,
+      beneficiaryId: Number(selectedBeneficiary?.id),
+      memoId: transactionStore.memoId,
+      rate: transactionStore.rate,
+      fee: transactionStore.fee,
+      payAmount: sendingAmount,
+      payCurrency: sendingCurrency,
+      getAmount: receivingAmount,
+      getCurrency: receivingCurrency,
+      contactNo:
+        selectedBeneficiary?.accountType === "1"
+          ? selectedBeneficiary?.companyContactNo
+          : selectedBeneficiary?.contactMobile,
+      address1: selectedBeneficiary?.address,
+      ...rest,
+      ...fileNames,
+    };
+
+    const response = await transactionStore.addTransaction(transactionForm);
+
+    if (response.status === 1) {
+      alertStore.alert("success", "You have added a new transaction");
+      window.location.href = "/#/transaction";
+    } else {
+      console.error("Error adding transaction:", response.message);
+    }
+  } catch (error) {
+    console.error("Error during file upload or transaction addition:", error);
+  }
 };
 
 const nextStep = () => {
@@ -85,49 +217,101 @@ const prevStep = () => {
 };
 
 onMounted(async () => {
-  // Initialize the step store with step names
-  stepStore.setSteps(["Beneficiary", "Amount", "Final"]);
-  stepStore.setCurrentStep(1);
+  try {
+    // Step 1: Fetch beneficiary list when the component mounts
+    const response = await beneficiaryStore.getBeneficiaryList();
+    beneficiaries.value = response.beneficiaries || [];
+    beneficiaries.value.sort((a, b) => b.isFav - a.isFav);
 
-  const response = await beneficiaryStore.getBeneficiaryList();
-  beneficiaries.value = response.beneficiaries || [];
-
-  beneficiaries.value.sort((a, b) => b.isFav - a.isFav);
+    // Step 2: If beneId exists in query, fetch its details on mount
+    const beneId = router.currentRoute.value.query.beneId;
+    if (beneId) {
+      console.log("Fetching details for beneId on mount:", beneId);
+      await fetchBeneficiaryDetail(beneId);
+    }
+  } catch (error) {
+    console.error("Error fetching beneficiary list or details:", error);
+  }
 });
 
-// onMounted(async () => {
-//   const query = router.currentRoute.value.query;
+// Watcher to track changes to beneId and fetch details
+watch(
+  () => router.currentRoute.value.query.beneId,
+  async (newBeneId, oldBeneId) => {
+    if (newBeneId && newBeneId !== oldBeneId) {
+      console.log("Detected beneId change:", newBeneId);
+      await fetchBeneficiaryDetail(newBeneId);
+    }
+  }
+);
 
-//   // Check for all required query parameters
-//   const hasAllQueryParams =
-//     query.sendingAmount &&
-//     query.sendingCurrency &&
-//     query.receivingAmount &&
-//     query.receivingCurrency &&
-//     query.beneName &&
-//     query.currency;
+// Function to fetch beneficiary details
+const fetchBeneficiaryDetail = async (beneId) => {
+  try {
+    const detailResponse = await beneficiaryStore.getBeneficiaryDetail(beneId);
+    if (detailResponse?.beneDetails) {
+      const beneDetails = detailResponse.beneDetails;
 
-//   if (hasAllQueryParams) {
-//     stepStore.setCurrentStep(2);
-//     console.log("Navigating to Step 2 due to query parameters.");
-//   } else {
-//     stepStore.setCurrentStep(1);
-//   }
-// });
+      // Ensure selectedBeneficiary exists
+      if (!form.value.selectedBeneficiary) {
+        form.value.selectedBeneficiary = {};
+      }
 
-// For beneficiary detail
-onMounted(async () => {
+      // Merge beneDetails without overwriting existing values
+      Object.keys(beneDetails).forEach((key) => {
+        if (
+          beneDetails[key] !== null &&
+          beneDetails[key] !== "" &&
+          form.value.selectedBeneficiary[key] === undefined
+        ) {
+          form.value.selectedBeneficiary[key] = beneDetails[key];
+        }
+      });
+
+      // Force Vue reactivity
+      form.value.selectedBeneficiary = { ...form.value.selectedBeneficiary };
+
+      // Set to store
+      beneficiaryStore.setSelectedBeneficiary(form.value.selectedBeneficiary);
+
+      console.log(
+        "Updated selectedBeneficiary:",
+        form.value.selectedBeneficiary
+      );
+    }
+  } catch (error) {
+    console.error("Error fetching beneficiary details:", error);
+  }
+};
+
+onMounted(() => {
   const query = router.currentRoute.value.query;
 
-  // Check for all required query parameters
-  const hasAllQueryParams = query.beneName && query.currency;
+  stepStore.setSteps(["Beneficiary", "Amount", "Final"]);
 
-  if (hasAllQueryParams) {
-    stepStore.setCurrentStep(2);
-    console.log("Navigating to Step 2 due to query parameters.");
-  } else {
-    stepStore.setCurrentStep(1);
-  }
+  nextTick(() => {
+    if (query.beneId) {
+      if (stepStore.currentStep === 2) {
+        stepStore.setCurrentStep(2);
+        console.log("Staying on Step 2 due to query.beneId.");
+      } else if (stepStore.currentStep === 3) {
+        stepStore.setCurrentStep(2);
+        console.log("Staying on Step 2 due to query.beneId.");
+      } else {
+        stepStore.setCurrentStep(1);
+        console.log("Staying on Step 1 with query.beneId.");
+      }
+    } else {
+      // No query.beneId, force Step 1
+      stepStore.setCurrentStep(1);
+      console.log("Staying on Step 1 as no query.beneId exists.");
+    }
+  });
+});
+
+onMounted(() => {
+  const lockedRate = transactionStore.lockedRate; // Access locked rate from the store
+  console.log("Locked Rate:", lockedRate);
 });
 
 const handleCancel = () => {

@@ -24,6 +24,7 @@
     "express": "^4.21.1",
     "multer": "^1.4.5-lts.1",
     "pinia": "^2.1.7",
+    "pinia-plugin-persistedstate": "^4.2.0",
     "ua-parser-js": "^1.0.38",
     "vue": "^3.4.21",
     "vue-router": "^4.3.0",

@@ -1,6 +1,6 @@
 <template>
   <div class="content-area">
-    <div class="transaction">
+    <div class="transaction" v-if="transactionDetail">
       <button class="btn-round" @click="goBack">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
           <path
@@ -11,14 +11,20 @@
       <div class="invoice">
         <div class="user-section">
           <div>
-            <span class="icon-round"
-              >{{ beneficiary.initials }}
-              <!-- <img :src="getCurrencyImagePath(beneficiary.currency)" /> -->
+            <span class="icon-round">
+              {{ getInitials(transactionDetail.beneName) }}
+              <img :src="getCurrencyImagePath(transactionDetail.getCurrency)" />
             </span>
-            <span>John Doe</span>
+            <span>{{ transactionDetail.beneName }}</span>
           </div>
-
-          <button type="button" class="btn-blue">Send reminder</button>
+          <ButtonAPI
+            v-if="transactionDetail.isUrgent === 0"
+            @click="handleReminder"
+            class="btn-blue"
+            :disabled="store.isLoading"
+          >
+            Send reminder
+          </ButtonAPI>
         </div>
         <div class="item-section">
           <div class="detail info">
@@ -26,15 +32,15 @@
             <div class="item-group">
               <div class="item">
                 <span>Account holder name</span>
-                <span>John Doe</span>
+                <span>{{ transactionDetail.beneName }}</span>
               </div>
               <div class="item">
                 <span>Bank name</span>
-                <span>Bank of America</span>
+                <span>{{ transactionDetail.bank }}</span>
               </div>
               <div class="item">
                 <span>Bank account number</span>
-                <span>98765432100</span>
+                <span>{{ transactionDetail.bankAccountNumber }}</span>
               </div>
               <div class="item">
                 <span>Remittance purpose</span>
@@ -50,35 +56,77 @@
             <div class="title">Transaction Summary</div>
             <div class="item-group">
               <div class="item">
+                <span>Memo ID</span>
+                <span>{{ transactionDetail.memoId }}</span>
+              </div>
+              <div class="item">
                 <span>Date & time</span>
-                <span>1 May 2024, 2:00PM</span>
+                <span>{{ formatDateTime(transactionDetail.date) }}</span>
               </div>
               <div class="item">
                 <span>Sending amount</span>
-                <span>2,000 SGD</span>
+                <span>
+                  {{ formatNumber(transactionDetail.payAmount) }}
+                  {{ transactionDetail.payCurrency }}</span
+                >
               </div>
               <div class="item">
                 <span>Processing fees</span>
-                <span>8 SGD</span>
+                <span
+                  >{{ transactionDetail.fee }}
+                  {{ transactionDetail.payCurrency }}</span
+                >
               </div>
               <div class="item">
                 <span>Receiving amount</span>
-                <span>1,463.82 USD</span>
+                <span>
+                  {{ formatNumber(transactionDetail.getAmount) }}
+                  {{ transactionDetail.getCurrency }}</span
+                >
               </div>
               <div class="item">
                 <span>Exchange rate</span>
-                <span>1 SGD = 0.7315 USD</span>
+                <span>
+                  1 {{ transactionDetail.payCurrency }} =
+                  {{ formatNumber(transactionDetail.rate) }}
+                  {{ transactionDetail.getCurrency }}</span
+                >
               </div>
               <div class="item">
                 <span>Amount paid</span>
-                <span>2,008 SGD</span>
+                <span>
+                  {{ formatNumber(totalPaid) }}
+                  {{ transactionDetail.payCurrency }}</span
+                >
               </div>
-              <div class="item">Pending remittance</div>
+
+              <div class="item">
+                <Tooltip
+                  text="In priority processing"
+                  v-if="
+                    transactionDetail.isUrgent === 1 &&
+                    transactionDetail.status === 2
+                  "
+                >
+                  <div
+                    :class="{
+                      priority:
+                        transactionDetail.isUrgent === 1 &&
+                        transactionDetail.status === 2,
+                    }"
+                  >
+                    {{ getTransactionStatus(transactionDetail.status) }}
+                  </div>
+                </Tooltip>
+                <div v-else>
+                  {{ getTransactionStatus(transactionDetail.status) }}
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <Modal
+      <!-- <Modal
         :isModalOpen="store.isModalOpen"
         :title="'Delete beneficiary'"
         :showAction="true"
@@ -89,13 +137,14 @@
         <template #body>
           <p>Are you sure you want to delete this beneficiary?</p>
         </template>
-      </Modal>
+      </Modal> -->
     </div>
+    <div v-else>Loading...</div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import {
@@ -103,57 +152,85 @@ import {
   useBeneficiaryStore,
   useTransactionStore,
   useStore,
+  useAuthStore,
 } from "@/stores/index.js";
 import Modal from "@/components/Modal.vue";
+import {
+  formatNumber,
+  getTransactionStatus,
+  formatDateTime,
+} from "@/utils/transactionUtils";
+import { getInitials, getCurrencyImagePath } from "@/utils/beneficiaryUtils";
+import { ButtonAPI } from "@/components/Form";
+import Tooltip from "@/components/Tooltip.vue";
 
 const route = useRoute();
 const router = useRouter();
 
-const id = route.params.id;
+const memoId = route.params.memoId;
 const beneficiaryStore = useBeneficiaryStore();
 const transactionStore = useTransactionStore();
 const store = useStore();
-const alertStore = useAlertStore();
-const transactionDetails = ref(null);
+const authStore = useAuthStore();
 
-const handleSubmit = async () => {
+const alertStore = useAlertStore();
+const transactionDetail = ref(null);
+
+const handleReminder = async () => {
+  const form = {
+    username: authStore.username,
+    memoId: memoId,
+  };
   try {
-    const response = await beneficiaryStore.deleteBeneficiary(
-      beneficiary.value.name
-    );
+    const response = await transactionStore.sendReminder(form);
 
     if (response.status === 1) {
-      alertStore.alert(
-        "success",
-        "You have deleted this beneficiary successfully"
-      );
-      console.log("Beneficiary deleted successfully");
-      router.push("/beneficiary-list");
+      alertStore.alert("success", "We have received your reminder.");
+      window.location.reload();
+
+      console.log("success", response);
     } else {
-      // Handle error
-      alertStore.alert("error", "Failed to delete beneficiary");
-      console.error("Failed to delete beneficiary:", response.message);
+      console.log("Failed to remind:", transactionStore.error);
     }
   } catch (error) {
-    alertStore.alert("error", "Failed to delete beneficiary");
-    console.error("Error in handleSubmit:");
+    alertStore.alert("error", "Reminder failed");
+    console.log("Failed to remind:", transactionStore.error);
   }
 };
+
+// onMounted(async () => {
+//   try {
+//     const response = await transactionStore.getTransactionDetail(memoId);
+//     if (response?.trx) {
+//       transactionDetail.value = response.trx;
+//     } else {
+//       console.error("Transaction not found.");
+//     }
+//   } catch (error) {
+//     console.error("Error fetching transaction details:", error);
+//   }
+// });
 
 onMounted(async () => {
   try {
-    const response = await beneficiaryStore.getTransactionDetail(trxnNum);
-    if (response?.trxnDetails) {
-      transactionDetails.value = response.trxnDetails;
+    const response = await transactionStore.getTransactionDetail(memoId);
+    if (response?.trx) {
+      transactionDetail.value = response.trx;
     }
   } catch (error) {
-    console.error("Error fetching beneficiary details:", error);
+    console.error("Error fetching transaction details:", error);
   }
 });
 
-const getCurrencyImagePath = (currencyCode) => {
-  return `/src/assets/currency/${currencyCode.toLowerCase()}.svg`;
-};
+const totalPaid = computed(() => {
+  if (transactionDetail.value) {
+    return (
+      parseFloat(transactionDetail.value.payAmount || 0) +
+      parseFloat(transactionDetail.value.fee || 0)
+    );
+  }
+  return 0;
+});
 
 const goBack = () => {
   router.go(-1);
@@ -267,12 +344,12 @@ const goBack = () => {
   text-align: end;
 }
 
-.transaction .item-section .detail.summary .item-group .item:nth-child(5) {
+.transaction .item-section .detail.summary .item-group .item:nth-child(6) {
   border-bottom: 1px solid var(--light-grey);
   padding-bottom: var(--size-24);
 }
 
-.transaction .item-section .detail.summary .item-group .item:nth-child(6) {
+.transaction .item-section .detail.summary .item-group .item:nth-child(7) {
   margin-bottom: var(--size-24);
 }
 
@@ -280,18 +357,41 @@ const goBack = () => {
   .item-section
   .detail.summary
   .item-group
-  .item:nth-child(6)
+  .item:nth-child(7)
   span:nth-child(2) {
   font-weight: var(--semi-bold);
   font-size: var(--text-lg);
 }
 
-.transaction .item-section .detail.summary .item-group .item:nth-child(7) {
+.transaction .item-section .detail.summary .item-group .item:nth-child(8) {
   display: flex;
   justify-content: end;
   font-weight: var(--semi-bold);
   font-size: var(--text-lg);
   margin-bottom: 0;
+}
+
+.transaction .item-section .detail.summary .item-group .item:nth-child(8) {
+  display: flex;
+  align-items: start;
+  justify-content: end;
+  margin-bottom: 0;
+}
+
+.transaction
+  .item-section
+  .detail.summary
+  .item-group
+  .item:nth-child(8)
+  .priority {
+  font-weight: var(--semi-bold);
+  font-size: var(--text-lg);
+  cursor: pointer;
+  color: var(--dark-yellow);
+}
+
+.transaction .item-section .detail.summary .item-group .item:nth-child(8) div {
+  font-weight: var(--semi-bold);
 }
 
 @media (max-width: 768px) {

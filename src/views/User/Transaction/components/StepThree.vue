@@ -7,23 +7,25 @@
           <div class="body">
             <InputFile
               label="Supporting documents"
-              id="docIC"
-              v-model="localForm.docIC"
+              id="beneficiaryUploadSupportingFile"
+              v-model="localForm.beneficiaryUploadSupportingFile"
               :multiple="false"
-              @update:modelValue="(files) => handleFileUpload('docIC', files)"
-              :error="errors.docIC"
+              @update:modelValue="
+                (files) =>
+                  handleFileUpload('beneficiaryUploadSupportingFile', files)
+              "
+              :error="errors.beneficiaryUploadSupportingFile"
               :tooltip="true"
               tooltipText="Upload supporting documents for your application"
             />
             <Input
               label="Remarks (optional)"
               id="remarks"
-              v-model="localForm.remarks"
-              :error="errors.remarks"
+              v-model="localForm.customerRemarks"
+              :error="errors.customerRemarks"
             />
           </div>
         </div>
-        <!-- StepThree.vue -->
         <div class="item-group">
           <div class="header">Beneficiary Information</div>
           <div class="body">
@@ -33,15 +35,33 @@
                 {{ localForm.selectedBeneficiary?.beneName || "" }}
               </div>
             </div>
-            <div class="item" v-if="localForm.beneficiaryInfo?.accountType">
-              <div class="label">Account Type</div>
+            <div class="item">
+              <div class="label">Currency</div>
               <div class="value">
-                {{ localForm.beneficiaryInfo.accountType }}
+                {{ localForm.selectedBeneficiary?.currency || "" }}
               </div>
             </div>
-            <div class="item" v-if="localForm.beneficiaryInfo?.currency">
-              <div class="label">Currency</div>
-              <div class="value">{{ localForm.beneficiaryInfo.currency }}</div>
+            <div class="item">
+              <div class="label">Payment type</div>
+              <div class="value">
+                {{ localForm.selectedBeneficiary?.paymentType || "" }}
+              </div>
+            </div>
+            <div class="item">
+              <div class="label">Account type</div>
+              <div class="value">
+                {{
+                  getAccountType(
+                    localForm.selectedBeneficiary?.accountType || ""
+                  )
+                }}
+              </div>
+            </div>
+            <div class="item">
+              <div class="label">Address</div>
+              <div class="value">
+                {{ localForm.selectedBeneficiary?.address || "" }}
+              </div>
             </div>
           </div>
         </div>
@@ -52,15 +72,14 @@
           :sendingCurrency="localForm.sendingCurrency"
           :receivingAmount="localForm.receivingAmount"
           :receivingCurrency="localForm.receivingCurrency"
-          processingFees="8 SGD"
-          exchangeRate="1 SGD = 0.7424 USD"
-          totalPayment="2,000 SGD"
+          :fee="transactionStore.fee"
+          :rate="transactionStore.rate"
         />
 
         <div class="footer">
           <button
             type="button"
-            @click="store.openModal"
+            @click="handleSubmit"
             class="btn-red standard-button"
           >
             Submit
@@ -80,7 +99,7 @@
       :title="'Transaction Confirmation'"
       :showAction="true"
       @close="store.closeModal"
-      @submit="handleSubmit"
+      @submit="emitSubmit"
       @cancel="store.closeModal"
     >
       <template #body>
@@ -96,29 +115,48 @@
 
 <script setup>
 import TransactionSummary from "./TransactionSummary.vue";
-import { reactive, watch, defineProps, defineEmits, onMounted } from "vue";
+import {
+  reactive,
+  watch,
+  defineProps,
+  defineEmits,
+  onMounted,
+  nextTick,
+} from "vue";
 import { Input, InputFile } from "@/components/Form";
 import { useValidation } from "@/composables/useValidation";
 import { formValidation } from "./schemas/stepThreeSchema";
-import { useAlertStore, useStore } from "@/stores/index.js";
+import {
+  useAlertStore,
+  useBeneficiaryStore,
+  useTransactionStore,
+  useStore,
+} from "@/stores/index.js";
 import Modal from "@/components/Modal.vue";
 import { useRoute } from "vue-router";
-
+import { getAccountType } from "@/utils/beneficiaryUtils.js";
 const props = defineProps({
   modelValue: {
     type: Object,
     required: true,
   },
 });
-const emit = defineEmits(["update:modelValue", "submit", "prevStep"]);
+const emit = defineEmits(["update:modelValue", "submit", "prevStep", "submit"]);
 const { errors, validateForm, clearErrors, scrollToErrors } = useValidation();
 const route = useRoute();
 const store = useStore();
 const alertStore = useAlertStore();
+const beneficiaryStore = useBeneficiaryStore();
+const transactionStore = useTransactionStore();
 
 const localForm = reactive({
+  selectedBeneficiary: beneficiaryStore.selectedBeneficiary || null,
   ...props.modelValue,
 });
+
+const emitSubmit = () => {
+  emit("submit");
+};
 
 const handleSubmit = () => {
   const schema = formValidation(localForm);
@@ -127,7 +165,7 @@ const handleSubmit = () => {
   console.log("Validation Errors:", errors);
 
   if (isValid) {
-    emit("submit");
+    store.openModal();
   } else {
     alertStore.alert("error", "Please fill in all the required inputs.");
     scrollToErrors();
@@ -153,33 +191,11 @@ watch(
   { deep: true }
 );
 
-// onMounted(() => {
-//   if (
-//     localForm.value.sendingAmount === undefined ||
-//     localForm.value.sendingAmount === null
-//   ) {
-//     localForm.value.sendingAmount = route.query.sendingAmount
-//       ? parseFloat(route.query.sendingAmount)
-//       : 0.0;
-//   }
-
-//   if (!localForm.value.sendingCurrency) {
-//     localForm.value.sendingCurrency = route.query.sendingCurrency || "SGD";
-//   }
-
-//   if (
-//     localForm.value.receivingAmount === undefined ||
-//     localForm.value.receivingAmount === null
-//   ) {
-//     localForm.value.receivingAmount = route.query.receivingAmount
-//       ? parseFloat(route.query.receivingAmount)
-//       : 0.0;
-//   }
-
-//   if (!localForm.value.receivingCurrency) {
-//     localForm.value.receivingCurrency = route.query.receivingCurrency || "MYR";
-//   }
-// });
+// *** Maintain beneficiary state at StepTwo and StepThree ***
+onMounted(async () => {
+  beneficiaryStore.setSelectedBeneficiary(localForm.selectedBeneficiary);
+});
+// *** Maintain beneficiary state at StepTwo and StepThree ***
 
 const handleBack = () => {
   emit("prevStep");
@@ -229,11 +245,19 @@ const handleBack = () => {
   border-bottom: 1px solid var(--light-grey);
 }
 
+.third-form .left-form .item-group .body .form-group:last-child {
+  margin-bottom: 0;
+}
+
 .third-form .left-form .item-group .body .item {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding-bottom: var(--size-8);
+}
+
+.third-form .left-form .item-group .body .item:last-child {
+  padding-bottom: 0;
 }
 
 .third-form .left-form .item-group .body .item .label {

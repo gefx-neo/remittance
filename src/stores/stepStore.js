@@ -24,4 +24,14 @@ export const useStepStore = defineStore("stepStore", {
       }
     },
   },
+  persist: {
+    enabled: true,
+    strategies: [
+      {
+        key: "stepStore", // Key for localStorage
+        storage: localStorage, // Persist to localStorage
+        paths: ["currentStep"], // Persist only the currentStep
+      },
+    ],
+  },
 });

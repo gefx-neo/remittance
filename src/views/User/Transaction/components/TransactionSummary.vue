@@ -22,11 +22,14 @@
         </div>
         <div class="item">
           <div class="label">Processing fees</div>
-          <div class="value">{{ processingFees }}</div>
+          <div class="value">{{ formatNumber(fee) }} {{ sendingCurrency }}</div>
         </div>
         <div class="item">
           <div class="label">Exchange rate</div>
-          <div class="value">{{ exchangeRate }}</div>
+          <div class="value">
+            1 {{ sendingCurrency }} = {{ formatNumber(rate) }}
+            {{ receivingCurrency }}
+          </div>
         </div>
         <div class="item">
           <div class="label">Receiving amount</div>
@@ -37,37 +40,29 @@
       </div>
       <div class="footerr">
         <div class="label">Amount to be paid</div>
-        <div class="value">{{ totalPayment }}</div>
+        <div class="value">
+          {{ formatNumber(amountToBePaid) }} {{ sendingCurrency }}
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, defineProps } from "vue";
-
+import { ref, computed, defineProps } from "vue";
+import { formatNumber } from "@/utils/transactionUtils.js";
 const props = defineProps({
   sendingAmount: Number,
   sendingCurrency: String,
   receivingAmount: Number,
   receivingCurrency: String,
-  processingFees: String,
-  exchangeRate: String,
-  totalPayment: String,
+  fee: Number,
+  rate: Number,
 });
 
-const formatNumber = (value) => {
-  const number = parseFloat(value);
-  if (isNaN(number)) return "";
-
-  // Format without unnecessary decimals
-  return number % 1 === 0
-    ? number.toLocaleString() // No decimal places for whole numbers
-    : number.toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }); // Add decimals only if necessary
-};
+const amountToBePaid = computed(() => {
+  return (props.sendingAmount || 0) + (props.fee || 0);
+});
 
 const isAccordionOpen = ref(true);
 const toggleAccordion = () => {

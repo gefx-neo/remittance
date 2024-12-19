@@ -238,7 +238,7 @@
                 </div>
                 <div class="second-column">
                   <div class="first-row">
-                    {{ transaction.sendingAmount }}
+                    {{ transaction.payAmount }}
                   </div>
                   <div class="second-row">
                     {{ transaction.receivingAmount }}
@@ -343,12 +343,21 @@ onMounted(async () => {
 });
 
 const redirectToTransaction = () => {
-  const { beneName, currency } = beneficiaryDetails.value;
+  const { currency } = beneficiaryDetails.value;
+  const beneId = route.params.id;
 
-  // Redirect to AddTransaction.vue with beneName and currency as query parameters
+  // Update selectedBeneficiary in the store using available details
+  beneficiaryStore.setSelectedBeneficiary({
+    id: beneId,
+    beneName: beneficiaryDetails.value.beneName,
+    currency: currency,
+    accountType: beneficiaryDetails.value.accountType,
+  });
+
+  // Redirect to Add Transaction page
   router.push({
     path: "/transaction/addtransaction",
-    query: { beneName, currency },
+    query: { currency, beneId },
   });
 };
 
