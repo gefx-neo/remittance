@@ -64,13 +64,14 @@
         />
 
         <div class="footer">
-          <button
+          <ButtonAPI
             type="button"
+            :disabled="isProcessing"
             @click="handleNext"
             class="btn-red standard-button"
           >
             Next
-          </button>
+          </ButtonAPI>
           <button
             type="button"
             @click="handleBack"
@@ -86,18 +87,11 @@
 
 <script setup>
 import TransactionSummary from "./TransactionSummary.vue";
-import {
-  onMounted,
-  reactive,
-  watch,
-  defineProps,
-  defineEmits,
-  nextTick,
-} from "vue";
-import { InputAmount, Select } from "@/components/Form";
+import { onMounted, ref, reactive, watch, defineProps, defineEmits } from "vue";
+import { InputAmount, Select, ButtonAPI } from "@/components/Form";
 import { paymentTypes, gefxBanks } from "@/data/data";
 import { useValidation } from "@/composables/useValidation";
-import { formValidation } from "./schemas/stepTwoSchema";
+import { formValidation, currencySchema } from "./schemas/stepTwoSchema";
 import {
   useStore,
   useAlertStore,
@@ -118,7 +112,13 @@ const props = defineProps({
   selectedBeneficiary: Object,
 });
 const emit = defineEmits(["update:modelValue", "nextStep", "prevStep"]);
-const { errors, validateForm, clearErrors, scrollToErrors } = useValidation();
+const {
+  errors,
+  validateForm,
+  validateSendingAmount,
+  validateReceivingAmount,
+  scrollToErrors,
+} = useValidation();
 const route = useRoute();
 const router = useRouter();
 
@@ -129,11 +129,43 @@ const transactionStore = useTransactionStore();
 
 const localForm = reactive({
   selectedBeneficiary: beneficiaryStore.selectedBeneficiary || null,
-  sendingAmount: props.modelValue.sendingAmount,
+  sendingAmount: props.modelValue.sendingAmount || 0,
+  receivingAmount: props.modelValue.receivingAmount || 0,
   paymentType: props.modelValue.paymentType,
   gefxBank: props.modelValue.gefxBank,
   ...props.modelValue,
 });
+
+watch(
+  () => [
+    localForm.sendingAmount,
+    localForm.receivingAmount,
+    localForm.sendingCurrency,
+    localForm.receivingCurrency,
+  ],
+  ([
+    newSendingAmount,
+    newReceivingAmount,
+    newSendingCurrency,
+    newReceivingCurrency,
+  ]) => {
+    // Validate sending amount
+    validateSendingAmount(
+      newSendingAmount,
+      newSendingCurrency,
+      currencySchema,
+      "sending"
+    );
+
+    // Validate receiving amount
+    validateReceivingAmount(
+      newReceivingAmount,
+      newReceivingCurrency,
+      currencySchema,
+      "receiving"
+    );
+  }
+);
 
 const handleNext = () => {
   const schema = formValidation(localForm);
@@ -236,12 +268,10 @@ const updateSendingCurrency = async (currency) => {
 
   try {
     const lockedRateResponse = await transactionStore.getLockedRate(
-      localForm.receivingCurrency,
-      localForm.sendingCurrency
+      localForm.sendingCurrency,
+      localForm.receivingCurrency
     );
     if (lockedRateResponse && lockedRateResponse.status === 1) {
-      transactionStore.setLockedRate(lockedRateResponse.rate);
-
       if (localForm.sendingAmount) {
         const response = await transactionStore.getLockedAmount(
           localForm.sendingAmount,
@@ -268,12 +298,10 @@ const updateReceivingCurrency = async (currency) => {
 
   try {
     const lockedRateResponse = await transactionStore.getLockedRate(
-      localForm.receivingCurrency,
-      localForm.sendingCurrency
+      localForm.sendingCurrency,
+      localForm.receivingCurrency
     );
     if (lockedRateResponse && lockedRateResponse.status === 1) {
-      transactionStore.setLockedRate(lockedRateResponse.rate);
-
       if (localForm.receivingAmount) {
         const response = await transactionStore.getLockedAmount(
           localForm.receivingAmount,
@@ -313,6 +341,75 @@ watch(
   },
   { immediate: true }
 );
+
+// If no transaction store, then call getLockedRate API to get memoId, fee and rate
+onMounted(async () => {
+  const transactionData = localStorage.getItem("transaction");
+
+  if (!transactionData) {
+    try {
+      const lockedRateResponse = await transactionStore.getLockedRate(
+        localForm.sendingCurrency,
+        localForm.receivingCurrency
+      );
+
+      if (lockedRateResponse && lockedRateResponse.status === 1) {
+        console.log("Locked rate fetched successfully:", lockedRateResponse);
+
+        // // Optionally, update local form or transaction state based on response
+        // transactionStore.memoId = lockedRateResponse.memoId; // Example usage
+        // transactionStore.rate = lockedRateResponse.rates?.[0]?.rate || null;
+        // transactionStore.fee = lockedRateResponse.rates?.[0]?.fee || null;
+      }
+    } catch (error) {
+      console.error("Error fetching locked rate:", error);
+    }
+  } else {
+    console.log(
+      "Transaction exists in localStorage. Skipping locked rate fetch."
+    );
+  }
+});
+
+const isFromDashboard = route.query.fromDashboard === "true";
+
+// Watch for beneficiary currency changes when navigating back from Step1
+const isProcessing = ref(false);
+
+watch(
+  () => localForm.receivingCurrency,
+  async (newCurrency, oldCurrency) => {
+    if (newCurrency !== oldCurrency && !isFromDashboard) {
+      console.log(
+        "Beneficiary's currency changed, updating amounts and rates."
+      );
+      isProcessing.value = true;
+      try {
+        await transactionStore.getLockedRate(
+          localForm.sendingCurrency,
+          newCurrency
+        );
+
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        const response = await transactionStore.getLockedAmount(
+          localForm.sendingAmount,
+          "pay"
+        );
+        if (response && response.status === 1) {
+          localForm.receivingAmount = parseFloat(response.getAmount);
+        }
+      } catch (error) {
+        console.error("Error updating rates and amounts:", error);
+      } finally {
+        isProcessing.value = false;
+      }
+    }
+  }
+);
+
+// This is to track when user enters Amount on Step2 and goes back to
+// Step1 to change beneficiary to different currency to reupdate the amount
 
 const handleBack = () => {
   emit("prevStep");

@@ -39,11 +39,23 @@ export const validationService = {
     }
   },
 
-  isWithinRange(value, label, { min = 0, max = Infinity } = {}) {
-    if (value < min || value > max) {
-      return `${label} must be between ${min} and ${max}.`;
+  validateAmount(amount, currency, schema, action) {
+    const { min, max } = schema[currency] || { min: 0, max: Infinity };
+
+    if (amount < min) {
+      return `The minimum amount for ${action} is ${this.formatAmount(
+        min
+      )} ${currency}.`;
+    } else if (amount > max) {
+      return `The maximum amount for ${action} is ${this.formatAmount(
+        max
+      )} ${currency}.`;
     }
     return null; // No error
+  },
+
+  formatAmount(amount) {
+    return parseFloat(amount).toLocaleString("en-US");
   },
 
   // Validate form based on a schema

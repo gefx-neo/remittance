@@ -1,6 +1,6 @@
 <template>
   <div class="content-area">
-    <div class="beneficiary" v-if="beneficiaryDetails">
+    <div class="beneficiary" v-if="beneficiaryDetail">
       <div class="profile-section">
         <button class="btn-round" @click="goBack">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
@@ -11,22 +11,22 @@
         </button>
         <div class="user-group">
           <span class="icon-round">
-            {{ getInitials(beneficiaryDetails.beneName) }}
+            {{ getInitials(beneficiaryDetail.beneName) }}
             <img
-              :src="getCurrencyImagePath(beneficiaryDetails.currency)"
+              :src="getCurrencyImagePath(beneficiaryDetail.currency)"
               alt="Currency"
             />
           </span>
           <div>
-            <span>{{ beneficiaryDetails.beneName }}</span>
+            <span>{{ beneficiaryDetail.beneName }}</span>
             <span>
               <FavouriteButton
-                :beneficiaryId="beneficiaryDetails.id || route.params.id"
-                :isFav="!!beneficiaryDetails.isFav"
+                :beneficiaryId="beneficiaryDetail.id || route.params.id"
+                :isFav="!!beneficiaryDetail.isFav"
               />
             </span>
           </div>
-          <div>{{ beneficiaryDetails.accountCurrency }}</div>
+          <div>{{ beneficiaryDetail.accountCurrency }}</div>
         </div>
         <div class="button-group">
           <button class="btn-red" @click="redirectToTransaction">
@@ -57,50 +57,50 @@
           <div class="item-group">
             <div class="item">
               <span>Account holder name</span>
-              <span>{{ beneficiaryDetails.beneName }}</span>
+              <span>{{ beneficiaryDetail.beneName }}</span>
             </div>
             <div class="item">
               <span>Account type</span>
-              <span>{{ getAccountType(beneficiaryDetails.accountType) }}</span>
+              <span>{{ getAccountType(beneficiaryDetail.accountType) }}</span>
             </div>
             <div class="item">
               <span>Bank name</span>
-              <span>{{ beneficiaryDetails.bankName }}</span>
+              <span>{{ beneficiaryDetail.bankName }}</span>
             </div>
             <div class="item">
               <span>Account number</span>
-              <span>{{ beneficiaryDetails.bankAccountNo }}</span>
+              <span>{{ beneficiaryDetail.bankAccountNo }}</span>
             </div>
             <div class="item">
               <span>Payment type</span>
-              <span>{{ beneficiaryDetails.paymentType }}</span>
+              <span>{{ beneficiaryDetail.paymentType }}</span>
             </div>
-            <div class="item" v-if="beneficiaryDetails.swiftCode.length > 0">
+            <div class="item" v-if="beneficiaryDetail.swiftCode.length > 0">
               <span>Swift code</span>
-              <span>{{ beneficiaryDetails.swiftCode }}</span>
+              <span>{{ beneficiaryDetail.swiftCode }}</span>
             </div>
-            <div class="item" v-if="beneficiaryDetails.primaryBIC">
+            <div class="item" v-if="beneficiaryDetail.primaryBIC">
               <span
                 >ACH routing number / IBAN no / BSB / ABA / Sort code / Bank
                 code</span
               >
-              <span>{{ beneficiaryDetails.primaryBIC }}</span>
+              <span>{{ beneficiaryDetail.primaryBIC }}</span>
             </div>
-            <div class="item" v-if="beneficiaryDetails.secondaryBIC">
+            <div class="item" v-if="beneficiaryDetail.secondaryBIC">
               <span>Branch code </span>
-              <span>{{ beneficiaryDetails.secondaryBIC }}</span>
+              <span>{{ beneficiaryDetail.secondaryBIC }}</span>
             </div>
-            <div class="item" v-if="beneficiaryDetails.bankCountry">
+            <div class="item" v-if="beneficiaryDetail.bankCountry">
               <span>Bank country</span>
-              <span>{{ getNationality(beneficiaryDetails.bankCountry) }}</span>
+              <span>{{ getNationality(beneficiaryDetail.bankCountry) }}</span>
             </div>
-            <div class="item" v-if="beneficiaryDetails.otherBankCountry">
+            <div class="item" v-if="beneficiaryDetail.otherBankCountry">
               <span>Other bank country</span>
-              <span>{{ beneficiaryDetails.bankCountry }}</span>
+              <span>{{ beneficiaryDetail.bankCountry }}</span>
             </div>
-            <div class="item" v-if="beneficiaryDetails.bankAddress">
+            <div class="item" v-if="beneficiaryDetail.bankAddress">
               <span>Bank address</span>
-              <span>{{ beneficiaryDetails.bankAddress }}</span>
+              <span>{{ beneficiaryDetail.bankAddress }}</span>
             </div>
           </div>
 
@@ -108,56 +108,56 @@
           <div class="item-group">
             <div class="item">
               <span>Friendly name</span>
-              <span>{{ beneficiaryDetails.name }}</span>
+              <span>{{ beneficiaryDetail.name }}</span>
             </div>
             <div class="item" v-if="isBusiness">
               <span>Business category</span>
               <span>{{
-                getBusinessCategory(beneficiaryDetails.businessCategory)
+                getBusinessCategory(beneficiaryDetail.businessCategory)
               }}</span>
             </div>
             <div
               class="item"
-              v-if="isBusiness && beneficiaryDetails.registrationNo"
+              v-if="isBusiness && beneficiaryDetail.registrationNo"
             >
               <span>Company registration number</span>
-              <span>{{ beneficiaryDetails.registrationNo }}</span>
+              <span>{{ beneficiaryDetail.registrationNo }}</span>
             </div>
             <div
               class="item"
-              v-if="isBusiness && beneficiaryDetails.registrationPlace"
+              v-if="isBusiness && beneficiaryDetail.registrationPlace"
             >
               <span>Country of incorporation</span>
               <span>{{
-                getNationality(beneficiaryDetails.registrationPlace)
+                getNationality(beneficiaryDetail.registrationPlace)
               }}</span>
             </div>
             <div class="item" v-if="isIndividual">
               <span>Nationality</span>
-              <span>{{ getNationality(beneficiaryDetails.nationality) }}</span>
+              <span>{{ getNationality(beneficiaryDetail.nationality) }}</span>
             </div>
             <div
               class="item"
-              v-if="isIndividual && beneficiaryDetails.otherNationality"
+              v-if="isIndividual && beneficiaryDetail.otherNationality"
             >
               <span>Other nationality</span>
-              <span>{{ beneficiaryDetails.otherNationality }}</span>
+              <span>{{ beneficiaryDetail.otherNationality }}</span>
             </div>
-            <div class="item" v-if="isIndividual && beneficiaryDetails.dob">
+            <div class="item" v-if="isIndividual && beneficiaryDetail.dob">
               <span>Date of birth</span>
-              <span>{{ beneficiaryDetails.dob }}</span>
+              <span>{{ beneficiaryDetail.dob }}</span>
             </div>
             <div class="item" v-if="isBusiness">
               <span>Company contact number</span>
-              <span>{{ beneficiaryDetails.companyContactNo }}</span>
+              <span>{{ beneficiaryDetail.companyContactNo }}</span>
             </div>
             <div class="item">
               <span>Phone number</span>
-              <span>{{ beneficiaryDetails.contactMobile }}</span>
+              <span>{{ beneficiaryDetail.contactMobile }}</span>
             </div>
-            <div class="item" v-if="beneficiaryDetails.address">
+            <div class="item" v-if="beneficiaryDetail.address">
               <span>Address</span>
-              <span>{{ beneficiaryDetails.address }}</span>
+              <span>{{ beneficiaryDetail.address }}</span>
             </div>
           </div>
 
@@ -165,38 +165,38 @@
           <div class="item-group">
             <div class="item">
               <span>Payment details</span>
-              <span>{{ beneficiaryDetails.paymentDetail }}</span>
+              <span>{{ beneficiaryDetail.paymentDetail }}</span>
             </div>
             <div class="item">
               <span>Account relationship</span>
-              <span>{{ beneficiaryDetails.rel }}</span>
+              <span>{{ beneficiaryDetail.rel }}</span>
             </div>
             <div class="item">
               <span>Purpose of intended transactions </span>
               <span>
                 {{
                   getRemittancePurpose(
-                    beneficiaryDetails.purposeOfIntendedTransactions
+                    beneficiaryDetail.purposeOfIntendedTransactions
                   )
                 }}
               </span>
             </div>
             <div
               class="item"
-              v-if="beneficiaryDetails.otherPurposeOfIntendedTransactions"
+              v-if="beneficiaryDetail.otherPurposeOfIntendedTransactions"
             >
               <span>Other remittance purpose</span>
               <span>{{
-                beneficiaryDetails.otherPurposeOfIntendedTransactions
+                beneficiaryDetail.otherPurposeOfIntendedTransactions
               }}</span>
             </div>
             <div class="item">
               <span>Source of funds</span>
-              <span>{{ getFundSource(beneficiaryDetails.fundSource) }}</span>
+              <span>{{ getFundSource(beneficiaryDetail.fundSource) }}</span>
             </div>
-            <div class="item" v-if="beneficiaryDetails.otherFundSource">
+            <div class="item" v-if="beneficiaryDetail.otherFundSource">
               <span>Other source of funds</span>
-              <span>{{ beneficiaryDetails.otherFundSource }}</span>
+              <span>{{ beneficiaryDetail.otherFundSource }}</span>
             </div>
           </div>
         </div>
@@ -263,6 +263,7 @@
         </template>
       </Modal>
     </div>
+    <div v-else>Loading...</div>
   </div>
 </template>
 
@@ -274,10 +275,8 @@ import {
   useStore,
   useAlertStore,
 } from "@/stores/index.js";
-import { useTransactionStore } from "@/stores/transactionStore";
 import FavouriteButton from "./components/FavouriteButton.vue";
 import Modal from "@/components/Modal.vue";
-import { storeToRefs } from "pinia";
 import {
   getInitials,
   getAccountType,
@@ -292,24 +291,23 @@ const router = useRouter();
 
 const id = route.params.id;
 const beneficiaryStore = useBeneficiaryStore();
-const transactionStore = useTransactionStore();
 const store = useStore();
 const alertStore = useAlertStore();
 
-const beneficiaryDetails = ref(null);
-const { transactions } = storeToRefs(transactionStore);
+const beneficiaryDetail = ref(null);
 
 const activeTab = ref("details");
 
 const setActiveTab = (tab) => {
   activeTab.value = tab;
 };
+
 const isIndividual = computed(() => {
-  return parseInt(beneficiaryDetails.value?.accountType) === 0;
+  return parseInt(beneficiaryDetail.value?.accountType) === 0;
 });
 
 const isBusiness = computed(() => {
-  return parseInt(beneficiaryDetails.value?.accountType) === 1;
+  return parseInt(beneficiaryDetail.value?.accountType) === 1;
 });
 
 const handleSubmit = async () => {
@@ -335,7 +333,7 @@ onMounted(async () => {
   try {
     const response = await beneficiaryStore.getBeneficiaryDetail(id);
     if (response?.beneDetails) {
-      beneficiaryDetails.value = response.beneDetails;
+      beneficiaryDetail.value = response.beneDetails;
     }
   } catch (error) {
     console.error("Error fetching beneficiary details:", error);
@@ -343,21 +341,25 @@ onMounted(async () => {
 });
 
 const redirectToTransaction = () => {
-  const { currency } = beneficiaryDetails.value;
+  const { currency } = beneficiaryDetail.value;
   const beneId = route.params.id;
 
   // Update selectedBeneficiary in the store using available details
   beneficiaryStore.setSelectedBeneficiary({
     id: beneId,
-    beneName: beneficiaryDetails.value.beneName,
+    beneName: beneficiaryDetail.value.beneName,
     currency: currency,
-    accountType: beneficiaryDetails.value.accountType,
+    accountType: beneficiaryDetail.value.accountType,
   });
 
   // Redirect to Add Transaction page
   router.push({
     path: "/transaction/addtransaction",
-    query: { currency, beneId },
+    query: {
+      fromBeneficiaryDetail: "true",
+      currency,
+      beneId,
+    },
   });
 };
 

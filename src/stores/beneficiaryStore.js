@@ -3,7 +3,7 @@ import apiService from "@/services/apiService";
 import { useStore } from "@/stores/useStore";
 import { useAuthStore } from "@/stores/authStore";
 
-export const useBeneficiaryStore = defineStore("beneficiaryStore", {
+export const useBeneficiaryStore = defineStore("beneficiary", {
   state: () => ({
     beneficiaryList: null,
     error: null,
@@ -185,7 +185,7 @@ export const useBeneficiaryStore = defineStore("beneficiaryStore", {
     enabled: true, // Enable persistence
     strategies: [
       {
-        key: "beneficiaryStore", // Key in localStorage
+        key: "beneficiary", // Key in localStorage
         storage: localStorage, // Use localStorage
         paths: ["selectedBeneficiary"], // Only persist the selectedBeneficiary
       },

@@ -1,6 +1,6 @@
 <template>
   <div class="content-area">
-    <div class="beneficiary">
+    <div class="beneficiary" v-if="beneficiaries">
       <div class="title">
         <h3>Beneficiary</h3>
       </div>
@@ -232,6 +232,7 @@
       <!-- <button class="btn-load">Load more</button> -->
       <router-view></router-view>
     </div>
+    <div v-else>Loading...</div>
   </div>
 </template>
 
@@ -264,9 +265,12 @@ onMounted(async () => {
 const filteredBeneficiaries = computed(() => {
   return beneficiaries.value.filter((beneficiary) => {
     const query = searchQuery.value.toLowerCase();
+    const accountType = getAccountType(beneficiary.accountType).toLowerCase();
+
     return (
       beneficiary.beneName.toLowerCase().includes(query) ||
-      beneficiary.currency.toLowerCase().includes(query)
+      beneficiary.currency.toLowerCase().includes(query) ||
+      accountType.includes(query)
     );
   });
 });

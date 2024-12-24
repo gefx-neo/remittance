@@ -177,204 +177,35 @@ const updateCustomerType = (newCustomerType) => {
   selectedCustomerType.value = newCustomerType;
 };
 
-const handleSubmit = async () => {
-  // Helper function to generate a random string
-  const generateRandomString = (length) => {
-    const characters =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    let result = "";
-    const charactersLength = characters.length;
-    for (let i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
-  };
-
-  // Helper function to append and upload each file individually
-  const appendAndUploadFile = async (file, folderName) => {
-    const randomString = generateRandomString(5); // Generate a random string of 5 characters
-    const newFileName = `${file.name
-      .split(".")
-      .slice(0, -1)
-      .join(".")}_${randomString}.${file.name.split(".").pop()}`;
-
-    const formData = new FormData();
-    formData.append("file", file, newFileName); // Add file with new name
-    formData.append("folder", folderName); // Add folder name as text
-
-    // Log the time before the upload starts
-    const fileStartTime = new Date();
-    console.log(
-      `Uploading ${newFileName} started at: ${fileStartTime.toLocaleTimeString()}`
-    );
-
-    // Upload the file
-    await profileStore.uploadFiles(formData);
-
-    // Log the time after the upload finishes
-    const fileEndTime = new Date();
-    console.log(
-      `Finished uploading ${newFileName} at: ${fileEndTime.toLocaleTimeString()}`
-    );
-    console.log(
-      `Time taken to upload ${newFileName}: ${
-        (fileEndTime - fileStartTime) / 1000
-      } seconds`
-    );
-  };
-
-  // Helper function to gather all file upload promises and return file names
-  const appendFilesWithFolder = (files, folderName) => {
-    const uploadPromises = [];
-    const fileNames = [];
-
-    if (Array.isArray(files)) {
-      files.forEach((file) => {
-        uploadPromises.push(appendAndUploadFile(file, folderName));
-        const randomString = generateRandomString(5); // Generate a random string of 5 characters
-        const newFileName = `${file.name
-          .split(".")
-          .slice(0, -1)
-          .join(".")}_${randomString}.${file.name.split(".").pop()}`;
-        fileNames.push(newFileName); // Collect new file names
-      });
-    } else if (files) {
-      uploadPromises.push(appendAndUploadFile(files[0], folderName)); // Single file upload
-      const randomString = generateRandomString(5); // Generate a random string of 5 characters
-      const newFileName = `${files[0].name
-        .split(".")
-        .slice(0, -1)
-        .join(".")}_${randomString}.${files[0].name.split(".").pop()}`;
-      fileNames.push(newFileName); // Collect new file name
-    }
-
-    return { uploadPromises, fileNames };
-  };
-
-  let allUploadPromises = [];
-  let fileNames = {};
-
-  // Append files for corporate or individual form and gather upload promises
-  if (selectedCustomerType.value === "Corporate & Trading Company") {
-    const accountOpening = appendFilesWithFolder(
-      corporateForm.docAccOpening,
-      "AccountOpening"
-    );
-    const photoID = appendFilesWithFolder(
-      corporateForm.docPhotoID,
-      "BusinessAcra"
-    );
-    const selfie = appendFilesWithFolder(
-      corporateForm.docSelfie,
-      "CompanySelfiePhoto"
-    );
-    const directorIC = appendFilesWithFolder(
-      corporateForm.docDirectorIC,
-      "ICWithDirector"
-    );
-    const acra = appendFilesWithFolder(corporateForm.docAcra, "BusinessAcra");
-
-    allUploadPromises = [
-      ...accountOpening.uploadPromises,
-      ...photoID.uploadPromises,
-      ...selfie.uploadPromises,
-      ...directorIC.uploadPromises,
-      ...acra.uploadPromises,
-    ];
-
-    fileNames = {
-      docAccOpening: accountOpening.fileNames.join(","),
-      docPhotoID: photoID.fileNames.join(","),
-      docSelfie: selfie.fileNames.join(","),
-      docDirectorIC: directorIC.fileNames.join(","),
-      docAcra: acra.fileNames.join(","),
-    };
-
-    // **Handle agent-related files if `isAgent` is 'Yes'**
-    if (isAgent.value === "Yes") {
-      const agentBasisAuth = appendFilesWithFolder(
-        corporateForm.agentBasisAuth,
-        "BasisOfAuthority"
-      );
-      allUploadPromises.push(...agentBasisAuth.uploadPromises);
-      fileNames.agentBasisAuth = agentBasisAuth.fileNames.join(",");
-    }
-  } else if (selectedCustomerType.value === "Natural Person") {
-    const ic = appendFilesWithFolder(individualForm.docIC, "ICOfCustomer");
-    const selfie = appendFilesWithFolder(
-      individualForm.docSelfie,
-      "NaturalSelfiePhoto"
-    );
-    const card = appendFilesWithFolder(
-      individualForm.docCard,
-      "BusinessNameCard"
-    );
-    const kyc = appendFilesWithFolder(individualForm.docKYC, "KYCForm");
-
-    allUploadPromises = [
-      ...ic.uploadPromises,
-      ...selfie.uploadPromises,
-      ...card.uploadPromises,
-      ...kyc.uploadPromises,
-    ];
-
-    fileNames = {
-      docIC: ic.fileNames.join(","),
-      docSelfie: selfie.fileNames.join(","),
-      docCard: card.fileNames.join(","),
-      docKYC: kyc.fileNames.join(","),
-    };
-
-    // **Handle agent-related files if `isAgent` is 'Yes'**
-    if (isAgent.value === "Yes") {
-      const agentBasisAuth = appendFilesWithFolder(
-        individualForm.agentBasisAuth,
-        "BasisOfAuthority"
-      );
-      allUploadPromises.push(...agentBasisAuth.uploadPromises);
-      fileNames.agentBasisAuth = agentBasisAuth.fileNames.join(",");
-    }
-  }
-
-  try {
-    // Upload all files in parallel
-    console.log("Starting file uploads in parallel...");
-    await Promise.all(allUploadPromises);
-    console.log("All files uploaded successfully.");
-
-    // After file upload completes, proceed with account verification
-    const verificationForm =
-      selectedCustomerType.value === "Corporate & Trading Company"
-        ? { ...corporateForm, ...fileNames }
-        : { ...individualForm, ...fileNames };
-
-    const verifyResponse = await profileStore.verifyAccount(verificationForm);
-
-    if (verifyResponse.status === 1) {
-      alertStore.alert("success", "You have submitted successfully.");
-      window.location.href = "/#/profile";
-
-      console.log("Account verification successful!");
-    } else {
-      alertStore.alert("error", verifyResponse.message);
-      console.error("Account verification failed:", verifyResponse.message);
-    }
-  } catch (error) {
-    console.error("An error occurred:", error);
-  }
-};
-
 // const handleSubmit = async () => {
+//   // Helper function to generate a random string
+//   const generateRandomString = (length) => {
+//     const characters =
+//       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+//     let result = "";
+//     const charactersLength = characters.length;
+//     for (let i = 0; i < length; i++) {
+//       result += characters.charAt(Math.floor(Math.random() * charactersLength));
+//     }
+//     return result;
+//   };
+
 //   // Helper function to append and upload each file individually
 //   const appendAndUploadFile = async (file, folderName) => {
+//     const randomString = generateRandomString(5); // Generate a random string of 5 characters
+//     const newFileName = `${file.name
+//       .split(".")
+//       .slice(0, -1)
+//       .join(".")}_${randomString}.${file.name.split(".").pop()}`;
+
 //     const formData = new FormData();
-//     formData.append("file", file); // Add file
+//     formData.append("file", file, newFileName); // Add file with new name
 //     formData.append("folder", folderName); // Add folder name as text
 
 //     // Log the time before the upload starts
 //     const fileStartTime = new Date();
 //     console.log(
-//       `Uploading ${file.name} started at: ${fileStartTime.toLocaleTimeString()}`
+//       `Uploading ${newFileName} started at: ${fileStartTime.toLocaleTimeString()}`
 //     );
 
 //     // Upload the file
@@ -383,10 +214,10 @@ const handleSubmit = async () => {
 //     // Log the time after the upload finishes
 //     const fileEndTime = new Date();
 //     console.log(
-//       `Finished uploading ${file.name} at: ${fileEndTime.toLocaleTimeString()}`
+//       `Finished uploading ${newFileName} at: ${fileEndTime.toLocaleTimeString()}`
 //     );
 //     console.log(
-//       `Time taken to upload ${file.name}: ${
+//       `Time taken to upload ${newFileName}: ${
 //         (fileEndTime - fileStartTime) / 1000
 //       } seconds`
 //     );
@@ -400,11 +231,21 @@ const handleSubmit = async () => {
 //     if (Array.isArray(files)) {
 //       files.forEach((file) => {
 //         uploadPromises.push(appendAndUploadFile(file, folderName));
-//         fileNames.push(file.name); // Collect file names
+//         const randomString = generateRandomString(5); // Generate a random string of 5 characters
+//         const newFileName = `${file.name
+//           .split(".")
+//           .slice(0, -1)
+//           .join(".")}_${randomString}.${file.name.split(".").pop()}`;
+//         fileNames.push(newFileName); // Collect new file names
 //       });
 //     } else if (files) {
 //       uploadPromises.push(appendAndUploadFile(files[0], folderName)); // Single file upload
-//       fileNames.push(files[0].name); // Collect file name
+//       const randomString = generateRandomString(5); // Generate a random string of 5 characters
+//       const newFileName = `${files[0].name
+//         .split(".")
+//         .slice(0, -1)
+//         .join(".")}_${randomString}.${files[0].name.split(".").pop()}`;
+//       fileNames.push(newFileName); // Collect new file name
 //     }
 
 //     return { uploadPromises, fileNames };
@@ -522,6 +363,165 @@ const handleSubmit = async () => {
 //     console.error("An error occurred:", error);
 //   }
 // };
+
+const handleSubmit = async () => {
+  // Helper function to append and upload each file individually
+  const appendAndUploadFile = async (file, folderName) => {
+    const formData = new FormData();
+    formData.append("file", file); // Add file
+    formData.append("folder", folderName); // Add folder name as text
+
+    // Log the time before the upload starts
+    const fileStartTime = new Date();
+    console.log(
+      `Uploading ${file.name} started at: ${fileStartTime.toLocaleTimeString()}`
+    );
+
+    // Upload the file
+    await profileStore.uploadFiles(formData);
+
+    // Log the time after the upload finishes
+    const fileEndTime = new Date();
+    console.log(
+      `Finished uploading ${file.name} at: ${fileEndTime.toLocaleTimeString()}`
+    );
+    console.log(
+      `Time taken to upload ${file.name}: ${
+        (fileEndTime - fileStartTime) / 1000
+      } seconds`
+    );
+  };
+
+  // Helper function to gather all file upload promises and return file names
+  const appendFilesWithFolder = (files, folderName) => {
+    const uploadPromises = [];
+    const fileNames = [];
+
+    if (Array.isArray(files)) {
+      files.forEach((file) => {
+        uploadPromises.push(appendAndUploadFile(file, folderName));
+        fileNames.push(file.name); // Collect file names
+      });
+    } else if (files) {
+      uploadPromises.push(appendAndUploadFile(files[0], folderName)); // Single file upload
+      fileNames.push(files[0].name); // Collect file name
+    }
+
+    return { uploadPromises, fileNames };
+  };
+
+  let allUploadPromises = [];
+  let fileNames = {};
+
+  // Append files for corporate or individual form and gather upload promises
+  if (selectedCustomerType.value === "Corporate & Trading Company") {
+    const accountOpening = appendFilesWithFolder(
+      corporateForm.docAccOpening,
+      "AccountOpening"
+    );
+    const photoID = appendFilesWithFolder(
+      corporateForm.docPhotoID,
+      "BusinessAcra"
+    );
+    const selfie = appendFilesWithFolder(
+      corporateForm.docSelfie,
+      "CompanySelfiePhoto"
+    );
+    const directorIC = appendFilesWithFolder(
+      corporateForm.docDirectorIC,
+      "ICWithDirector"
+    );
+    const acra = appendFilesWithFolder(corporateForm.docAcra, "BusinessAcra");
+
+    allUploadPromises = [
+      ...accountOpening.uploadPromises,
+      ...photoID.uploadPromises,
+      ...selfie.uploadPromises,
+      ...directorIC.uploadPromises,
+      ...acra.uploadPromises,
+    ];
+
+    fileNames = {
+      docAccOpening: accountOpening.fileNames.join(","),
+      docPhotoID: photoID.fileNames.join(","),
+      docSelfie: selfie.fileNames.join(","),
+      docDirectorIC: directorIC.fileNames.join(","),
+      docAcra: acra.fileNames.join(","),
+    };
+
+    // **Handle agent-related files if `isAgent` is 'Yes'**
+    if (isAgent.value === "Yes") {
+      const agentBasisAuth = appendFilesWithFolder(
+        corporateForm.agentBasisAuth,
+        "BasisOfAuthority"
+      );
+      allUploadPromises.push(...agentBasisAuth.uploadPromises);
+      fileNames.agentBasisAuth = agentBasisAuth.fileNames.join(",");
+    }
+  } else if (selectedCustomerType.value === "Natural Person") {
+    const ic = appendFilesWithFolder(individualForm.docIC, "ICOfCustomer");
+    const selfie = appendFilesWithFolder(
+      individualForm.docSelfie,
+      "NaturalSelfiePhoto"
+    );
+    const card = appendFilesWithFolder(
+      individualForm.docCard,
+      "BusinessNameCard"
+    );
+    const kyc = appendFilesWithFolder(individualForm.docKYC, "KYCForm");
+
+    allUploadPromises = [
+      ...ic.uploadPromises,
+      ...selfie.uploadPromises,
+      ...card.uploadPromises,
+      ...kyc.uploadPromises,
+    ];
+
+    fileNames = {
+      docIC: ic.fileNames.join(","),
+      docSelfie: selfie.fileNames.join(","),
+      docCard: card.fileNames.join(","),
+      docKYC: kyc.fileNames.join(","),
+    };
+
+    // **Handle agent-related files if `isAgent` is 'Yes'**
+    if (isAgent.value === "Yes") {
+      const agentBasisAuth = appendFilesWithFolder(
+        individualForm.agentBasisAuth,
+        "BasisOfAuthority"
+      );
+      allUploadPromises.push(...agentBasisAuth.uploadPromises);
+      fileNames.agentBasisAuth = agentBasisAuth.fileNames.join(",");
+    }
+  }
+
+  try {
+    // Upload all files in parallel
+    console.log("Starting file uploads in parallel...");
+    await Promise.all(allUploadPromises);
+    console.log("All files uploaded successfully.");
+
+    // After file upload completes, proceed with account verification
+    const verificationForm =
+      selectedCustomerType.value === "Corporate & Trading Company"
+        ? { ...corporateForm, ...fileNames }
+        : { ...individualForm, ...fileNames };
+
+    const verifyResponse = await profileStore.verifyAccount(verificationForm);
+
+    if (verifyResponse.status === 1) {
+      alertStore.alert("success", "You have submitted successfully.");
+      window.location.href = "/#/profile";
+
+      console.log("Account verification successful!");
+    } else {
+      alertStore.alert("error", verifyResponse.message);
+      console.error("Account verification failed:", verifyResponse.message);
+    }
+  } catch (error) {
+    console.error("An error occurred:", error);
+  }
+};
 
 onMounted(() => {
   stepStore.setSteps(["Account", "Compliance", "Document"]);

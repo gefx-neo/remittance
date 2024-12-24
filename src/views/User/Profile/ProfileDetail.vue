@@ -1,17 +1,14 @@
 <template>
   <div class="content-area">
-    <div v-if="store.isLoading">Loading</div>
-    <div v-else class="profile">
+    <div v-if="profileDetail" class="profile">
       <div class="user-section">
         <div class="user-group">
           <span class="icon-round">{{ initials }}</span>
-          <span
-            >{{ profileDetails.givenName }} {{ profileDetails.surname }}</span
-          >
+          <span>{{ profileDetail.givenName }} {{ profileDetail.surname }}</span>
           <span>
             <Tooltip
               text="Verified"
-              v-if="profileDetails.userStatus === 1"
+              v-if="profileDetail.userStatus === 1"
               class="verified"
             >
               <div>
@@ -21,7 +18,7 @@
             </Tooltip>
             <Tooltip
               text="Pending processing"
-              v-if="profileDetails.userStatus === 2"
+              v-if="profileDetail.userStatus === 2"
               class="pending"
             >
               <font-awesome-icon :icon="['fas', 'clock']" />
@@ -35,7 +32,7 @@
             </Tooltip>
             <Tooltip
               text="Rejected"
-              v-if="profileDetails.userStatus === 3"
+              v-if="profileDetail.userStatus === 3"
               class="rejected"
             >
               <font-awesome-icon :icon="['fas', 'ban']" />
@@ -44,7 +41,7 @@
         </div>
         <button
           @click="navigateToAccountVerification"
-          v-if="profileDetails.userStatus === 0"
+          v-if="profileDetail.userStatus === 0"
           class="btn-blue"
         >
           Verify account
@@ -63,11 +60,11 @@
       <div class="item-section">
         <div class="item">
           <span>Given name</span>
-          <span>{{ profileDetails.givenName }}</span>
+          <span>{{ profileDetail.givenName }}</span>
         </div>
         <div class="item">
           <span>Surname</span>
-          <span>{{ profileDetails.surname }}</span>
+          <span>{{ profileDetail.surname }}</span>
         </div>
         <div class="item">
           <span>E-mail address</span>
@@ -75,17 +72,18 @@
         </div>
         <div class="item">
           <span>Account type</span>
-          <span>{{ profileDetails.accountType }}</span>
+          <span>{{ profileDetail.accountType }}</span>
         </div>
         <div
           class="item"
-          v-if="profileDetails.accountType === 'Corporate & Trading Company'"
+          v-if="profileDetail.accountType === 'Corporate & Trading Company'"
         >
           <span>Company Name</span>
-          <span>{{ profileDetails.companyName }}</span>
+          <span>{{ profileDetail.companyName }}</span>
         </div>
       </div>
     </div>
+    <div v-else>Loading...</div>
   </div>
 </template>
 
@@ -109,7 +107,7 @@ const alertStore = useAlertStore();
 const authStore = useAuthStore();
 const store = useStore();
 
-const profileDetails = reactive({
+const profileDetail = reactive({
   givenName: "",
   surname: "",
   accountType: "",
@@ -122,8 +120,8 @@ const username = authStore.username;
 
 // Computed property to get initials
 const initials = computed(() => {
-  const firstInitial = profileDetails.givenName.charAt(0) || "";
-  const lastInitial = profileDetails.surname.charAt(0) || "";
+  const firstInitial = profileDetail.givenName.charAt(0) || "";
+  const lastInitial = profileDetail.surname.charAt(0) || "";
   return `${firstInitial}${lastInitial}`.toUpperCase();
 });
 
@@ -149,18 +147,18 @@ const handleReminder = async () => {
 
 const showReminderButton = computed(() => {
   const reminderCookieExists = !!cookieService.getCookie("reminderSent");
-  return profileDetails.userStatus === 2 && !reminderCookieExists;
+  return profileDetail.userStatus === 2 && !reminderCookieExists;
 });
 
 const isPriorityProcessing = computed(() => {
   const reminderCookieExists = cookieService.getCookie("reminderSent");
-  return profileDetails.userStatus === 2 && reminderCookieExists;
+  return profileDetail.userStatus === 2 && reminderCookieExists;
 });
 
 onMounted(async () => {
   await profileStore.getProfileDetail();
-  Object.assign(profileDetails, profileStore.profileDetails); // Assign store data to reactive object
-  console.log(profileDetails);
+  Object.assign(profileDetail, profileStore.profileDetail); // Assign store data to reactive object
+  console.log(profileDetail);
 });
 
 const navigateToAccountVerification = () => {

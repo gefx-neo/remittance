@@ -40,3 +40,8 @@ export const formatDateTime = (dateTimeString) => {
 
   return `${day} ${month} ${year}, ${hours}:${minutes} ${ampm}`;
 };
+
+export const getTotalAmount = (sendingAmount = 0, fee = 0) => {
+  const total = parseFloat(sendingAmount) + parseFloat(fee);
+  return isNaN(total) ? 0 : total;
+};

@@ -19,7 +19,7 @@
   flex-direction: column;
   min-width: 60%;
   max-width: 60%;
-  gap: var(--size-24);
+  /* gap: var(--size-24); */
 }
 
 .exchange-rate .form-group {
@@ -51,7 +51,6 @@
 .form-group .input-item {
   position: relative;
   width: 100%;
-  margin-bottom: var(--size-4);
 }
 
 .exchange-rate .form-group .input-item button {
@@ -79,6 +78,45 @@
   font-size: var(--text-lg);
   font-weight: var(--semi-bold);
   letter-spacing: 0.1px;
+}
+
+.error-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: var(--size-24);
+}
+
+.error-group.dashboard {
+  gap: 2.5%;
+}
+
+.error-group:last-child {
+  margin-bottom: 0;
+}
+
+.error-group label {
+  display: none;
+}
+
+.exchange-rate .error-group.dashboard label {
+  display: flex;
+  min-width: 130px;
+  max-width: 130px;
+  text-align: end;
+}
+
+.exchange-rate .error-group input {
+  width: 100%;
+  font-size: var(--text-lg);
+  color: var(--slate-blue);
+  font-weight: var(--semi-bold);
+  padding-right: 118px;
+  letter-spacing: 0.3px;
+}
+
+.form-group .input-group {
+  width: 100%;
 }
 
 .exchange-rate .rate-group {
@@ -346,6 +384,10 @@
     gap: 4%;
   }
 
+  .error-group.dashboard {
+    gap: 4%;
+  }
+
   .transaction {
     flex-direction: column-reverse;
     gap: var(--size-24);
@@ -404,6 +446,10 @@
   .exchange-rate .form-group .input-item {
     min-width: 100%;
     max-width: 100%;
+  }
+
+  .error-group label {
+    display: none !important;
   }
 
   .exchange-rate .rate-group {

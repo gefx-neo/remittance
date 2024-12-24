@@ -1,6 +1,6 @@
 <template>
   <div class="content-area">
-    <div class="transaction">
+    <div class="transaction" v-if="transactions">
       <div class="title">
         <h3>Transaction History</h3>
       </div>
@@ -84,6 +84,7 @@
       </div>
       <!-- <button class="btn-load">Load more</button> -->
     </div>
+    <div v-else>Loading...</div>
   </div>
 </template>
 

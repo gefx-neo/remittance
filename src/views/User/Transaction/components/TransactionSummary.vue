@@ -50,7 +50,7 @@
 
 <script setup>
 import { ref, computed, defineProps } from "vue";
-import { formatNumber } from "@/utils/transactionUtils.js";
+import { formatNumber, getTotalAmount } from "@/utils/transactionUtils.js";
 const props = defineProps({
   sendingAmount: Number,
   sendingCurrency: String,
@@ -61,7 +61,7 @@ const props = defineProps({
 });
 
 const amountToBePaid = computed(() => {
-  return (props.sendingAmount || 0) + (props.fee || 0);
+  return getTotalAmount(props.sendingAmount, props.fee);
 });
 
 const isAccordionOpen = ref(true);

@@ -1,6 +1,6 @@
 <template>
   <div class="content-area">
-    <div class="transaction" v-if="transactionDetail">
+    <div class="transaction" v-if="transactionDetail && beneficiaryDetail">
       <button class="btn-round" @click="goBack">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
           <path
@@ -13,7 +13,7 @@
           <div>
             <span class="icon-round">
               {{ getInitials(transactionDetail.beneName) }}
-              <img :src="getCurrencyImagePath(transactionDetail.getCurrency)" />
+              <img :src="getCurrencyImagePath(beneficiaryDetail.currency)" />
             </span>
             <span>{{ transactionDetail.beneName }}</span>
           </div>
@@ -44,11 +44,15 @@
               </div>
               <div class="item">
                 <span>Remittance purpose</span>
-                <span>Overseas mortgage and rental</span>
+                <span>{{
+                  getRemittancePurpose(
+                    beneficiaryDetail.purposeOfIntendedTransactions
+                  )
+                }}</span>
               </div>
               <div class="item">
                 <span>Source of income</span>
-                <span>Business income</span>
+                <span>{{ getFundSource(beneficiaryDetail.fundSource) }}</span>
               </div>
             </div>
           </div>
@@ -95,7 +99,7 @@
               <div class="item">
                 <span>Amount paid</span>
                 <span>
-                  {{ formatNumber(totalPaid) }}
+                  {{ formatNumber(amountPaid) }}
                   {{ transactionDetail.payCurrency }}</span
                 >
               </div>
@@ -154,13 +158,18 @@ import {
   useStore,
   useAuthStore,
 } from "@/stores/index.js";
-import Modal from "@/components/Modal.vue";
 import {
   formatNumber,
   getTransactionStatus,
   formatDateTime,
+  getTotalAmount,
 } from "@/utils/transactionUtils";
-import { getInitials, getCurrencyImagePath } from "@/utils/beneficiaryUtils";
+import {
+  getInitials,
+  getCurrencyImagePath,
+  getRemittancePurpose,
+  getFundSource,
+} from "@/utils/beneficiaryUtils";
 import { ButtonAPI } from "@/components/Form";
 import Tooltip from "@/components/Tooltip.vue";
 
@@ -175,6 +184,7 @@ const authStore = useAuthStore();
 
 const alertStore = useAlertStore();
 const transactionDetail = ref(null);
+const beneficiaryDetail = ref(null);
 
 const handleReminder = async () => {
   const form = {
@@ -198,38 +208,37 @@ const handleReminder = async () => {
   }
 };
 
-// onMounted(async () => {
-//   try {
-//     const response = await transactionStore.getTransactionDetail(memoId);
-//     if (response?.trx) {
-//       transactionDetail.value = response.trx;
-//     } else {
-//       console.error("Transaction not found.");
-//     }
-//   } catch (error) {
-//     console.error("Error fetching transaction details:", error);
-//   }
-// });
-
 onMounted(async () => {
   try {
+    // Fetch transaction details
     const response = await transactionStore.getTransactionDetail(memoId);
     if (response?.trx) {
       transactionDetail.value = response.trx;
+
+      // Fetch beneficiary details using beneficiaryId
+      const beneficiaryId = transactionDetail.value.beneficiaryId;
+      const beneficiaryResponse = await beneficiaryStore.getBeneficiaryDetail(
+        beneficiaryId
+      );
+
+      if (beneficiaryResponse?.beneDetails) {
+        beneficiaryDetail.value = beneficiaryResponse.beneDetails;
+      } else {
+        console.error("Beneficiary details not found.");
+      }
+    } else {
+      console.error("Transaction details not found.");
     }
   } catch (error) {
-    console.error("Error fetching transaction details:", error);
+    console.error("Error fetching transaction or beneficiary details:", error);
   }
 });
 
-const totalPaid = computed(() => {
-  if (transactionDetail.value) {
-    return (
-      parseFloat(transactionDetail.value.payAmount || 0) +
-      parseFloat(transactionDetail.value.fee || 0)
-    );
-  }
-  return 0;
+const amountPaid = computed(() => {
+  return getTotalAmount(
+    transactionDetail.value?.payAmount,
+    transactionDetail.value?.fee
+  );
 });
 
 const goBack = () => {

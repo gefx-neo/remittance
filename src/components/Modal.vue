@@ -54,7 +54,6 @@
             Cancel
           </button>
           <ButtonAPI
-            :disabled="isLoading"
             type="button"
             class="btn-blue standard-button"
             @click="emitSubmit"
@@ -69,7 +68,7 @@
 </template>
 
 <script setup>
-import { watch } from "vue";
+import { watch, onUnmounted } from "vue";
 import { useStore } from "@/stores/useStore";
 import { ButtonAPI } from "@/components/Form";
 
@@ -125,6 +124,10 @@ const handleClose = () => {
 
 const emitCancel = () => emit("cancel");
 const emitSubmit = () => emit("submit");
+
+onUnmounted(() => {
+  document.body.style.overflow = "";
+});
 </script>
 
 <style scoped>

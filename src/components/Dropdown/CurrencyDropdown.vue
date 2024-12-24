@@ -19,6 +19,7 @@
         :class="{ active: isActive(item) }"
       >
         <div class="currency">
+          <img :src="getCurrencyImagePath(item.code)" />
           <span class="name">{{ item.name }}</span>
         </div>
         <font-awesome-icon
@@ -38,6 +39,7 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from "vue";
+import { getCurrencyImagePath } from "@/utils/beneficiaryUtils";
 
 const props = defineProps({
   isDropdownOpen: Boolean,
@@ -138,6 +140,12 @@ onUnmounted(() => {
   border-radius: var(--border-md);
   border: 1px solid var(--white);
   cursor: pointer;
+}
+
+.dropdown-menu .item .currency {
+  display: flex;
+  align-items: center;
+  gap: var(--size-8);
 }
 
 .dropdown-menu .item:hover {

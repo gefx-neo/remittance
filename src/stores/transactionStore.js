@@ -5,7 +5,7 @@ import { useAuthStore } from "@/stores/authStore";
 
 export const useTransactionStore = defineStore("transaction", {
   state: () => ({
-    lockedRate: null,
+    // lockedRate: null,
     memoId: null,
     rate: null,
     fee: null,
@@ -100,8 +100,9 @@ export const useTransactionStore = defineStore("transaction", {
           if (response.token) {
             authStore.refreshSession(response.token, payload.username);
           }
+          this.resetStore();
 
-          console.log("beneficiary response token", response.token);
+          console.log("transation response token", response.token);
         } else {
           this.error = response.message;
         }
@@ -116,13 +117,13 @@ export const useTransactionStore = defineStore("transaction", {
         store.isLoading = false;
       }
     },
-    async getLockedRate(getCurrency, payCurrency) {
+    async getLockedRate(payCurrency, getCurrency) {
       const store = useStore();
       const authStore = useAuthStore();
       store.isLoading = true;
       try {
         const response = await apiService.getRequest(
-          `/transaction/getLockedRate?username=${authStore.username}&getCurrency=${getCurrency}&payCurrency=${payCurrency}`
+          `/transaction/getLockedRate?username=${authStore.username}&payCurrency=${payCurrency}&getCurrency=${getCurrency}`
         );
         if (response.status === 1) {
           if (response.token) {
@@ -147,9 +148,9 @@ export const useTransactionStore = defineStore("transaction", {
         store.isLoading = false;
       }
     },
-    setLockedRate(rate) {
-      this.lockedRate = rate;
-    },
+    // setLockedRate(rate) {
+    //   this.lockedRate = rate;
+    // },
     async getLockedAmount(amount, getOrPay) {
       const store = useStore();
       const authStore = useAuthStore();
@@ -246,24 +247,9 @@ export const useTransactionStore = defineStore("transaction", {
         // store.isLoading = false;
       }
     },
-
-    // async sendReminder(payload) {
-    //   try {
-    //     const response = await apiService.postRequest(
-    //       "/transaction/urgent",
-    //       payload
-    //     );
-
-    //     if (response.status === 1) {
-    //     } else {
-    //       this.error = response.message;
-    //     }
-    //     return response;
-    //   } catch (error) {
-    //     this.error = error.response?.message;
-    //     return null;
-    //   }
-    // },
+    resetStore() {
+      this.$reset();
+    },
   },
   persist: {
     enabled: true,

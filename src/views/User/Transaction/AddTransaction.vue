@@ -36,7 +36,7 @@
       </form>
     </div>
   </div>
-  <Timer />
+  <!-- <Timer /> -->
 </template>
 
 <script setup>
@@ -67,6 +67,9 @@ const { scrollToTop } = useValidation();
 
 const form = ref({});
 const beneficiaries = ref([]);
+const isFromBeneficiaryDetail = ref(false);
+// const isFromTransactionList = ref(false);
+// const isFromDashboard = ref(false);
 
 const handleSubmit = async () => {
   form.value.username = authStore.username;
@@ -189,6 +192,7 @@ const handleSubmit = async () => {
           ? selectedBeneficiary?.companyContactNo
           : selectedBeneficiary?.contactMobile,
       address1: selectedBeneficiary?.address,
+      customerRemarks: form.customerRemarks || "",
       ...rest,
       ...fileNames,
     };
@@ -197,7 +201,7 @@ const handleSubmit = async () => {
 
     if (response.status === 1) {
       alertStore.alert("success", "You have added a new transaction");
-      window.location.href = "/#/transaction";
+      window.location.href = "/#/dashboard";
     } else {
       console.error("Error adding transaction:", response.message);
     }
@@ -216,23 +220,23 @@ const prevStep = () => {
   scrollToTop();
 };
 
-onMounted(async () => {
-  try {
-    // Step 1: Fetch beneficiary list when the component mounts
-    const response = await beneficiaryStore.getBeneficiaryList();
-    beneficiaries.value = response.beneficiaries || [];
-    beneficiaries.value.sort((a, b) => b.isFav - a.isFav);
+// onMounted(async () => {
+//   try {
+//     // Step 1: Fetch beneficiary list when the component mounts
+//     const response = await beneficiaryStore.getBeneficiaryList();
+//     beneficiaries.value = response.beneficiaries || [];
+//     beneficiaries.value.sort((a, b) => b.isFav - a.isFav);
 
-    // Step 2: If beneId exists in query, fetch its details on mount
-    const beneId = router.currentRoute.value.query.beneId;
-    if (beneId) {
-      console.log("Fetching details for beneId on mount:", beneId);
-      await fetchBeneficiaryDetail(beneId);
-    }
-  } catch (error) {
-    console.error("Error fetching beneficiary list or details:", error);
-  }
-});
+//     // Step 2: If beneId exists in query, fetch its details on mount
+//     const beneId = router.currentRoute.value.query.beneId;
+//     if (beneId) {
+//       console.log("Fetching details for beneId on mount:", beneId);
+//       await fetchBeneficiaryDetail(beneId);
+//     }
+//   } catch (error) {
+//     console.error("Error fetching beneficiary list or details:", error);
+//   }
+// });
 
 // Watcher to track changes to beneId and fetch details
 watch(
@@ -244,6 +248,48 @@ watch(
     }
   }
 );
+
+// When user clicks Send Money from Beneficiary detail
+
+onMounted(async () => {
+  try {
+    const query = router.currentRoute.value.query;
+
+    // Detect if coming from BeneficiaryDetail.vue
+    isFromBeneficiaryDetail.value = query.fromBeneficiaryDetail === "true";
+
+    // Step 1: Fetch Beneficiary List if not already loaded
+    if (!beneficiaries.value.length) {
+      const response = await beneficiaryStore.getBeneficiaryList();
+      beneficiaries.value = response.beneficiaries || [];
+      beneficiaries.value.sort((a, b) => b.isFav - a.isFav);
+    }
+
+    // Step 2: Fetch Beneficiary Details if beneId is present
+    if (query.beneId) {
+      await fetchBeneficiaryDetail(query.beneId);
+    }
+
+    // Step 3: Preload Locked Rate if entering from BeneficiaryDetail
+    if (isFromBeneficiaryDetail.value) {
+      const payCurrency = "SGD";
+      const getCurrency = query.currency;
+      await transactionStore.getLockedRate(payCurrency, getCurrency);
+
+      // Land directly on Step Two
+      stepStore.setCurrentStep(2);
+      console.log(
+        "Landing on Step Two because isFromBeneficiaryDetail is true."
+      );
+    } else {
+      // Default to Step One if not coming from BeneficiaryDetail
+      stepStore.setCurrentStep(1);
+      console.log("Landing on Step One.");
+    }
+  } catch (error) {
+    console.error("Error during initialization:", error);
+  }
+});
 
 // Function to fetch beneficiary details
 const fetchBeneficiaryDetail = async (beneId) => {
@@ -309,10 +355,10 @@ onMounted(() => {
   });
 });
 
-onMounted(() => {
-  const lockedRate = transactionStore.lockedRate; // Access locked rate from the store
-  console.log("Locked Rate:", lockedRate);
-});
+// onMounted(() => {
+//   const lockedRate = transactionStore.lockedRate; // Access locked rate from the store
+//   console.log("Locked Rate:", lockedRate);
+// });
 
 const handleCancel = () => {
   router.push({ path: "/transaction" });

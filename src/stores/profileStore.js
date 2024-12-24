@@ -8,7 +8,7 @@ import {
 } from "@/services/localStorageService.js";
 export const useProfileStore = defineStore("profile", {
   state: () => ({
-    profileDetails: null,
+    profileDetail: null,
     error: null,
   }),
   actions: {
@@ -21,13 +21,15 @@ export const useProfileStore = defineStore("profile", {
           `/profile/user?username=${authStore.username}`
         );
         if (response.status === 1) {
-          this.profileDetails = response;
+          this.profileDetail = response;
 
           if (response.token) {
             authStore.refreshSession(response.token, authStore.username);
           }
-          if (response.userStatus) {
+          if (response.userStatus === 0) {
+            console.log("userStatus", response.userStatus);
             setLocalStorageWithExpiry("userStatus", response.userStatus);
+            console.log("setting userstatus");
           }
 
           console.log("profile response token", response.token);
@@ -110,10 +112,6 @@ export const useProfileStore = defineStore("profile", {
         this.error = error.response?.message;
         return null;
       }
-    },
-    clearProfileDetails() {
-      this.profileDetails = null;
-      this.error = null;
     },
   },
 });

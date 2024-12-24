@@ -106,7 +106,8 @@
         <p>
           By confirming this transaction, you agree to complete the payment to
           us within the next hour. Failure to make the payment within this
-          timeframe may result in
+          timeframe may result in the cancellation of your transaction and
+          additional penalties or fees as per our terms and conditions.
         </p>
       </template>
     </Modal>

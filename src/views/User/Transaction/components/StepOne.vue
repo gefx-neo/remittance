@@ -296,7 +296,12 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["update:modelValue", "nextStep", "prevStep"]);
+const emit = defineEmits([
+  "update:modelValue",
+  "nextStep",
+  "prevStep",
+  "beneficiaryChanged",
+]);
 
 const searchQuery = ref("");
 const localForm = reactive({
@@ -344,14 +349,21 @@ const filteredSwiftOURPaymentBeneficiaries = computed(() =>
   )
 );
 
+// const selectBeneficiary = (beneficiary) => {
+//   selectedBeneficiary.value = beneficiary;
+//   beneficiaryStore.setSelectedBeneficiary(beneficiary);
+//   // Update only the local form state
+//   emit("update:modelValue", {
+//     ...localForm,
+//     beneficiary,
+//   });
+// };
+
 const selectBeneficiary = (beneficiary) => {
   selectedBeneficiary.value = beneficiary;
   beneficiaryStore.setSelectedBeneficiary(beneficiary);
-  // Update only the local form state
-  emit("update:modelValue", {
-    ...localForm,
-    beneficiary,
-  });
+  emit("update:modelValue", { ...localForm, selectedBeneficiary: beneficiary });
+  // emit("beneficiaryChanged", beneficiary); // Emit an event for recalculation
 };
 
 const syncBeneficiaryFromQuery = () => {

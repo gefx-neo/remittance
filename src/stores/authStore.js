@@ -2,7 +2,11 @@ import { defineStore } from "pinia";
 import { useDeviceStore } from "./deviceStore.js";
 import router from "../router/index.js";
 import apiService from "@/services/apiService";
-import { useStore, useProfileStore } from "@/stores/index.js";
+import {
+  useStore,
+  useProfileStore,
+  useTransactionStore,
+} from "@/stores/index.js";
 import { encryptData } from "../services/encryptionService.js";
 import {
   setLocalStorageWithExpiry,
@@ -119,6 +123,7 @@ export const useAuthStore = defineStore("auth", {
 
     async logout() {
       const store = useStore();
+      const transactionStore = useTransactionStore();
       store.isLoading = true;
       try {
         const username = getLocalStorageWithExpiry("username");
@@ -133,6 +138,8 @@ export const useAuthStore = defineStore("auth", {
           removeLocalStorageWithExpiry("token");
           removeLocalStorageWithExpiry("username");
           removeLocalStorageWithExpiry("userStatus");
+          transactionStore.$reset();
+
           router.push("/"); // Redirect here works perfectly
           console.log("Logged out successfully and session cleared.");
         } else {

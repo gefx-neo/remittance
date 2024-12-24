@@ -357,6 +357,6 @@ input:-moz-autofill:focus {
   transition: background-color 5000s ease-in-out 0s;
 } */
 .error {
-  color: var(--dark-crimson-red);
-  margin-top: var(--size-8);
+  color: var(--darker-crimson-red);
+  margin-top: var(--size-4);
 }

@@ -3,11 +3,10 @@
     <div class="exchange-rate">
       <div class="form-section">
         <InputAmount
-          :key="sendingAmount"
           id="sendingAmount"
           label="Sending amount"
-          :modelValue="sendingAmount"
-          :modelCurrency="sendingCurrency"
+          :modelValue="form.sendingAmount"
+          :modelCurrency="form.sendingCurrency"
           :isSending="true"
           @update:modelValue="updateSendingAmount"
           @update:modelCurrency="updateSendingCurrency"
@@ -16,11 +15,10 @@
         />
 
         <InputAmount
-          :key="receivingAmount"
           id="receivingAmount"
           label="Receiving amount"
-          :modelValue="receivingAmount"
-          :modelCurrency="receivingCurrency"
+          :modelValue="form.receivingAmount"
+          :modelCurrency="form.receivingCurrency"
           :isSending="false"
           @update:modelValue="updateReceivingAmount"
           @update:modelCurrency="updateReceivingCurrency"
@@ -30,14 +28,14 @@
       </div>
 
       <div class="rate-group">
-        <div>1 {{ sendingCurrency }}</div>
+        <div>1 {{ form.sendingCurrency }}</div>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
           <path
             d="M438.6 150.6c12.5-12.5 12.5-32.8 0-45.3l-96-96c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.7 96 32 96C14.3 96 0 110.3 0 128s14.3 32 32 32l306.7 0-41.4 41.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l96-96zm-333.3 352c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 416 416 416c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0 41.4-41.4c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-96 96c-12.5 12.5-12.5 32.8 0 45.3l96 96z"
           />
         </svg>
         <div class="equal">=</div>
-        <div>{{ transactionStore.rate }} {{ receivingCurrency }}</div>
+        <div>{{ transactionStore.rate }} {{ form.receivingCurrency }}</div>
       </div>
 
       <div class="button-group">
@@ -55,7 +53,7 @@
       <div class="history">
         <div class="title">
           <h3>Transaction History</h3>
-          <router-link to="/history">View all</router-link>
+          <router-link to="/transaction">View all</router-link>
         </div>
         <div class="item-section">
           <div
@@ -127,7 +125,7 @@
       <div class="currency">
         <div class="title">
           <h3>Current Rates</h3>
-          <router-link to="/history">View all</router-link>
+          <!-- <router-link to="/history">View all</router-link> -->
         </div>
         <div class="item-section">
           <div v-for="(rate, index) in rates" :key="index" class="item">
@@ -140,7 +138,15 @@
               </div>
               <div class="name">{{ rate.currency }}</div>
             </div>
-            <div class="rate">{{ rate.rate }}</div>
+            <div
+              class="rate"
+              :class="{
+                increased: rate.isIncreased,
+                decreased: rate.isDecreased,
+              }"
+            >
+              {{ rate.rate }}
+            </div>
           </div>
         </div>
       </div>
@@ -149,7 +155,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, reactive, onMounted, onBeforeUnmount, watch } from "vue";
 import { InputAmount, ButtonAPI } from "@/components/Form";
 import { sendingCurrencies, receivingCurrencies } from "@/data/data";
 import { useRouter } from "vue-router";
@@ -157,12 +163,13 @@ import {
   useAlertStore,
   useDashboardStore,
   useTransactionStore,
+  useAuthStore,
   useStore,
 } from "@/stores/index.js";
 import { useValidation } from "@/composables/useValidation";
 import {
   formValidation,
-  dashboardSchema,
+  currencySchema,
 } from "./components/schemas/dashboardSchema";
 import { getCurrencyImagePath } from "@/utils/beneficiaryUtils.js";
 import {
@@ -173,45 +180,41 @@ import {
 const router = useRouter();
 const transactionStore = useTransactionStore();
 const store = useStore();
-const dashboardStore = useDashboardStore();
+const authStore = useAuthStore();
 const alertStore = useAlertStore();
-const { errors, validateSendingAmount, validateReceivingAmount } =
+const { errors, validateForm, validateSendingAmount, validateReceivingAmount } =
   useValidation();
 
-// Dummy data for current currency rates
-const currencies = [
-  { icon: "/assets/currency/usd.svg", code: "USD", rate: "SGD 1.36" },
-  { icon: "/assets/currency/eur.svg", code: "EUR", rate: "SGD 1.46" },
-  { icon: "/assets/currency/gbp.svg", code: "GBP", rate: "SGD 1.72" },
-  { icon: "/assets/currency/cny.svg", code: "CNY", rate: "SGD 0.19" },
-  { icon: "/assets/currency/myr.svg", code: "MYR", rate: "SGD 0.30" },
-];
+const form = reactive({
+  sendingAmount: 0,
+  sendingCurrency: sendingCurrencies[1].code,
+  receivingAmount: 0,
+  receivingCurrency: receivingCurrencies[0].code,
+});
+
 const transactions = ref([]);
 const rates = ref([]);
-const sendingAmount = ref();
-const sendingCurrency = ref(sendingCurrencies[1].code);
-const receivingAmount = ref();
-const receivingCurrency = ref(receivingCurrencies[0].code);
+const previousRates = ref({});
+let rateInterval = null;
 
 const updateSendingAmount = async (amount) => {
   const formattedAmount = parseFloat(amount).toFixed(2);
 
-  if (sendingAmount.value === formattedAmount) {
+  if (form.sendingAmount === formattedAmount) {
     return;
   }
 
-  sendingAmount.value = formattedAmount;
+  form.sendingAmount = formattedAmount;
   store.setLoading(true);
 
   try {
-    // Call lockedAmount API
     const response = await transactionStore.getLockedAmount(
-      sendingAmount.value,
+      form.sendingAmount,
       "pay"
     );
 
     if (response && response.status === 1) {
-      receivingAmount.value = parseFloat(response.getAmount).toFixed(2); // Update receiving amount
+      form.receivingAmount = parseFloat(response.getAmount);
     }
   } catch (error) {
     console.error("Error in updateSendingAmount:", error);
@@ -223,22 +226,21 @@ const updateSendingAmount = async (amount) => {
 const updateReceivingAmount = async (amount) => {
   const formattedAmount = parseFloat(amount).toFixed(2);
 
-  if (receivingAmount.value === formattedAmount) {
+  if (form.receivingAmount === formattedAmount) {
     return;
   }
 
-  receivingAmount.value = formattedAmount;
+  form.receivingAmount = formattedAmount;
   store.setLoading(true);
 
   try {
-    // Call lockedAmount API
     const response = await transactionStore.getLockedAmount(
-      receivingAmount.value,
+      form.receivingAmount,
       "get"
     );
 
     if (response && response.status === 1) {
-      sendingAmount.value = parseFloat(response.payAmount);
+      form.sendingAmount = parseFloat(response.payAmount);
     }
   } catch (error) {
     console.error("Error in updateReceivingAmount:", error);
@@ -248,33 +250,28 @@ const updateReceivingAmount = async (amount) => {
 };
 
 const updateSendingCurrency = async (currency) => {
-  if (sendingCurrency.value === currency) {
+  if (form.sendingCurrency === currency) {
     return;
   }
 
-  sendingCurrency.value = currency;
-
+  form.sendingCurrency = currency;
   store.setLoading(true);
 
   try {
-    // Call lockedRate API first
     const lockedRateResponse = await transactionStore.getLockedRate(
-      receivingCurrency.value,
-      sendingCurrency.value
+      form.sendingCurrency,
+      form.receivingCurrency
     );
 
     if (lockedRateResponse && lockedRateResponse.status === 1) {
-      transactionStore.setLockedRate(lockedRateResponse.rate);
-
-      // Only call lockedAmount API if there is a valid sending amount
-      if (sendingAmount.value) {
+      if (form.sendingAmount) {
         const response = await transactionStore.getLockedAmount(
-          sendingAmount.value,
+          form.sendingAmount,
           "pay"
         );
 
         if (response && response.status === 1) {
-          receivingAmount.value = parseFloat(response.getAmount).toFixed(2);
+          form.receivingAmount = parseFloat(response.getAmount).toFixed(2);
         }
       }
     }
@@ -286,33 +283,28 @@ const updateSendingCurrency = async (currency) => {
 };
 
 const updateReceivingCurrency = async (currency) => {
-  if (receivingCurrency.value === currency) {
+  if (form.receivingCurrency === currency) {
     return;
   }
 
-  receivingCurrency.value = currency;
-
+  form.receivingCurrency = currency;
   store.setLoading(true);
 
   try {
-    // Call lockedRate API first
     const lockedRateResponse = await transactionStore.getLockedRate(
-      receivingCurrency.value,
-      sendingCurrency.value
+      form.sendingCurrency,
+      form.receivingCurrency
     );
 
     if (lockedRateResponse && lockedRateResponse.status === 1) {
-      transactionStore.setLockedRate(lockedRateResponse.rate);
-
-      // Only call lockedAmount API if there is a valid receiving amount
-      if (receivingAmount.value) {
+      if (form.receivingAmount) {
         const response = await transactionStore.getLockedAmount(
-          receivingAmount.value,
+          form.receivingAmount,
           "get"
         );
 
         if (response && response.status === 1) {
-          sendingAmount.value = parseFloat(response.payAmount).toFixed(2);
+          form.sendingAmount = parseFloat(response.payAmount).toFixed(2);
         }
       }
     }
@@ -323,81 +315,157 @@ const updateReceivingCurrency = async (currency) => {
   }
 };
 
-const handleSubmit = () => {
-  if (errors.sendingAmount || errors.receivingAmount) {
-    alertStore.alert("error", "The amount is not within the acceptable range");
-    return;
-  }
-
-  router.push({
-    path: "/transaction/addtransaction",
-    query: {
-      sendingAmount: sendingAmount.value,
-      sendingCurrency: sendingCurrency.value,
-      receivingAmount: receivingAmount.value,
-      receivingCurrency: receivingCurrency.value,
-    },
-  });
-};
-
-// onMounted(async () => {
-//   if (authStore.userStatus === "0") {
-//     await profileStore.getProfileDetail();
-//     console.log("Checking if user is verified");
-//   }
-// });
-onMounted(async () => {
-  const getCurrency = receivingCurrency.value;
-  const payCurrency = sendingCurrency.value;
-
-  try {
-    const lockedRateResponse = await transactionStore.getLockedRate(
-      getCurrency,
-      payCurrency
+watch(
+  () => [
+    form.sendingAmount,
+    form.receivingAmount,
+    form.sendingCurrency,
+    form.receivingCurrency,
+  ],
+  ([
+    newSendingAmount,
+    newReceivingAmount,
+    newSendingCurrency,
+    newReceivingCurrency,
+  ]) => {
+    // Validate sending amount
+    validateSendingAmount(
+      newSendingAmount,
+      newSendingCurrency,
+      currencySchema,
+      "sending"
     );
 
-    if (lockedRateResponse) {
-      console.log("Locked rate successfully retrieved:", lockedRateResponse);
-    }
-  } catch (error) {
-    console.error("Failed to retrieve locked rate:", error);
+    // Validate receiving amount
+    validateReceivingAmount(
+      newReceivingAmount,
+      newReceivingCurrency,
+      currencySchema,
+      "receiving"
+    );
   }
-});
+);
 
-onMounted(async () => {
-  try {
-    const response = await transactionStore.getTransactionList();
-    if (response?.trxns) {
-      transactions.value = response.trxns
-        .sort((a, b) => new Date(b.date) - new Date(a.date)) // Sort by date (most recent first)
-        .slice(0, 5); // Limit to the first 5 transactions
-      console.log("Transactions successfully retrieved:", transactions.value);
+const handleSubmit = () => {
+  const schema = formValidation(form);
+
+  // Validate the form fields
+  const isValid = validateForm(form, schema);
+  console.log("Validation Errors:", errors);
+
+  if (isValid) {
+    // If all validations pass, navigate to the next page
+    router.push({
+      path: "/transaction/addtransaction",
+      query: {
+        sendingAmount: form.sendingAmount,
+        sendingCurrency: form.sendingCurrency,
+        receivingAmount: form.receivingAmount,
+        receivingCurrency: form.receivingCurrency,
+        fromDashboard: "true",
+      },
+    });
+  } else {
+    // If sendingAmount is 0, show a specific error message for required fields
+    if (form.sendingAmount === 0 || form.receivingAmount === 0) {
+      alertStore.alert("error", "Please fill in the required fields.");
+    } else if (errors.sendingAmount || errors.receivingAmount) {
+      // If there are range validation errors, show the appropriate message
+      alertStore.alert(
+        "error",
+        "Please provide valid amounts for both sending and receiving"
+      );
     } else {
-      console.error("Failed to retrieve transactions:", response?.message);
+      alertStore.alert(
+        "error",
+        "Please provide valid amounts for both sending and receiving"
+      );
     }
-  } catch (error) {
-    console.error("Error fetching transactions:", error);
+  }
+};
+
+onMounted(async () => {
+  if (authStore.userStatus === "0") {
+    await profileStore.getProfileDetail();
+    console.log("Checking if user is verified");
   }
 });
 
-onMounted(async () => {
+const fetchRates = async () => {
   try {
     const response = await transactionStore.getRate();
     if (response?.status === 1 && response?.rates) {
-      rates.value = response.rates
+      const newRates = response.rates
         .map((rate) => ({
           currency: rate.currency,
           rate: parseFloat(rate.rate).toFixed(4),
           fee: parseFloat(rate.fee).toFixed(4),
+          isIncreased:
+            previousRates.value[rate.currency] &&
+            parseFloat(rate.rate) > previousRates.value[rate.currency],
+          isDecreased:
+            previousRates.value[rate.currency] &&
+            parseFloat(rate.rate) < previousRates.value[rate.currency],
         }))
-        .slice(0, 5); // Limit to the first 5 rates
-      console.log("Rates successfully retrieved:", rates.value);
+        .slice(0, 5);
+
+      previousRates.value = Object.fromEntries(
+        newRates.map((rate) => [rate.currency, parseFloat(rate.rate)])
+      );
+
+      rates.value = newRates;
     } else {
       console.error("Failed to retrieve rates:", response?.message);
     }
   } catch (error) {
     console.error("Error fetching rates:", error);
   }
+};
+
+onMounted(async () => {
+  console.log(form.sendingCurrency, "form sending currency");
+  try {
+    // Step 1: Call getLockedRate
+    const lockedRateResponse = await transactionStore.getLockedRate(
+      form.sendingCurrency,
+      form.receivingCurrency
+    );
+
+    if (lockedRateResponse?.status === 1) {
+      console.log("Locked rate successfully retrieved:", lockedRateResponse);
+
+      // Step 2: Call getTransactionList
+      const transactionListResponse =
+        await transactionStore.getTransactionList();
+
+      if (transactionListResponse?.trxns) {
+        transactions.value = transactionListResponse.trxns
+          .sort((a, b) => new Date(b.date) - new Date(a.date))
+          .slice(0, 5); // Limit to 5 transactions
+        console.log("Transactions successfully retrieved:", transactions.value);
+
+        // Step 3: Call getRate and start interval
+        await fetchRates();
+        rateInterval = setInterval(fetchRates, 1000000); // Fetch rates every second
+      } else {
+        console.error(
+          "Failed to retrieve transactions:",
+          transactionListResponse?.message
+        );
+      }
+    } else {
+      console.error(
+        "Failed to retrieve locked rate:",
+        lockedRateResponse?.message
+      );
+    }
+  } catch (error) {
+    console.error("Error in API call sequence:", error);
+  }
+});
+
+onBeforeUnmount(() => {
+  if (rateInterval) clearInterval(rateInterval);
 });
 
 const navigateToTransactionDetail = async (memoId) => {
@@ -416,4 +484,33 @@ const navigateToTransactionDetail = async (memoId) => {
 
 <style scoped>
 @import "@/assets/dashboard.css";
+/* .rate {
+  animation: blink 1s steps(1, end) infinite; 
+} */
+
+.rate.increased {
+  color: green;
+  font-weight: bold;
+}
+
+.rate.decreased {
+  color: red;
+  font-weight: bold;
+}
+
+.blink {
+  animation: blink 1s steps(1, end) infinite;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
 </style>
