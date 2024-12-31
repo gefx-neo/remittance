@@ -80,16 +80,16 @@ const handleClickOutside = (event) => {
   }
 };
 
-watch(
-  () => countryCodeStore.isDropdownOpen,
-  (newValue) => {
-    if (newValue) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-  }
-);
+// watch(
+//   () => countryCodeStore.isDropdownOpen,
+//   (newValue) => {
+//     if (newValue) {
+//       document.body.style.overflow = "hidden";
+//     } else {
+//       document.body.style.overflow = "";
+//     }
+//   }
+// );
 
 onMounted(() => {
   document.addEventListener("click", handleClickOutside);
@@ -106,7 +106,7 @@ onUnmounted(() => {
   position: absolute;
   top: 100%;
   left: 0;
-  z-index: 1056;
+  z-index: 1054;
   margin: 0;
   width: 330px;
   height: 320px;

@@ -1,6 +1,6 @@
 <template>
   <div class="content-area">
-    <div class="transaction" v-if="transactions">
+    <div class="transaction">
       <div class="title">
         <h3>Transaction History</h3>
       </div>
@@ -9,7 +9,7 @@
           <input
             type="text"
             v-model="searchQuery"
-            placeholder="Search past transactions"
+            placeholder="Search transaction"
           />
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
             <path
@@ -33,7 +33,7 @@
           </button>
         </div>
       </div>
-      <div class="item-section">
+      <div class="item-section" v-if="transactions">
         <div
           v-for="(transaction, index) in filteredTransactions"
           :key="index"
@@ -82,9 +82,11 @@
           </div>
         </div>
       </div>
+      <EmptyList v-else-if="transactions.length === 0" />
+      <div v-else>Loading...</div>
+
       <!-- <button class="btn-load">Load more</button> -->
     </div>
-    <div v-else>Loading...</div>
   </div>
 </template>
 
@@ -97,6 +99,7 @@ import {
   getTransactionStatus,
   formatDateTime,
 } from "@/utils/transactionUtils";
+import EmptyList from "@/views/EmptyList.vue";
 
 const router = useRouter();
 const transactionStore = useTransactionStore();

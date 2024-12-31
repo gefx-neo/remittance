@@ -208,40 +208,59 @@
               :key="index"
               class="item"
               tabindex="0"
+              @click="navigateToTransactionDetail(transaction.memoId)"
             >
               <div class="icon-round">
                 <font-awesome-icon :icon="['fas', 'dollar-sign']" />
               </div>
               <div class="information">
                 <div class="first-column">
-                  <div class="first-row">{{ transaction.number }}</div>
+                  <div class="first-row">{{ transaction.memoId }}</div>
                   <div class="second-row">
                     <span
                       :class="{
-                        unpaid: transaction.status === 'Unpaid',
-                        pending: transaction.status.includes('Pending'),
-                        completed: transaction.status === 'Completed',
-                        failed: transaction.status === 'Failed',
+                        unpaid:
+                          getTransactionStatus(transaction.status) === 'Unpaid',
+                        pending:
+                          getTransactionStatus(transaction.status) ===
+                          'Pending',
+                        completed:
+                          getTransactionStatus(transaction.status) ===
+                          'Success',
+                        failed:
+                          getTransactionStatus(transaction.status) ===
+                          'Rejected',
                       }"
-                      >{{ transaction.status }}</span
                     >
+                      {{ getTransactionStatus(transaction.status) }}
+                    </span>
                     <span
                       :class="{
-                        unpaid: transaction.status === 'Unpaid',
-                        pending: transaction.status.includes('Pending'),
-                        completed: transaction.status === 'Completed',
-                        failed: transaction.status === 'Failed',
+                        unpaid:
+                          getTransactionStatus(transaction.status) === 'Unpaid',
+                        pending:
+                          getTransactionStatus(transaction.status) ===
+                          'Pending',
+                        completed:
+                          getTransactionStatus(transaction.status) ===
+                          'Success',
+                        failed:
+                          getTransactionStatus(transaction.status) ===
+                          'Rejected',
                       }"
-                    ></span>
-                    <span>{{ transaction.date }}</span>
+                    >
+                    </span>
+                    <span>{{ formatDateTime(transaction.date) }}</span>
                   </div>
                 </div>
                 <div class="second-column">
                   <div class="first-row">
-                    {{ transaction.payAmount }}
+                    {{ formatNumber(transaction.payAmount) }}
+                    {{ transaction.payCurrency }}
                   </div>
                   <div class="second-row">
-                    {{ transaction.receivingAmount }}
+                    {{ formatNumber(transaction.getAmount) }}
+                    {{ transaction.getCurrency }}
                   </div>
                 </div>
               </div>
@@ -272,6 +291,7 @@ import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   useBeneficiaryStore,
+  useTransactionStore,
   useStore,
   useAlertStore,
 } from "@/stores/index.js";
@@ -286,15 +306,22 @@ import {
   getFundSource,
   getCurrencyImagePath,
 } from "@/utils/beneficiaryUtils.js";
+import {
+  formatNumber,
+  getTransactionStatus,
+  formatDateTime,
+} from "@/utils/transactionUtils.js";
 const route = useRoute();
 const router = useRouter();
 
 const id = route.params.id;
 const beneficiaryStore = useBeneficiaryStore();
+const transactionStore = useTransactionStore();
 const store = useStore();
 const alertStore = useAlertStore();
 
 const beneficiaryDetail = ref(null);
+const transactions = ref([]);
 
 const activeTab = ref("details");
 
@@ -331,12 +358,22 @@ const handleSubmit = async () => {
 
 onMounted(async () => {
   try {
+    // Fetch beneficiary details
     const response = await beneficiaryStore.getBeneficiaryDetail(id);
     if (response?.beneDetails) {
       beneficiaryDetail.value = response.beneDetails;
     }
+
+    // Fetch transaction list
+    const transactionsResponse = await transactionStore.getTransactionList();
+    if (transactionsResponse?.trxns) {
+      // Filter transactions by the beneficiary ID
+      transactions.value = transactionsResponse.trxns.filter(
+        (transaction) => transaction.beneficiaryId === parseInt(id)
+      );
+    }
   } catch (error) {
-    console.error("Error fetching beneficiary details:", error);
+    console.error("Error fetching data:", error);
   }
 });
 
@@ -357,10 +394,23 @@ const redirectToTransaction = () => {
     path: "/transaction/addtransaction",
     query: {
       fromBeneficiaryDetail: "true",
-      currency,
       beneId,
+      currency,
     },
   });
+};
+
+const navigateToTransactionDetail = async (memoId) => {
+  const transaction = transactions.value.find((txn) => txn.memoId === memoId);
+
+  if (transaction) {
+    router.push({
+      name: "transaction-detail",
+      params: { memoId: transaction.memoId },
+    });
+  } else {
+    console.error("Transaction not found with memoId:", memoId);
+  }
 };
 
 const goBack = () => {

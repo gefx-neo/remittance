@@ -8,7 +8,7 @@ import {
 } from "@/services/localStorageService.js";
 export const useProfileStore = defineStore("profile", {
   state: () => ({
-    profileDetail: null,
+    profileDetails: null,
     error: null,
   }),
   actions: {
@@ -21,7 +21,7 @@ export const useProfileStore = defineStore("profile", {
           `/profile/user?username=${authStore.username}`
         );
         if (response.status === 1) {
-          this.profileDetail = response;
+          this.profileDetails = response;
 
           if (response.token) {
             authStore.refreshSession(response.token, authStore.username);

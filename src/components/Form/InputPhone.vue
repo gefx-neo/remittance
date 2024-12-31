@@ -5,6 +5,7 @@
       <div class="phone-item">
         <div class="dropdown">
           <button
+            type="button"
             @click="countryCodeStore.toggleDropdown"
             :class="{ open: countryCodeStore.isDropdownOpen }"
           >

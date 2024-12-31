@@ -40,3 +40,23 @@ export function decryptData(encryptedText, key, iv) {
   console.log("Decrypted Data:", plaintext);
   return plaintext;
 }
+
+const SECRET_KEY = "your-very-secure-key"; // Use a secure key
+
+// Encrypt data
+export const encryptQueryParams = (data) => {
+  const stringifiedData = JSON.stringify(data);
+  return CryptoJS.AES.encrypt(stringifiedData, SECRET_KEY).toString();
+};
+
+// Decrypt data
+export const decryptQueryParams = (encryptedData) => {
+  try {
+    const bytes = CryptoJS.AES.decrypt(encryptedData, SECRET_KEY);
+    const decryptedData = bytes.toString(CryptoJS.enc.Utf8);
+    return JSON.parse(decryptedData);
+  } catch (error) {
+    console.error("Failed to decrypt query parameters:", error);
+    return null; // Handle decryption failures gracefully
+  }
+};

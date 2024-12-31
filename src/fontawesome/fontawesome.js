@@ -22,6 +22,8 @@ import {
   faCertificate,
   faHourglassHalf,
   faBan,
+  faFolderOpen,
+  faHandHoldingUsd,
 } from "@fortawesome/free-solid-svg-icons";
 
 // Adding only the necessary icons to the library
@@ -45,7 +47,9 @@ library.add(
   faClock,
   faCertificate,
   faHourglassHalf,
-  faBan
+  faBan,
+  faFolderOpen,
+  faHandHoldingUsd
 );
 
 export { FontAwesomeIcon }; // Export as a named export

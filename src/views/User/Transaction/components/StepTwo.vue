@@ -164,7 +164,8 @@ watch(
       currencySchema,
       "receiving"
     );
-  }
+  },
+  { immediate: false }
 );
 
 const handleNext = () => {
@@ -218,7 +219,6 @@ const updateSendingAmount = async (amount) => {
   if (localForm.sendingAmount === formattedAmount) return;
 
   localForm.sendingAmount = parseFloat(formattedAmount); // Convert back to number
-  store.setLoading(true);
 
   try {
     const response = await transactionStore.getLockedAmount(
@@ -231,7 +231,6 @@ const updateSendingAmount = async (amount) => {
   } catch (error) {
     console.error("Error in updateSendingAmount:", error);
   } finally {
-    store.setLoading(false);
   }
 };
 
@@ -241,7 +240,6 @@ const updateReceivingAmount = async (amount) => {
   if (localForm.receivingAmount === formattedAmount) return;
 
   localForm.receivingAmount = parseFloat(formattedAmount); // Convert back to number
-  store.setLoading(true);
 
   try {
     const response = await transactionStore.getLockedAmount(
@@ -255,7 +253,6 @@ const updateReceivingAmount = async (amount) => {
   } catch (error) {
     console.error("Error in updateReceivingAmount:", error);
   } finally {
-    store.setLoading(false);
   }
 };
 
@@ -264,7 +261,6 @@ const updateSendingCurrency = async (currency) => {
   if (localForm.sendingCurrency === currency) return;
 
   localForm.sendingCurrency = currency;
-  store.setLoading(true);
 
   try {
     const lockedRateResponse = await transactionStore.getLockedRate(
@@ -285,7 +281,6 @@ const updateSendingCurrency = async (currency) => {
   } catch (error) {
     console.error("Failed to update sending currency:", error);
   } finally {
-    store.setLoading(false);
   }
 };
 
@@ -294,7 +289,6 @@ const updateReceivingCurrency = async (currency) => {
   if (localForm.receivingCurrency === currency) return;
 
   localForm.receivingCurrency = currency;
-  store.setLoading(true);
 
   try {
     const lockedRateResponse = await transactionStore.getLockedRate(
@@ -315,24 +309,23 @@ const updateReceivingCurrency = async (currency) => {
   } catch (error) {
     console.error("Failed to update receiving currency:", error);
   } finally {
-    store.setLoading(false);
   }
 };
 
-onMounted(() => {
-  if (route.query.sendingAmount) {
-    localForm.sendingAmount = parseFloat(route.query.sendingAmount) || 0;
-  }
-  if (route.query.receivingAmount) {
-    localForm.receivingAmount = parseFloat(route.query.receivingAmount) || 0;
-  }
-  if (route.query.sendingCurrency) {
-    localForm.sendingCurrency = route.query.sendingCurrency;
-  }
-  if (route.query.receivingCurrency) {
-    localForm.receivingCurrency = route.query.receivingCurrency;
-  }
-});
+// onMounted(() => {
+//   if (route.query.sendingAmount) {
+//     localForm.sendingAmount = parseFloat(route.query.sendingAmount) || 0;
+//   }
+//   if (route.query.receivingAmount) {
+//     localForm.receivingAmount = parseFloat(route.query.receivingAmount) || 0;
+//   }
+//   if (route.query.sendingCurrency) {
+//     localForm.sendingCurrency = route.query.sendingCurrency;
+//   }
+//   if (route.query.receivingCurrency) {
+//     localForm.receivingCurrency = route.query.receivingCurrency;
+//   }
+// });
 
 watch(
   () => localForm.receivingCurrency,

@@ -81,7 +81,7 @@
     <Modal
       :isModalOpen="store.isModalOpen"
       title="Account created"
-      :redirectToLogin="true"
+      :checkYourEmail="true"
     />
   </div>
 </template>

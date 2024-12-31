@@ -1,24 +1,24 @@
 <template>
   <div class="content-area">
-    <div v-if="profileDetail" class="profile">
+    <div v-if="profileDetails" class="profile">
       <div class="user-section">
         <div class="user-group">
           <span class="icon-round">{{ initials }}</span>
-          <span>{{ profileDetail.givenName }} {{ profileDetail.surname }}</span>
+          <span
+            >{{ profileDetails.givenName }} {{ profileDetails.surname }}</span
+          >
           <span>
             <Tooltip
               text="Verified"
-              v-if="profileDetail.userStatus === 1"
+              v-if="profileDetails.userStatus === 1"
               class="verified"
             >
-              <div>
-                <font-awesome-icon :icon="['fas', 'certificate']" />
-                <font-awesome-icon :icon="['fas', 'check']" />
-              </div>
+              <font-awesome-icon :icon="['fas', 'certificate']" />
+              <font-awesome-icon :icon="['fas', 'check']" />
             </Tooltip>
             <Tooltip
               text="Pending processing"
-              v-if="profileDetail.userStatus === 2"
+              v-if="profileDetails.userStatus === 2"
               class="pending"
             >
               <font-awesome-icon :icon="['fas', 'clock']" />
@@ -32,7 +32,7 @@
             </Tooltip>
             <Tooltip
               text="Rejected"
-              v-if="profileDetail.userStatus === 3"
+              v-if="profileDetails.userStatus === 3"
               class="rejected"
             >
               <font-awesome-icon :icon="['fas', 'ban']" />
@@ -41,7 +41,7 @@
         </div>
         <button
           @click="navigateToAccountVerification"
-          v-if="profileDetail.userStatus === 0"
+          v-if="profileDetails.userStatus === 0"
           class="btn-blue"
         >
           Verify account
@@ -60,11 +60,11 @@
       <div class="item-section">
         <div class="item">
           <span>Given name</span>
-          <span>{{ profileDetail.givenName }}</span>
+          <span>{{ profileDetails.givenName }}</span>
         </div>
         <div class="item">
           <span>Surname</span>
-          <span>{{ profileDetail.surname }}</span>
+          <span>{{ profileDetails.surname }}</span>
         </div>
         <div class="item">
           <span>E-mail address</span>
@@ -72,14 +72,14 @@
         </div>
         <div class="item">
           <span>Account type</span>
-          <span>{{ profileDetail.accountType }}</span>
+          <span>{{ profileDetails.accountType }}</span>
         </div>
         <div
           class="item"
-          v-if="profileDetail.accountType === 'Corporate & Trading Company'"
+          v-if="profileDetails.accountType === 'Corporate & Trading Company'"
         >
           <span>Company Name</span>
-          <span>{{ profileDetail.companyName }}</span>
+          <span>{{ profileDetails.companyName }}</span>
         </div>
       </div>
     </div>
@@ -107,7 +107,7 @@ const alertStore = useAlertStore();
 const authStore = useAuthStore();
 const store = useStore();
 
-const profileDetail = reactive({
+const profileDetails = reactive({
   givenName: "",
   surname: "",
   accountType: "",
@@ -120,8 +120,8 @@ const username = authStore.username;
 
 // Computed property to get initials
 const initials = computed(() => {
-  const firstInitial = profileDetail.givenName.charAt(0) || "";
-  const lastInitial = profileDetail.surname.charAt(0) || "";
+  const firstInitial = profileDetails.givenName.charAt(0) || "";
+  const lastInitial = profileDetails.surname.charAt(0) || "";
   return `${firstInitial}${lastInitial}`.toUpperCase();
 });
 
@@ -147,18 +147,18 @@ const handleReminder = async () => {
 
 const showReminderButton = computed(() => {
   const reminderCookieExists = !!cookieService.getCookie("reminderSent");
-  return profileDetail.userStatus === 2 && !reminderCookieExists;
+  return profileDetails.userStatus === 2 && !reminderCookieExists;
 });
 
 const isPriorityProcessing = computed(() => {
   const reminderCookieExists = cookieService.getCookie("reminderSent");
-  return profileDetail.userStatus === 2 && reminderCookieExists;
+  return profileDetails.userStatus === 2 && reminderCookieExists;
 });
 
 onMounted(async () => {
   await profileStore.getProfileDetail();
-  Object.assign(profileDetail, profileStore.profileDetail); // Assign store data to reactive object
-  console.log(profileDetail);
+  Object.assign(profileDetails, profileStore.profileDetails); // Assign store data to reactive object
+  console.log(profileDetails);
 });
 
 const navigateToAccountVerification = () => {
@@ -237,7 +237,7 @@ const navigateToAccountVerification = () => {
   max-height: var(--size-12);
   position: absolute;
   left: 50%;
-  top: 46%;
+  top: 50%;
   transform: translate(-50%, -50%);
 }
 

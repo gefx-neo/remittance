@@ -201,7 +201,7 @@ const handleSubmit = async () => {
 
     if (response.status === 1) {
       alertStore.alert("success", "You have added a new transaction");
-      window.location.href = "/#/dashboard";
+      window.location.href = "/#/transaction";
     } else {
       console.error("Error adding transaction:", response.message);
     }

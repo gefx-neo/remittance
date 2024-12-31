@@ -379,6 +379,36 @@
   font-size: var(--text-sm);
 }
 
+.onboarding {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--size-24);
+}
+
+.onboarding .item-section {
+  background: var(--lighter-grey);
+  border-radius: var(--border-sm);
+}
+
+.onboarding .item-section .item {
+  display: flex;
+  flex-direction: column;
+  padding: var(--size-24);
+  gap: var(--size-12);
+}
+
+.onboarding .item-section .heading {
+  font-size: var(--text-lg);
+
+  font-weight: var(--semi-bold);
+  color: var(--slate-blue);
+}
+
+.onboarding .item-section .body {
+  font-size: var(--text-sm);
+  min-height: 120px;
+}
+
 @media (max-width: 1279px) {
   .exchange-rate .form-group {
     gap: 4%;
@@ -409,6 +439,14 @@
 
   .beneficiary .item-section .item {
     flex: 0 0 72px;
+  }
+
+  .onboarding {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .onboarding .item-section .body {
+    min-height: 100px;
   }
 }
 
@@ -467,5 +505,9 @@
 
   .exchange-rate .rate-group svg {
     display: none;
+  }
+
+  .onboarding {
+    grid-template-columns: 1fr;
   }
 }

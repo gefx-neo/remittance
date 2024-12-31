@@ -139,7 +139,7 @@ onUnmounted(() => {
   padding: var(--size-24);
   background: var(--white);
   border-bottom: 1px solid var(--light-grey);
-  z-index: 1050;
+  z-index: 1055;
 }
 
 .logo {

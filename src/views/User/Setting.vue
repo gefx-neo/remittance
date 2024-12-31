@@ -35,7 +35,7 @@
           <fieldset :disabled="store.isLoading">
             <div class="body">
               <div class="remark">
-                We have sent the temporary password to your email. Did not
+                We have sent the temporary passcode to your email. Did not
                 receive?
                 <ButtonAPI
                   @click="handleSendAgain"
@@ -48,7 +48,7 @@
                 </ButtonAPI>
               </div>
               <div class="form-group">
-                <label for="code">Temporary password</label>
+                <label for="code">Temporary passcode</label>
                 <input type="text" id="code" v-model="form.code" />
                 <span v-if="errors.code" class="error">{{ errors.code }}</span>
               </div>

@@ -48,7 +48,11 @@ const router = useRouter();
 const routes = [
   { to: "/dashboard", icon: ["fas", "home"], label: "Dashboard" },
   { to: "/beneficiary", icon: ["fas", "user"], label: "Beneficiary" },
-  { to: "/transaction", icon: ["fas", "money-bill"], label: "Transaction" },
+  {
+    to: "/transaction",
+    icon: ["fas", "hand-holding-usd"],
+    label: "Transaction",
+  },
   // { to: "/help", icon: ["fas", "question-circle"], label: "Help" },
 ];
 

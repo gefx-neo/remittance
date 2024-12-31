@@ -21,7 +21,7 @@
       </div>
 
       <div class="body">
-        <div v-if="redirectToLogin" class="icon">
+        <div v-if="redirectToLogin || checkYourEmail" class="icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
             <path
               d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5 12.5 32.8 12.5 45.3 0z"
@@ -39,9 +39,9 @@
       </div>
 
       <div class="footer">
-        <!-- <div class="message" v-if="redirectToLogin">
-          Please check your e-mail for temporary password
-        </div> -->
+        <div class="message" v-if="checkYourEmail">
+          Please check your e-mail for temporary passcode
+        </div>
         <a href="/" v-if="redirectToLogin" class="message">
           Redirect to login page
         </a>
@@ -82,7 +82,12 @@ const props = defineProps({
     default: "",
   },
   redirectToLogin: {
-    // For Login, Register, Reset password
+    // For Reset password
+    type: Boolean,
+    default: false,
+  },
+  checkYourEmail: {
+    // For Register
     type: Boolean,
     default: false,
   },
@@ -113,7 +118,7 @@ watch(
 
 // Handle click outside the modal
 const handleClose = () => {
-  if (props.redirectToLogin) {
+  if (props.redirectToLogin || props.checkYourEmail) {
     // router.push("/");
     window.location.href = "/"; // This will refresh the page and reset the state
   } else {

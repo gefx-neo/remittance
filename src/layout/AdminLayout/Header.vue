@@ -92,7 +92,7 @@ const routes = [
   },
   {
     to: "/admin/remittance/transactionmanagement",
-    icon: ["fas", "money-bill"],
+    icon: ["fas", "hand-holding-usd"],
     label: "Transaction Management",
   },
   {

@@ -83,7 +83,7 @@ export const validationService = {
 
     let errors = {};
 
-    const codeError = this.isRequired(form.code, "Temporary password");
+    const codeError = this.isRequired(form.code, "Temporary passcode");
     if (codeError) errors.code = codeError;
 
     const passwordError =

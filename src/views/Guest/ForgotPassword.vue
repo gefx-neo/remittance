@@ -24,7 +24,7 @@
     <form v-if="step === 2" @submit.prevent="handleSetNewPassword">
       <fieldset :disabled="store.isLoading">
         <div class="remark">
-          We have sent the temporary password to your email. Did not receive?
+          We have sent the temporary passcode to your email. Did not receive?
           <ButtonAPI
             @click="handleSendAgain"
             :disabled="store.isResendLoading || store.resendTime > 0"
@@ -36,7 +36,7 @@
           </ButtonAPI>
         </div>
         <div class="form-group">
-          <label for="code">Temporary password</label>
+          <label for="code">Temporary passcode</label>
           <input type="text" id="code" v-model="form.code" />
           <span v-if="errors.code" class="error">{{ errors.code }}</span>
         </div>
@@ -394,6 +394,10 @@ footer a {
   display: flex;
   align-items: center;
   gap: var(--size-6);
+}
+
+.label .tooltip {
+  margin-bottom: var(--size-4);
 }
 
 .label .tooltip svg {
