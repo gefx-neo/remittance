@@ -72,14 +72,14 @@
           >
             Next
           </ButtonAPI>
-          <button
+          <!-- <button
             v-if="!isFromBeneficiaryDetail"
             type="button"
             @click="handleBack"
             class="btn-back standard-button"
           >
             Back
-          </button>
+          </button> -->
         </div>
       </div>
     </fieldset>
@@ -236,13 +236,10 @@ watch(
   (query) => {
     Object.assign(localForm, {
       sendingAmount: parseFloat(query.sendingAmount) || localForm.sendingAmount,
-      sendingCurrency: localForm.sendingCurrency || "SGD",
+      sendingCurrency: query.sendingCurrency || "SGD",
       receivingAmount:
         parseFloat(query.receivingAmount) || localForm.receivingAmount,
-      receivingCurrency:
-        query.currency ||
-        localForm.receivingCurrency ||
-        localForm.selectedBeneficiary.currency,
+      receivingCurrency: query.currency || localForm.receivingCurrency,
     });
     emit("update:modelValue", { ...localForm });
   },
@@ -358,11 +355,6 @@ onMounted(async () => {
 
       if (lockedRateResponse && lockedRateResponse.status === 1) {
         console.log("Locked rate fetched successfully:", lockedRateResponse);
-
-        // // Optionally, update local form or transaction state based on response
-        // transactionStore.memoId = lockedRateResponse.memoId; // Example usage
-        // transactionStore.rate = lockedRateResponse.rates?.[0]?.rate || null;
-        // transactionStore.fee = lockedRateResponse.rates?.[0]?.fee || null;
       }
     } catch (error) {
       console.error("Error fetching locked rate:", error);
@@ -424,19 +416,19 @@ onMounted(async () => {
   beneficiaryStore.setSelectedBeneficiary(localForm.selectedBeneficiary);
 });
 
-// watch(
-//   () => localForm.sendingCurrency,
-//   (newCurrency) => {
-//     console.log("Sending Currency Updated:", newCurrency);
-//     // Update the query parameter without reloading the page
-//     router.replace({
-//       query: {
-//         ...route.query,
-//         sendingCurrency: newCurrency,
-//       },
-//     });
-//   }
-// );
+watch(
+  () => localForm.sendingCurrency,
+  (newCurrency) => {
+    console.log("Sending Currency Updated:", newCurrency);
+    // Update the query parameter without reloading the page
+    router.replace({
+      query: {
+        ...route.query,
+        sendingCurrency: newCurrency,
+      },
+    });
+  }
+);
 </script>
 
 <style scoped>

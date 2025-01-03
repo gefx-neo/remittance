@@ -267,7 +267,7 @@
 </template>
 
 <script setup>
-import { computed, watch, reactive, ref, onMounted } from "vue";
+import { computed, reactive, ref, onMounted } from "vue";
 import { useValidation } from "@/composables/useValidation";
 import { formValidation } from "./schemas/stepOneSchema";
 import {
@@ -286,8 +286,6 @@ import { decryptQueryParams } from "@/services/encryptionService";
 
 const beneficiaryStore = useBeneficiaryStore();
 const alertStore = useAlertStore();
-const stepStore = useStepStore();
-const route = useRoute();
 
 const router = useRouter();
 

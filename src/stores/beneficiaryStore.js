@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import apiService from "@/services/apiService";
 import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 import { useStore } from "@/stores/useStore";
-import { useAuthStore } from "@/stores/authStore";
+import { useAuthStore, useAlertStore } from "@/stores/index";
 
 export const useBeneficiaryStore = defineStore("beneficiary", {
   state: () => ({
@@ -14,6 +14,8 @@ export const useBeneficiaryStore = defineStore("beneficiary", {
     async getBeneficiaryList() {
       const store = useStore();
       const authStore = useAuthStore();
+      const alertStore = useAlertStore();
+
       store.isLoading = true;
       try {
         const response = await apiService.getRequest(
@@ -26,12 +28,12 @@ export const useBeneficiaryStore = defineStore("beneficiary", {
 
           console.log("beneficiary response token", response.token);
         } else {
-          this.error = response.message;
+          alertStore.alert("error", response.message);
         }
 
         return response;
       } catch (error) {
-        this.error = DEFAULT_ERROR_MESSAGE;
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         throw error;
       } finally {
         store.isLoading = false;
@@ -40,6 +42,7 @@ export const useBeneficiaryStore = defineStore("beneficiary", {
     async getBeneficiaryDetail(id) {
       const store = useStore();
       const authStore = useAuthStore();
+      const alertStore = useAlertStore();
       store.isLoading = true;
       try {
         const response = await apiService.getRequest(
@@ -53,18 +56,21 @@ export const useBeneficiaryStore = defineStore("beneficiary", {
 
           console.log("beneficiary response token", response.token);
         } else {
-          this.error = response.message;
+          alertStore.alert("error", response.message);
         }
 
         return response;
       } catch (error) {
-        this.error = DEFAULT_ERROR_MESSAGE;
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         throw error;
       } finally {
         store.isLoading = false;
       }
     },
     async uploadFiles(formData) {
+      const store = useStore();
+      const alertStore = useAlertStore();
+      store.isLoading = true;
       try {
         // Use the apiService to send the FormData object
         const response = await apiService.postRequest(
@@ -76,13 +82,17 @@ export const useBeneficiaryStore = defineStore("beneficiary", {
         );
         return response;
       } catch (error) {
-        this.error = DEFAULT_ERROR_MESSAGE;
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         throw error;
+      } finally {
+        store.isLoading = false;
       }
     },
     async addBeneficiary(payload) {
       const store = useStore();
       const authStore = useAuthStore();
+      const alertStore = useAlertStore();
+
       store.isLoading = true;
 
       try {
@@ -99,12 +109,12 @@ export const useBeneficiaryStore = defineStore("beneficiary", {
 
           console.log("beneficiary response token", response.token);
         } else {
-          this.error = response.message;
+          alertStore.alert("error", response.message);
         }
 
         return response;
       } catch (error) {
-        this.error = DEFAULT_ERROR_MESSAGE;
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         throw error;
       } finally {
         store.isLoading = false;
@@ -112,7 +122,9 @@ export const useBeneficiaryStore = defineStore("beneficiary", {
     },
     async updateFavourite(payload) {
       const authStore = useAuthStore();
-
+      const store = useStore();
+      const alertStore = useAlertStore();
+      store.isLoading = true;
       try {
         const response = await apiService.putRequest(
           "/bene/updateFavourite",
@@ -126,22 +138,21 @@ export const useBeneficiaryStore = defineStore("beneficiary", {
             authStore.refreshSession(response.token, payload.username);
           }
         } else {
-          console.warn(
-            "Failed to update beneficiary status:",
-            response.message
-          );
+          alertStore.alert("error", response.message);
         }
 
-        // Return the response for component handling
         return response;
       } catch (error) {
-        this.error = DEFAULT_ERROR_MESSAGE;
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         throw error;
+      } finally {
+        store.isLoading = false;
       }
     },
     async deleteBeneficiary(id) {
       const store = useStore();
       const authStore = useAuthStore();
+      const alertStore = useAlertStore();
       store.isLoading = true;
       try {
         const response = await apiService.deleteRequest(
@@ -155,12 +166,12 @@ export const useBeneficiaryStore = defineStore("beneficiary", {
 
           console.log("beneficiary response token", response.token);
         } else {
-          this.error = response.message;
+          alertStore.alert("error", response.message);
         }
 
         return response;
       } catch (error) {
-        this.error = DEFAULT_ERROR_MESSAGE;
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         throw error;
       } finally {
         store.isLoading = false;

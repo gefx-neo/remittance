@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import apiService from "@/services/apiService";
 import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
-import { useStore } from "@/stores/useStore";
+import { useStore, useAlertStore } from "@/stores/index";
 
 export const useRegisterStore = defineStore("registerStore", {
   state: () => ({
@@ -10,6 +10,7 @@ export const useRegisterStore = defineStore("registerStore", {
   actions: {
     async register(form) {
       const store = useStore();
+      const alertStore = useAlertStore();
       store.isLoading = true;
 
       const payload = {
@@ -34,12 +35,12 @@ export const useRegisterStore = defineStore("registerStore", {
         if (response.status === 1) {
           this.error = null;
         } else {
-          this.error = response.message;
+          alertStore.alert("error", response.message);
         }
 
         return response;
       } catch (error) {
-        this.error = DEFAULT_ERROR_MESSAGE;
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         throw error;
       } finally {
         store.isLoading = false;

@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import apiService from "@/services/apiService";
 import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
-import { useStore } from "@/stores/useStore";
+import { useStore, useAlertStore } from "@/stores/index";
 import { encryptData } from "../services/encryptionService.js";
 
 export const useForgotPasswordStore = defineStore("forgotPasswordstore", {
@@ -12,6 +12,9 @@ export const useForgotPasswordStore = defineStore("forgotPasswordstore", {
   }),
   actions: {
     async getReqKey(username) {
+      const store = useStore();
+      const alertStore = useAlertStore();
+      store.isLoading = true;
       try {
         const response = await apiService.postRequest("/User/reqkey", username);
 
@@ -19,16 +22,19 @@ export const useForgotPasswordStore = defineStore("forgotPasswordstore", {
           this.hex = response.key;
           this.iv = response.iv;
         } else {
-          this.error = response.message;
+          alertStore.alert("error", response.message);
         }
         return response;
       } catch (error) {
-        this.error = DEFAULT_ERROR_MESSAGE;
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         return null;
+      } finally {
+        store.isLoading = false;
       }
     },
     async changePassword(username) {
       const store = useStore();
+      const alertStore = useAlertStore();
       store.isLoading = true;
 
       try {
@@ -40,11 +46,11 @@ export const useForgotPasswordStore = defineStore("forgotPasswordstore", {
         if (response.status === 1) {
           this.error = null;
         } else {
-          this.error = response.message;
+          alertStore.alert("error", response.message);
         }
         return response;
       } catch (error) {
-        this.error = DEFAULT_ERROR_MESSAGE;
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         return null;
       } finally {
         store.isLoading = false;
@@ -52,6 +58,7 @@ export const useForgotPasswordStore = defineStore("forgotPasswordstore", {
     },
     async setNewPassword(form) {
       const store = useStore();
+      const alertStore = useAlertStore();
       store.isLoading = true;
 
       try {
@@ -79,11 +86,11 @@ export const useForgotPasswordStore = defineStore("forgotPasswordstore", {
         if (response.status === 1) {
           this.error = null;
         } else {
-          this.error = response.message;
+          alertStore.alert("error", response.message);
         }
         return response;
       } catch (error) {
-        this.error = DEFAULT_ERROR_MESSAGE;
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         return null;
       } finally {
         store.isLoading = false;
@@ -91,6 +98,7 @@ export const useForgotPasswordStore = defineStore("forgotPasswordstore", {
     },
     async changePasswordTimer(username) {
       const store = useStore();
+      const alertStore = useAlertStore();
       store.isResendLoading = true;
 
       try {
@@ -102,12 +110,12 @@ export const useForgotPasswordStore = defineStore("forgotPasswordstore", {
         if (response.status === 1) {
           this.error = null;
         } else {
-          this.error = response.message;
+          alertStore.alert("error", response.message);
         }
 
         return response;
       } catch (error) {
-        this.error = DEFAULT_ERROR_MESSAGE;
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         return null;
       } finally {
         store.isResendLoading = false;

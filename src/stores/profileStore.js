@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import apiService from "@/services/apiService";
-import { useStore, useAuthStore } from "@/stores/index.js";
+import { useStore, useAuthStore, useAlertStore } from "@/stores/index.js";
 import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 import {
   setLocalStorageWithExpiry,
@@ -16,6 +16,7 @@ export const useProfileStore = defineStore("profile", {
     async getProfileDetail() {
       const store = useStore();
       const authStore = useAuthStore();
+      const alertStore = useAlertStore();
       store.isLoading = true;
       try {
         const response = await apiService.getRequest(
@@ -35,18 +36,21 @@ export const useProfileStore = defineStore("profile", {
 
           console.log("profile response token", response.token);
         } else {
-          this.error = response.message;
+          alertStore.alert("error", response.message);
         }
 
         return response;
       } catch (error) {
-        this.error = DEFAULT_ERROR_MESSAGE;
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         throw error;
       } finally {
         store.isLoading = false;
       }
     },
     async uploadFiles(formData) {
+      const store = useStore();
+      const alertStore = useAlertStore();
+      store.isLoading = true;
       try {
         // Use the apiService to send the FormData object
         const response = await apiService.postRequest(
@@ -58,13 +62,16 @@ export const useProfileStore = defineStore("profile", {
         );
         return response;
       } catch (error) {
-        this.error = DEFAULT_ERROR_MESSAGE;
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         throw error;
+      } finally {
+        store.isLoading = false;
       }
     },
     async verifyAccount(form) {
       const store = useStore();
       const authStore = useAuthStore();
+      const alertStore = useAlertStore();
       store.isLoading = true;
 
       try {
@@ -82,18 +89,21 @@ export const useProfileStore = defineStore("profile", {
 
           console.log("beneficiary response token", response.token);
         } else {
-          this.error = response.message;
+          alertStore.alert("error", response.message);
         }
 
         return response;
       } catch (error) {
-        this.error = DEFAULT_ERROR_MESSAGE;
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         throw error;
       } finally {
         store.isLoading = false;
       }
     },
     async sendReminder(username) {
+      const store = useStore();
+      const alertStore = useAlertStore();
+      store.isLoading = true;
       try {
         const response = await apiService.postRequest(
           "/profile/urgent",
@@ -102,12 +112,14 @@ export const useProfileStore = defineStore("profile", {
 
         if (response.status === 1) {
         } else {
-          this.error = response.message;
+          alertStore.alert("error", response.message);
         }
         return response;
       } catch (error) {
-        this.error = DEFAULT_ERROR_MESSAGE;
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         return null;
+      } finally {
+        store.isLoading = false;
       }
     },
   },

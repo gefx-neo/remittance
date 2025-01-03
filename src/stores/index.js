@@ -3,7 +3,6 @@ export { useAuthStore } from "./authStore.js";
 export { useBeneficiaryStore } from "./beneficiaryStore.js";
 export { useCountryCodeStore } from "./countryCodeStore.js";
 export { useCurrencyStore } from "./currencyStore.js";
-export { useDashboardStore } from "./dashboardStore.js";
 export { useDeviceStore } from "./deviceStore.js";
 export { useForgotPasswordStore } from "./forgotPasswordStore.js";
 export { useProfileStore } from "./profileStore.js";

@@ -7,6 +7,7 @@ import {
   useStore,
   useProfileStore,
   useTransactionStore,
+  useAlertStore,
 } from "@/stores/index.js";
 import { encryptData } from "../services/encryptionService.js";
 import {
@@ -58,6 +59,10 @@ export const useAuthStore = defineStore("auth", {
 
     // Step 1: Fetch reqKey (hex and iv) for the username
     async getReqKey(username) {
+      const store = useStore();
+      const authStore = useAuthStore();
+      const alertStore = useAlertStore();
+      store.isLoading = true;
       try {
         const response = await apiService.postRequest("/user/reqkey", username);
 
@@ -65,20 +70,23 @@ export const useAuthStore = defineStore("auth", {
           this.hex = response.key;
           this.iv = response.iv;
         } else {
-          this.error = response.message;
+          alertStore.alert("error", response.message);
         }
         return response;
       } catch (error) {
-        this.error = DEFAULT_ERROR_MESSAGE;
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         return null;
+      } finally {
+        store.isLoading = false;
       }
     },
 
     // Step 2: Handle login with encrypted password
     async login(form) {
+      const alertStore = useAlertStore();
+
       if (!this.hex || !this.iv) {
-        this.error =
-          "Encryption keys are missing, please restart the login process.";
+        alertStore.alert("error", response.message || DEFAULT_ERROR_MESSAGE);
         return;
       }
 
@@ -125,6 +133,7 @@ export const useAuthStore = defineStore("auth", {
     async logout() {
       const store = useStore();
       const transactionStore = useTransactionStore();
+      const alertStore = useAlertStore();
       store.isLoading = true;
       try {
         const username = getLocalStorageWithExpiry("username");
@@ -144,10 +153,10 @@ export const useAuthStore = defineStore("auth", {
           router.push("/"); // Redirect here works perfectly
           console.log("Logged out successfully and session cleared.");
         } else {
-          this.error = response.message;
+          alertStore.alert("error", response.message);
         }
       } catch (error) {
-        this.error = DEFAULT_ERROR_MESSAGE;
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
       } finally {
         store.isLoading = false;
       }

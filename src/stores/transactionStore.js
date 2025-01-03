@@ -1,16 +1,10 @@
 import { defineStore } from "pinia";
 import apiService from "@/services/apiService";
 import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
-import { useStore } from "@/stores/useStore";
-import { useAuthStore } from "@/stores/authStore";
+import { useStore, useAuthStore, useAlertStore } from "@/stores/index";
 
 export const useTransactionStore = defineStore("transaction", {
   state: () => ({
-    // lockedRate: null,
-    // sendingAmount: 0,
-    // sendingCurrency: "SGD",
-    // receivingAmount: 0,
-    // receivingCurrency: "MYR",
     memoId: null,
     rate: null,
     fee: null,
@@ -20,6 +14,7 @@ export const useTransactionStore = defineStore("transaction", {
     async getTransactionList() {
       const store = useStore();
       const authStore = useAuthStore();
+      const alertStore = useAlertStore();
       store.isLoading = true;
       try {
         const response = await apiService.getRequest(
@@ -32,12 +27,12 @@ export const useTransactionStore = defineStore("transaction", {
 
           console.log("transaction response token", response.token);
         } else {
-          this.error = response.message;
+          alertStore.alert("error", response.message);
         }
 
         return response;
       } catch (error) {
-        this.error = DEFAULT_ERROR_MESSAGE;
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         throw error;
       } finally {
         store.isLoading = false;
@@ -46,6 +41,7 @@ export const useTransactionStore = defineStore("transaction", {
     async getTransactionDetail(memoId) {
       const store = useStore();
       const authStore = useAuthStore();
+      const alertStore = useAlertStore();
       store.isLoading = true;
       try {
         const response = await apiService.getRequest(
@@ -59,18 +55,20 @@ export const useTransactionStore = defineStore("transaction", {
 
           console.log("transaction response token", response.token);
         } else {
-          this.error = response.message;
+          alertStore.alert("error", response.message);
         }
 
         return response;
       } catch (error) {
-        this.error = DEFAULT_ERROR_MESSAGE;
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         throw error;
       } finally {
         store.isLoading = false;
       }
     },
     async uploadFiles(formData) {
+      const alertStore = useAlertStore();
+
       try {
         const response = await apiService.postRequest(
           "/transaction/upload",
@@ -81,13 +79,14 @@ export const useTransactionStore = defineStore("transaction", {
         );
         return response;
       } catch (error) {
-        this.error = DEFAULT_ERROR_MESSAGE;
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         throw error;
       }
     },
     async addTransaction(payload) {
       const store = useStore();
       const authStore = useAuthStore();
+      const alertStore = useAlertStore();
       store.isLoading = true;
 
       try {
@@ -105,12 +104,11 @@ export const useTransactionStore = defineStore("transaction", {
 
           console.log("transation response token", response.token);
         } else {
-          this.error = response.message;
+          alertStore.alert("error", response.message);
         }
-
         return response;
       } catch (error) {
-        this.error = DEFAULT_ERROR_MESSAGE;
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         throw error;
       } finally {
         store.isLoading = false;
@@ -119,6 +117,7 @@ export const useTransactionStore = defineStore("transaction", {
     async getLockedRate(payCurrency, getCurrency) {
       const store = useStore();
       const authStore = useAuthStore();
+      const alertStore = useAlertStore();
       store.isLoading = true;
       try {
         const response = await apiService.getRequest(
@@ -134,23 +133,21 @@ export const useTransactionStore = defineStore("transaction", {
 
           console.log("transaction response token", response.token);
         } else {
-          this.error = response.message;
+          alertStore.alert("error", response.message);
         }
 
         return response;
       } catch (error) {
-        this.error = DEFAULT_ERROR_MESSAGE;
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         throw error;
       } finally {
         store.isLoading = false;
       }
     },
-    // setLockedRate(rate) {
-    //   this.lockedRate = rate;
-    // },
     async getLockedAmount(amount, getOrPay) {
       const store = useStore();
       const authStore = useAuthStore();
+      const alertStore = useAlertStore();
       store.isLoading = true;
 
       try {
@@ -164,12 +161,12 @@ export const useTransactionStore = defineStore("transaction", {
           }
           console.log("Locked Amount Response:", response);
         } else {
-          this.error = response.message;
+          alertStore.alert("error", response.message);
         }
 
         return response;
       } catch (error) {
-        this.error = DEFAULT_ERROR_MESSAGE;
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         throw error;
       } finally {
         store.isLoading = false;
@@ -178,6 +175,7 @@ export const useTransactionStore = defineStore("transaction", {
     async sendReminder(payload) {
       const store = useStore();
       const authStore = useAuthStore();
+      const alertStore = useAlertStore();
       store.isLoading = true;
 
       try {
@@ -201,21 +199,20 @@ export const useTransactionStore = defineStore("transaction", {
           }
           console.log("Reminder sent successfully:", response);
         } else {
-          this.error = response.message;
+          alertStore.alert("error", response.message);
         }
 
         return response;
       } catch (error) {
-        this.error = DEFAULT_ERROR_MESSAGE;
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         throw error;
       } finally {
         store.isLoading = false;
       }
     },
     async getRate() {
-      const store = useStore();
       const authStore = useAuthStore();
-      // store.isLoading = true;
+      const alertStore = useAlertStore();
       try {
         const response = await apiService.getRequest(
           `/transaction/getRate?username=${authStore.username}`
@@ -227,25 +224,17 @@ export const useTransactionStore = defineStore("transaction", {
 
           console.log("dashboard response token", response.token);
         } else {
-          this.error = response.message;
+          alertStore.alert("error", response.message);
         }
 
         return response;
       } catch (error) {
-        this.error = DEFAULT_ERROR_MESSAGE;
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         throw error;
-      } finally {
-        // store.isLoading = false;
       }
     },
     resetStore() {
       this.$reset();
-    },
-    setTransactionData(data) {
-      this.sendingAmount = data.sendingAmount || this.sendingAmount;
-      this.sendingCurrency = data.sendingCurrency || this.sendingCurrency;
-      this.receivingAmount = data.receivingAmount || this.receivingAmount;
-      this.receivingCurrency = data.receivingCurrency || this.receivingCurrency;
     },
     clearTransactionData() {
       localStorage.removeItem("transaction");
@@ -257,15 +246,7 @@ export const useTransactionStore = defineStore("transaction", {
       {
         key: "transactionStore", // The key to use in localStorage
         storage: localStorage, // Use localStorage
-        paths: [
-          "memoId",
-          "rate",
-          "fee",
-          "sendingAmount",
-          "sendingCurrency",
-          "receivingAmount",
-          "receivingCurrency",
-        ],
+        paths: ["memoId", "rate", "fee"],
       },
     ],
   },
