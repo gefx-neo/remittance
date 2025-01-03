@@ -36,15 +36,42 @@
               </div>
             </div>
             <div class="item">
-              <div class="label">Currency</div>
+              <div class="label">Bank name</div>
               <div class="value">
-                {{ localForm.selectedBeneficiary?.currency || "" }}
+                {{ localForm.selectedBeneficiary?.bankName || "" }}
+              </div>
+            </div>
+            <div class="item">
+              <div class="label">Bank account number</div>
+              <div class="value">
+                {{ localForm.selectedBeneficiary?.bankAccountNo || "" }}
+              </div>
+            </div>
+            <div class="item">
+              <div class="label">Bank country</div>
+              <div class="value">
+                {{
+                  getNationality(localForm.selectedBeneficiary?.bankCountry) ||
+                  ""
+                }}
               </div>
             </div>
             <div class="item">
               <div class="label">Payment type</div>
               <div class="value">
                 {{ localForm.selectedBeneficiary?.paymentType || "" }}
+              </div>
+            </div>
+            <div class="item">
+              <div class="label">Currency</div>
+              <div class="value">
+                {{ localForm.selectedBeneficiary?.currency || "" }}
+              </div>
+            </div>
+            <div class="item">
+              <div class="label">Swift code</div>
+              <div class="value">
+                {{ localForm.selectedBeneficiary?.swiftCode || "" }}
               </div>
             </div>
             <div class="item">
@@ -55,12 +82,6 @@
                     localForm.selectedBeneficiary?.accountType || ""
                   )
                 }}
-              </div>
-            </div>
-            <div class="item">
-              <div class="label">Address</div>
-              <div class="value">
-                {{ localForm.selectedBeneficiary?.address || "" }}
               </div>
             </div>
           </div>
@@ -135,7 +156,7 @@ import {
 } from "@/stores/index.js";
 import Modal from "@/components/Modal.vue";
 import { useRoute } from "vue-router";
-import { getAccountType } from "@/utils/beneficiaryUtils.js";
+import { getAccountType, getNationality } from "@/utils/beneficiaryUtils.js";
 const props = defineProps({
   modelValue: {
     type: Object,
@@ -192,15 +213,14 @@ watch(
   { deep: true }
 );
 
+const handleBack = () => {
+  emit("prevStep");
+};
+
 // *** Maintain beneficiary state at StepTwo and StepThree ***
 onMounted(async () => {
   beneficiaryStore.setSelectedBeneficiary(localForm.selectedBeneficiary);
 });
-// *** Maintain beneficiary state at StepTwo and StepThree ***
-
-const handleBack = () => {
-  emit("prevStep");
-};
 </script>
 
 <style scoped>
@@ -253,7 +273,6 @@ const handleBack = () => {
 .third-form .left-form .item-group .body .item {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   padding-bottom: var(--size-8);
 }
 
@@ -267,6 +286,7 @@ const handleBack = () => {
 
 .third-form .left-form .item-group .body .item .value {
   color: var(--black);
+  text-align: end;
 }
 
 .third-form .footer {

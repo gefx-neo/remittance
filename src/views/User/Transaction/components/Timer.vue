@@ -36,7 +36,7 @@ const startTimer = () => {
       countdown.value -= 1;
     } else {
       clearInterval(timerInterval);
-      router.push("/dashboard"); // Redirect to dashboard when timer expires
+      window.location.href = "/dashboard";
     }
   }, 1000);
 };
@@ -53,22 +53,20 @@ onUnmounted(() => {
 <style scoped>
 .timer-item {
   position: fixed;
-  bottom: 100px;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  bottom: var(--size-24);
+  right: var(--size-24);
   display: flex;
   justify-content: space-between;
   align-items: center;
   text-align: center;
-  gap: var(--size-8);
   padding: var(--size-8);
-  background: #e0e0e0;
+  gap: var(--size-8);
   color: var(--black);
+  background: #e0e0e0;
   border-radius: var(--border-md);
   font-weight: var(--semi-bold);
   white-space: nowrap;
-  line-height: 1.2;
-  z-index: 1050;
+  z-index: 1055;
   cursor: pointer;
 }
 
@@ -96,5 +94,18 @@ onUnmounted(() => {
   font-size: var(--text-sm);
   color: var(--black);
   font-weight: var(--semi-bold);
+}
+
+@media (max-width: 767px) {
+  .timer-item {
+    position: absolute;
+    bottom: unset;
+    right: unset;
+    padding: 0;
+    background: unset;
+    top: 40px;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
 }
 </style>

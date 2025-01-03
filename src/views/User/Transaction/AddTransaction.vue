@@ -25,6 +25,7 @@
           v-model="form"
           @nextStep="nextStep"
           @prevStep="prevStep"
+          :isFromBeneficiaryDetail="isFromBeneficiaryDetail"
         />
         <StepThree
           v-if="stepStore.currentStep === 3"
@@ -36,11 +37,11 @@
       </form>
     </div>
   </div>
-  <!-- <Timer /> -->
+  <Timer />
 </template>
 
 <script setup>
-import { ref, onMounted, watch, nextTick } from "vue";
+import { ref, onMounted, watch, nextTick, onUnmounted } from "vue";
 import {
   useAuthStore,
   useAlertStore,
@@ -52,7 +53,7 @@ import StepOne from "./components/StepOne.vue";
 import StepTwo from "./components/StepTwo.vue";
 import StepThree from "./components/StepThree.vue";
 import { useValidation } from "@/composables/useValidation";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute, useRouter, onBeforeRouteLeave } from "vue-router";
 import Timer from "./components/Timer.vue";
 
 const route = useRoute();
@@ -67,8 +68,9 @@ const { scrollToTop } = useValidation();
 
 const form = ref({});
 const beneficiaries = ref([]);
-const isFromBeneficiaryDetail = ref(false);
-// const isFromTransactionList = ref(false);
+const isFromBeneficiaryDetail = ref(
+  route.query.fromBeneficiaryDetail === "true"
+); // const isFromTransactionList = ref(false);
 // const isFromDashboard = ref(false);
 
 const handleSubmit = async () => {
@@ -282,9 +284,6 @@ onMounted(async () => {
         "Landing on Step Two because isFromBeneficiaryDetail is true."
       );
     } else {
-      // Default to Step One if not coming from BeneficiaryDetail
-      stepStore.setCurrentStep(1);
-      console.log("Landing on Step One.");
     }
   } catch (error) {
     console.error("Error during initialization:", error);
@@ -337,16 +336,7 @@ onMounted(() => {
 
   nextTick(() => {
     if (query.beneId) {
-      if (stepStore.currentStep === 2) {
-        stepStore.setCurrentStep(2);
-        console.log("Staying on Step 2 due to query.beneId.");
-      } else if (stepStore.currentStep === 3) {
-        stepStore.setCurrentStep(2);
-        console.log("Staying on Step 2 due to query.beneId.");
-      } else {
-        stepStore.setCurrentStep(1);
-        console.log("Staying on Step 1 with query.beneId.");
-      }
+      stepStore.setCurrentStep(2);
     } else {
       // No query.beneId, force Step 1
       stepStore.setCurrentStep(1);
@@ -361,8 +351,14 @@ onMounted(() => {
 // });
 
 const handleCancel = () => {
-  router.push({ path: "/transaction" });
+  router.push({ path: "/dashboard" });
 };
+
+onUnmounted(() => {
+  localStorage.removeItem("transaction");
+  localStorage.removeItem("beneficiary");
+  console.log("Local storage cleared on component unmount.");
+});
 </script>
 
 <style scoped>

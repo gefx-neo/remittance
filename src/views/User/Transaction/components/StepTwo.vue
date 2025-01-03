@@ -22,7 +22,7 @@
           :isSending="false"
           @update:modelValue="updateReceivingAmount"
           @update:modelCurrency="updateReceivingCurrency"
-          :disableDropdown="localForm.selectedBeneficiary.currency"
+          :disableDropdown="true"
           :error="errors.receivingAmount"
         />
         <!-- :disableDropdown="
@@ -73,6 +73,7 @@
             Next
           </ButtonAPI>
           <button
+            v-if="!isFromBeneficiaryDetail"
             type="button"
             @click="handleBack"
             class="btn-back standard-button"
@@ -99,6 +100,7 @@ import {
   useTransactionStore,
 } from "@/stores/index.js";
 import { useRoute, useRouter } from "vue-router";
+import { decryptQueryParams } from "@/services/encryptionService";
 
 const props = defineProps({
   modelValue: {
@@ -110,6 +112,10 @@ const props = defineProps({
     default: () => [], // Default to an empty array
   },
   selectedBeneficiary: Object,
+  isFromBeneficiaryDetail: {
+    type: Boolean,
+    default: false, // Default to false if not passed
+  },
 });
 const emit = defineEmits(["update:modelValue", "nextStep", "prevStep"]);
 const {
@@ -182,12 +188,6 @@ const handleNext = () => {
   }
 };
 
-// *** Maintain beneficiary state at StepTwo and StepThree ***
-onMounted(async () => {
-  beneficiaryStore.setSelectedBeneficiary(localForm.selectedBeneficiary);
-});
-// *** Maintain beneficiary state at StepTwo and StepThree ***
-
 watch(
   localForm,
   (newVal) => {
@@ -197,16 +197,52 @@ watch(
   },
   { deep: true }
 );
+onMounted(() => {
+  // Retrieve encrypted data from the route query
+  const encryptedData = route.query.data;
+
+  if (encryptedData) {
+    try {
+      // Decrypt the data
+      const decryptedData = decryptQueryParams(encryptedData);
+
+      // Check if decrypted data is valid
+      if (decryptedData) {
+        // Update localForm with decrypted values
+        Object.assign(localForm, {
+          sendingAmount: parseFloat(decryptedData.sendingAmount) || 0,
+          sendingCurrency:
+            decryptedData.sendingCurrency || localForm.sendingCurrency,
+          receivingAmount: parseFloat(decryptedData.receivingAmount) || 0,
+          receivingCurrency:
+            decryptedData.receivingCurrency || localForm.receivingCurrency,
+        });
+
+        console.log(
+          "Decrypted data successfully applied to localForm:",
+          decryptedData
+        );
+      } else {
+        console.error("Failed to decrypt data: Data is null or invalid.");
+      }
+    } catch (error) {
+      console.error("Error decrypting query data:", error);
+    }
+  }
+});
 
 watch(
   () => route.query,
   (query) => {
     Object.assign(localForm, {
       sendingAmount: parseFloat(query.sendingAmount) || localForm.sendingAmount,
-      sendingCurrency: query.sendingCurrency || "SGD",
+      sendingCurrency: localForm.sendingCurrency || "SGD",
       receivingAmount:
         parseFloat(query.receivingAmount) || localForm.receivingAmount,
-      receivingCurrency: query.currency,
+      receivingCurrency:
+        query.currency ||
+        localForm.receivingCurrency ||
+        localForm.selectedBeneficiary.currency,
     });
     emit("update:modelValue", { ...localForm });
   },
@@ -234,7 +270,6 @@ const updateSendingAmount = async (amount) => {
   }
 };
 
-// Update receiving amount logic (from Dashboard.vue)
 const updateReceivingAmount = async (amount) => {
   const formattedAmount = parseFloat(amount).toFixed(2);
   if (localForm.receivingAmount === formattedAmount) return;
@@ -256,7 +291,6 @@ const updateReceivingAmount = async (amount) => {
   }
 };
 
-// Update sending currency logic (from Dashboard.vue)
 const updateSendingCurrency = async (currency) => {
   if (localForm.sendingCurrency === currency) return;
 
@@ -284,7 +318,6 @@ const updateSendingCurrency = async (currency) => {
   }
 };
 
-// Update receiving currency logic (from Dashboard.vue)
 const updateReceivingCurrency = async (currency) => {
   if (localForm.receivingCurrency === currency) return;
 
@@ -311,29 +344,6 @@ const updateReceivingCurrency = async (currency) => {
   } finally {
   }
 };
-
-// onMounted(() => {
-//   if (route.query.sendingAmount) {
-//     localForm.sendingAmount = parseFloat(route.query.sendingAmount) || 0;
-//   }
-//   if (route.query.receivingAmount) {
-//     localForm.receivingAmount = parseFloat(route.query.receivingAmount) || 0;
-//   }
-//   if (route.query.sendingCurrency) {
-//     localForm.sendingCurrency = route.query.sendingCurrency;
-//   }
-//   if (route.query.receivingCurrency) {
-//     localForm.receivingCurrency = route.query.receivingCurrency;
-//   }
-// });
-
-watch(
-  () => localForm.receivingCurrency,
-  (newCurrency) => {
-    console.log("Receiving Currency Updated in Parent:", newCurrency);
-  },
-  { immediate: true }
-);
 
 // If no transaction store, then call getLockedRate API to get memoId, fee and rate
 onMounted(async () => {
@@ -364,9 +374,13 @@ onMounted(async () => {
   }
 });
 
-const isFromDashboard = route.query.fromDashboard === "true";
+// This is to track when user enters Amount on Step2 and goes back to
+// Step1 to change beneficiary to different currency to reupdate the amount
+const isFromDashboard =
+  route.query.data &&
+  decryptQueryParams(route.query.data)?.fromDashboard === "true";
 
-// Watch for beneficiary currency changes when navigating back from Step1
+console.log("Is from Dashboard:", isFromDashboard); // Watch for beneficiary currency changes when navigating back from Step1
 const isProcessing = ref(false);
 
 watch(
@@ -401,33 +415,28 @@ watch(
   }
 );
 
-// This is to track when user enters Amount on Step2 and goes back to
-// Step1 to change beneficiary to different currency to reupdate the amount
-
 const handleBack = () => {
   emit("prevStep");
 };
 
-watch(
-  () => localForm.sendingAmount,
-  (newValue) => {
-    console.log("sendingAmount updated:", newValue);
-  }
-);
+// *** Maintain beneficiary state at StepTwo and StepThree ***
+onMounted(async () => {
+  beneficiaryStore.setSelectedBeneficiary(localForm.selectedBeneficiary);
+});
 
-watch(
-  () => localForm.sendingCurrency,
-  (newCurrency) => {
-    console.log("Sending Currency Updated:", newCurrency);
-    // Update the query parameter without reloading the page
-    router.replace({
-      query: {
-        ...route.query,
-        sendingCurrency: newCurrency,
-      },
-    });
-  }
-);
+// watch(
+//   () => localForm.sendingCurrency,
+//   (newCurrency) => {
+//     console.log("Sending Currency Updated:", newCurrency);
+//     // Update the query parameter without reloading the page
+//     router.replace({
+//       query: {
+//         ...route.query,
+//         sendingCurrency: newCurrency,
+//       },
+//     });
+//   }
+// );
 </script>
 
 <style scoped>

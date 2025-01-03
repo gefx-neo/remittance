@@ -109,20 +109,28 @@
                   text="In priority processing"
                   v-if="
                     transactionDetail.isUrgent === 1 &&
-                    transactionDetail.status === 2
+                    transactionDetail.status === 3
                   "
                 >
                   <div
                     :class="{
                       priority:
                         transactionDetail.isUrgent === 1 &&
-                        transactionDetail.status === 2,
+                        transactionDetail.status === 3,
                     }"
                   >
                     {{ getTransactionStatus(transactionDetail.status) }}
                   </div>
                 </Tooltip>
-                <div v-else>
+                <div
+                  v-else
+                  :class="{
+                    failed: transactionDetail.status === 0,
+                    success: transactionDetail.status === 1,
+                    unpaid: transactionDetail.status === 2,
+                    pending: transactionDetail.status === 3,
+                  }"
+                >
                   {{ getTransactionStatus(transactionDetail.status) }}
                 </div>
               </div>
@@ -399,11 +407,53 @@ const goBack = () => {
   color: var(--dark-yellow);
 }
 
+.transaction
+  .item-section
+  .detail.summary
+  .item-group
+  .item:nth-child(8)
+  .pending {
+  font-weight: var(--semi-bold);
+  font-size: var(--text-lg);
+  cursor: pointer;
+  color: var(--midnight-violet);
+}
+
+.transaction
+  .item-section
+  .detail.summary
+  .item-group
+  .item:nth-child(8)
+  .success {
+  font-weight: var(--semi-bold);
+  font-size: var(--text-lg);
+  cursor: pointer;
+  color: var(--pastel-green);
+}
+
+.transaction
+  .item-section
+  .detail.summary
+  .item-group
+  .item:nth-child(8)
+  .failed,
+.transaction
+  .item-section
+  .detail.summary
+  .item-group
+  .item:nth-child(8)
+  .unpaid {
+  font-weight: var(--semi-bold);
+  font-size: var(--text-lg);
+  cursor: pointer;
+  color: var(--dark-crimson-red);
+}
+
 .transaction .item-section .detail.summary .item-group .item:nth-child(8) div {
   font-weight: var(--semi-bold);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .transaction .user-section {
     padding: var(--size-16) var(--size-12);
   }
@@ -438,7 +488,7 @@ const goBack = () => {
     text-align: start;
   }
 
-  .transaction .item-section .detail.summary .item-group .item:nth-child(5) {
+  .transaction .item-section .detail.summary .item-group .item:nth-child(6) {
     border-bottom: 1px solid var(--light-grey);
     padding-bottom: var(--size-12);
   }

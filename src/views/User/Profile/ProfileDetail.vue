@@ -284,7 +284,7 @@ const navigateToAccountVerification = () => {
   font-weight: var(--semi-bold);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .profile .user-section {
     padding: var(--size-16);
   }

@@ -384,9 +384,7 @@ const redirectToTransaction = () => {
   // Update selectedBeneficiary in the store using available details
   beneficiaryStore.setSelectedBeneficiary({
     id: beneId,
-    beneName: beneficiaryDetail.value.beneName,
     currency: currency,
-    accountType: beneficiaryDetail.value.accountType,
   });
 
   // Redirect to Add Transaction page
@@ -726,7 +724,7 @@ const goBack = () => {
   font-size: var(--text-sm);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .beneficiary .item-section .detail .item-group,
   .beneficiary .item-section .detail .item-group:nth-child(6) {
     grid-template-columns: 1fr;

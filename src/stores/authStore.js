@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { useDeviceStore } from "./deviceStore.js";
 import router from "../router/index.js";
 import apiService from "@/services/apiService";
+import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 import {
   useStore,
   useProfileStore,
@@ -68,7 +69,7 @@ export const useAuthStore = defineStore("auth", {
         }
         return response;
       } catch (error) {
-        this.error = error.response?.message;
+        this.error = DEFAULT_ERROR_MESSAGE;
         return null;
       }
     },
@@ -115,7 +116,7 @@ export const useAuthStore = defineStore("auth", {
           this.error = response.message;
         }
       } catch (error) {
-        this.error = error.response?.message;
+        this.error = DEFAULT_ERROR_MESSAGE;
       } finally {
         store.isLoading = false;
       }
@@ -143,10 +144,10 @@ export const useAuthStore = defineStore("auth", {
           router.push("/"); // Redirect here works perfectly
           console.log("Logged out successfully and session cleared.");
         } else {
-          this.error = response.message || "Logout failed";
+          this.error = response.message;
         }
       } catch (error) {
-        this.error = error.response?.message || "Error during logout";
+        this.error = DEFAULT_ERROR_MESSAGE;
       } finally {
         store.isLoading = false;
       }

@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import apiService from "@/services/apiService";
 import { useStore, useAuthStore } from "@/stores/index.js";
+import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 import {
   setLocalStorageWithExpiry,
   getLocalStorageWithExpiry,
@@ -39,9 +40,7 @@ export const useProfileStore = defineStore("profile", {
 
         return response;
       } catch (error) {
-        this.error =
-          error.message ||
-          "Get profile failed due to network issues or server error.";
+        this.error = DEFAULT_ERROR_MESSAGE;
         throw error;
       } finally {
         store.isLoading = false;
@@ -59,7 +58,7 @@ export const useProfileStore = defineStore("profile", {
         );
         return response;
       } catch (error) {
-        console.error("File upload failed:", error);
+        this.error = DEFAULT_ERROR_MESSAGE;
         throw error;
       }
     },
@@ -88,9 +87,7 @@ export const useProfileStore = defineStore("profile", {
 
         return response;
       } catch (error) {
-        this.error =
-          error.message ||
-          "Verification failed due to network issues or server error.";
+        this.error = DEFAULT_ERROR_MESSAGE;
         throw error;
       } finally {
         store.isLoading = false;
@@ -109,7 +106,7 @@ export const useProfileStore = defineStore("profile", {
         }
         return response;
       } catch (error) {
-        this.error = error.response?.message;
+        this.error = DEFAULT_ERROR_MESSAGE;
         return null;
       }
     },

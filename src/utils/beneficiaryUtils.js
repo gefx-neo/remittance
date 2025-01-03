@@ -22,9 +22,11 @@ export const getAccountType = (value) => {
 };
 
 export const getCurrencyImagePath = (currencyCode) => {
+  const basePath = import.meta.env.VITE_APP_IMAGE_PATH;
+
   return currencyCode
-    ? `/src/assets/currency/${currencyCode.toLowerCase()}.svg`
-    : `/src/assets/currency/default.svg`;
+    ? `${basePath}currency/${currencyCode.toLowerCase()}.svg`
+    : `${basePath}currency/default.svg`;
 };
 
 export const getNationality = (id) => {

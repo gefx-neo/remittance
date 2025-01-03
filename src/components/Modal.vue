@@ -68,9 +68,10 @@
 </template>
 
 <script setup>
-import { watch, onUnmounted } from "vue";
+import { onUnmounted, watch } from "vue";
 import { useStore } from "@/stores/useStore";
 import { ButtonAPI } from "@/components/Form";
+import { useRouter } from "vue-router";
 
 const props = defineProps({
   isModalOpen: {
@@ -103,6 +104,7 @@ const props = defineProps({
 const emit = defineEmits(["close", "submit", "cancel"]);
 
 const store = useStore();
+const router = useRouter();
 
 // Watch for isModalOpen changes and disable body scrolling when open
 watch(
@@ -131,6 +133,19 @@ const emitCancel = () => emit("cancel");
 const emitSubmit = () => emit("submit");
 
 onUnmounted(() => {
+  store.closeModal();
+  document.body.style.overflow = "";
+});
+
+router.beforeEach((to, from, next) => {
+  store.closeModal();
+  document.body.style.overflow = "";
+  next();
+});
+
+// Close dropdown after each route change
+router.afterEach(() => {
+  store.closeModal();
   document.body.style.overflow = "";
 });
 </script>

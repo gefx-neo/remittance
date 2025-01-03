@@ -6,7 +6,12 @@ import AdminLayout from "../layout/AdminLayout/AdminLayout.vue"; // Admin layout
 import ErrorLayout from "../layout/ErrorLayout/ErrorLayout.vue";
 import Login from "../views/Guest/Login.vue"; // Static import
 import AdminLogin from "../views/Guest/AdminLogin.vue"; // Admin Login
-import { useAuthStore, useAlertStore } from "../stores/index.js";
+import {
+  useAuthStore,
+  useAlertStore,
+  useBeneficiaryStore,
+  useTransactionStore,
+} from "../stores/index.js";
 import { useAdminAuthStore } from "../stores/admin/adminAuthStore.js";
 
 const guestGuard = (to, from, next) => {
@@ -258,5 +263,17 @@ router.beforeEach((to, from, next) => {
 
   next();
 });
+
+// router.beforeEach((to, from, next) => {
+//   if (from.name === "addtransaction" && to.name !== "addtransaction") {
+//     localStorage.removeItem("transaction");
+//     localStorage.removeItem("beneficiary");
+//     const beneficiaryStore = useBeneficiaryStore();
+//     const transactionStore = useTransactionStore();
+//     beneficiaryStore.setSelectedBeneficiary(null);
+//     transactionStore.clearTransactionData(null);
+//   }
+//   next();
+// });
 
 export default router;

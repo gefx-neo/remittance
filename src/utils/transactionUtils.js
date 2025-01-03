@@ -13,12 +13,14 @@ export const formatNumber = (value) => {
 
 export const getTransactionStatus = (statusCode) => {
   switch (statusCode) {
+    case 0:
+      return "Failed";
     case 1:
       return "Success";
     case 2:
-      return "Pending";
+      return "Unpaid";
     case 3:
-      return "Rejected";
+      return "Pending";
     default:
       return "Unknown";
   }
@@ -33,15 +35,14 @@ export const formatDateTime = (dateTimeString) => {
   const month = date.toLocaleString("en-US", { month: "short" });
   const year = date.getFullYear();
 
-  // Format the time as "05:27 PM"
-  const hours = date.getHours() % 12 || 12; // Convert to 12-hour format
+  // Format the time in 24-hour format
+  const hours = date.getHours().toString().padStart(2, "0");
   const minutes = date.getMinutes().toString().padStart(2, "0");
-  const ampm = date.getHours() >= 12 ? "PM" : "AM";
 
-  return `${day} ${month} ${year}, ${hours}:${minutes} ${ampm}`;
+  return `${day} ${month} ${year}, ${hours}:${minutes}`;
 };
 
 export const getTotalAmount = (sendingAmount = 0, fee = 0) => {
-  const total = parseFloat(sendingAmount) + parseFloat(fee);
+  const total = parseFloat(sendingAmount) + parseFloat(fee || 0);
   return isNaN(total) ? 0 : total;
 };

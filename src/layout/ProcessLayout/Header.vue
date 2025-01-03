@@ -16,7 +16,6 @@
         @step-clicked="setStep"
       />
 
-      <!-- Profile Menu -->
       <div class="menu">
         <div
           class="profile"
@@ -102,13 +101,20 @@ const handleClickOutside = (event) => {
   }
 };
 
-// Handle dropdown state on route change
+const isAddTransactionRoute = ref(false);
+
+router.afterEach((to) => {
+  console.log("Route Name:", to.name);
+  console.log("Full Route Object:", to);
+  isAddTransactionRoute.value = to.name === "addtransaction";
+  console.log("isAddTransactionRoute:", isAddTransactionRoute.value);
+});
+
 router.beforeEach((to, from, next) => {
   store.closeDropdown();
   next();
 });
 
-// Close dropdown after each route change
 router.afterEach(() => {
   store.closeDropdown();
 });

@@ -267,20 +267,28 @@
 </template>
 
 <script setup>
-import { computed, watch, reactive, ref } from "vue";
+import { computed, watch, reactive, ref, onMounted } from "vue";
 import { useValidation } from "@/composables/useValidation";
 import { formValidation } from "./schemas/stepOneSchema";
-import { useAlertStore, useBeneficiaryStore } from "@/stores/index.js";
+import {
+  useAlertStore,
+  useBeneficiaryStore,
+  useStepStore,
+} from "@/stores/index.js";
 import FavouriteButton from "../../Beneficiary/components/FavouriteButton.vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import {
   getInitials,
   getAccountType,
   getCurrencyImagePath,
 } from "@/utils/beneficiaryUtils.js";
+import { decryptQueryParams } from "@/services/encryptionService";
 
 const beneficiaryStore = useBeneficiaryStore();
 const alertStore = useAlertStore();
+const stepStore = useStepStore();
+const route = useRoute();
+
 const router = useRouter();
 
 const { errors, validateForm, scrollToErrors } = useValidation();
@@ -361,13 +369,17 @@ const filteredSwiftOURPaymentBeneficiaries = computed(() =>
 
 const selectBeneficiary = (beneficiary) => {
   selectedBeneficiary.value = beneficiary;
-  beneficiaryStore.setSelectedBeneficiary(beneficiary);
-  emit("update:modelValue", { ...localForm, selectedBeneficiary: beneficiary });
   // emit("beneficiaryChanged", beneficiary); // Emit an event for recalculation
 };
 
 const syncBeneficiaryFromQuery = () => {
   const { beneId } = router.currentRoute.value.query;
+
+  // Check if a beneficiary is already stored
+  if (beneficiaryStore.selectedBeneficiary) {
+    selectedBeneficiary.value = beneficiaryStore.selectedBeneficiary;
+    return;
+  }
 
   if (beneId) {
     const beneficiary = props.beneficiaries.find((b) => b.id === beneId);
@@ -375,10 +387,7 @@ const syncBeneficiaryFromQuery = () => {
     if (beneficiary) {
       selectedBeneficiary.value = beneficiary;
       beneficiaryStore.setSelectedBeneficiary(beneficiary);
-
-      emit("update:modelValue", {
-        ...localForm,
-      });
+      emit("update:modelValue", { ...localForm });
     } else {
       selectedBeneficiary.value = null;
       beneficiaryStore.setSelectedBeneficiary(null);
@@ -386,24 +395,37 @@ const syncBeneficiaryFromQuery = () => {
   }
 };
 
-watch(
-  [() => router.currentRoute.value.query, () => props.beneficiaries],
-  ([query, beneficiaries]) => {
-    if (beneficiaries.length > 0) {
-      syncBeneficiaryFromQuery();
-    }
-  },
-  { immediate: true }
-);
+onMounted(() => {
+  const { beneId } = router.currentRoute.value.query;
+
+  if (beneId) {
+    syncBeneficiaryFromQuery();
+  }
+});
 
 const handleNext = () => {
   if (!selectedBeneficiary.value) {
     alertStore.alert("error", "Please select a beneficiary before proceeding.");
     return; // Stop execution if no beneficiary is selected
   }
+  // Decrypt the query data if available
+  let decryptedData = null;
+  const encryptedData = router.currentRoute.value.query.data;
 
-  // Check if receivingCurrency exists and validate against it
-  const receivingCurrency = router.currentRoute.value.query?.receivingCurrency;
+  if (encryptedData) {
+    try {
+      decryptedData = decryptQueryParams(encryptedData);
+      console.log("Decrypted data:", decryptedData);
+    } catch (error) {
+      alertStore.alert("error", "Failed to decrypt query parameters.");
+      console.error("Error decrypting data:", error);
+      return; // Stop if decryption fails
+    }
+  }
+
+  // Validate the receivingCurrency if decrypted data is available
+  const receivingCurrency = decryptedData?.receivingCurrency || null;
+
   if (
     receivingCurrency &&
     selectedBeneficiary.value.currency !== receivingCurrency
@@ -413,6 +435,11 @@ const handleNext = () => {
       `Selected beneficiary's currency (${selectedBeneficiary.value.currency}) does not match the receiving currency (${receivingCurrency}).`
     );
     return; // Stop execution if the currencies don't match
+  }
+
+  if (!selectedBeneficiary.value) {
+    alertStore.alert("error", "Please select a beneficiary before proceeding.");
+    return;
   }
 
   const schema = formValidation(localForm);
@@ -441,6 +468,7 @@ const handleNext = () => {
     scrollToErrors();
   }
 };
+
 const handleCancel = () => {
   beneficiaryStore.setSelectedBeneficiary(null);
   router.push({ path: "/dashboard" });

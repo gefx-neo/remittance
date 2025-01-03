@@ -2,9 +2,12 @@ import axios from "axios";
 import { useAuthStore } from "@/stores/authStore"; // import authStore to handle logout
 import cookieService from "../services/cookieService";
 
+export const DEFAULT_ERROR_MESSAGE =
+  "Please try again or contact our support team.";
+
 // Set the default base URL for all axios requests
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_APP_BASE_URL,
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "http://localhost:5173",
@@ -31,19 +34,45 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle 401 errors
-axiosInstance.interceptors.response.use(
-  (response) => {
-    // Any status code within the range of 2xx triggers this function
-    return response;
-  },
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      console.log("401 Unauthorized detected, logging out...");
+// Response interceptor to handle  errors
+// axiosInstance.interceptors.response.use(
+//   (response) => response,
+//   (error) => {
+//     if (error.response) {
+//       error.response.data = {
+//         ...error.response.data,
+//         message: error.response.data?.message || DEFAULT_ERROR_MESSAGE,
+//       };
 
-      // Unauthorized access, log the user out
-      const authStore = useAuthStore();
-      authStore.logout();
+//       if (error.response.status === 401) {
+//         console.log("401 Unauthorized detected, logging out...");
+//         const authStore = useAuthStore();
+//         authStore.logout();
+//       }
+//     } else {
+//       error.message = "Network error or server is unreachable.";
+//     }
+//     return Promise.reject(error);
+//   }
+// );
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response) {
+      // Ensure the response includes a default error message if none is provided
+      error.response.data = {
+        ...error.response.data,
+        message: error.response.data?.message || DEFAULT_ERROR_MESSAGE,
+      };
+
+      if (error.response.status === 401) {
+        console.log("401 Unauthorized detected, logging out...");
+        const authStore = useAuthStore();
+        authStore.logout();
+      }
+    } else {
+      // Handle network errors or unreachable server
+      error.message = DEFAULT_ERROR_MESSAGE;
     }
     return Promise.reject(error);
   }
@@ -90,7 +119,9 @@ const apiService = {
       return response.data;
     } catch (error) {
       console.error("API request failed:", error);
-      throw error.response?.data?.message || error.message;
+      throw (
+        error.response?.data?.message || error.message || DEFAULT_ERROR_MESSAGE
+      );
     }
   },
 
@@ -100,7 +131,9 @@ const apiService = {
       return response.data;
     } catch (error) {
       console.error("API request failed:", error);
-      throw error.response?.data?.message || error.message;
+      throw (
+        error.response?.data?.message || error.message || DEFAULT_ERROR_MESSAGE
+      );
     }
   },
 
@@ -130,7 +163,9 @@ const apiService = {
       return response.data;
     } catch (error) {
       console.error("API request failed:", error);
-      throw error.response?.data?.message || error.message;
+      throw (
+        error.response?.data?.message || error.message || DEFAULT_ERROR_MESSAGE
+      );
     }
   },
 
@@ -140,7 +175,9 @@ const apiService = {
       return response.data;
     } catch (error) {
       console.error("API request failed:", error);
-      throw error.response?.data?.message || error.message;
+      throw (
+        error.response?.data?.message || error.message || DEFAULT_ERROR_MESSAGE
+      );
     }
   },
 };

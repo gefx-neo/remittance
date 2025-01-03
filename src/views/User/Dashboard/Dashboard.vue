@@ -344,7 +344,6 @@ const updateReceivingCurrency = async (currency) => {
   if (form.receivingCurrency === currency) return;
 
   form.receivingCurrency = currency;
-  // store.isLoading(true);
 
   try {
     const lockedRateResponse = await transactionStore.getLockedRate(
@@ -353,21 +352,20 @@ const updateReceivingCurrency = async (currency) => {
     );
 
     if (lockedRateResponse && lockedRateResponse.status === 1) {
-      if (form.receivingAmount) {
+      if (form.sendingAmount) {
+        // Fetch the receiving amount based on the current sending amount
         const response = await transactionStore.getLockedAmount(
-          form.receivingAmount,
-          "get"
+          form.sendingAmount,
+          "pay"
         );
 
         if (response && response.status === 1) {
-          form.sendingAmount = parseFloat(response.payAmount).toFixed(2);
+          form.receivingAmount = parseFloat(response.getAmount).toFixed(2);
         }
       }
     }
   } catch (error) {
     console.error("Failed to update receiving currency:", error);
-  } finally {
-    // store.isLoading(false);
   }
 };
 
@@ -410,16 +408,21 @@ const handleSubmit = () => {
   console.log("Validation Errors:", errors);
 
   if (isValid) {
-    // If all validations pass, navigate to the next page
+    const queryData = {
+      sendingAmount: form.sendingAmount,
+      sendingCurrency: form.sendingCurrency,
+      receivingAmount: form.receivingAmount,
+      receivingCurrency: form.receivingCurrency,
+      fromDashboard: "true",
+    };
+
+    // Encrypt data
+    const encryptedData = encryptQueryParams(queryData);
+
+    // Navigate to StepTwo with encrypted query parameters
     router.push({
       path: "/transaction/addtransaction",
-      query: {
-        sendingAmount: form.sendingAmount,
-        sendingCurrency: form.sendingCurrency,
-        receivingAmount: form.receivingAmount,
-        receivingCurrency: form.receivingCurrency,
-        fromDashboard: "true",
-      },
+      query: { data: encryptedData },
     });
   } else {
     // If sendingAmount is 0, show a specific error message for required fields
@@ -681,7 +684,7 @@ const navigateToSetting = () => {
 
 <style scoped>
 @import "@/assets/dashboard.css";
-@keyframes fadeUpOut {
+/* @keyframes fadeUpOut {
   0% {
     opacity: 1;
     transform: translateY(0);
@@ -715,5 +718,5 @@ const navigateToSetting = () => {
 
 .rate.fade-in {
   animation: fadeIn 0.5s ease forwards;
-}
+} */
 </style>

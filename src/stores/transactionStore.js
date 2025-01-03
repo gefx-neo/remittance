@@ -1,11 +1,16 @@
 import { defineStore } from "pinia";
 import apiService from "@/services/apiService";
+import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 import { useStore } from "@/stores/useStore";
 import { useAuthStore } from "@/stores/authStore";
 
 export const useTransactionStore = defineStore("transaction", {
   state: () => ({
     // lockedRate: null,
+    // sendingAmount: 0,
+    // sendingCurrency: "SGD",
+    // receivingAmount: 0,
+    // receivingCurrency: "MYR",
     memoId: null,
     rate: null,
     fee: null,
@@ -32,9 +37,7 @@ export const useTransactionStore = defineStore("transaction", {
 
         return response;
       } catch (error) {
-        this.error =
-          error.message ||
-          "Delete beneficiary failed due to network issues or server error.";
+        this.error = DEFAULT_ERROR_MESSAGE;
         throw error;
       } finally {
         store.isLoading = false;
@@ -61,9 +64,7 @@ export const useTransactionStore = defineStore("transaction", {
 
         return response;
       } catch (error) {
-        this.error =
-          error.message ||
-          "Get transaction detail failed due to network issues or server error.";
+        this.error = DEFAULT_ERROR_MESSAGE;
         throw error;
       } finally {
         store.isLoading = false;
@@ -80,7 +81,7 @@ export const useTransactionStore = defineStore("transaction", {
         );
         return response;
       } catch (error) {
-        console.error("File upload failed:", error);
+        this.error = DEFAULT_ERROR_MESSAGE;
         throw error;
       }
     },
@@ -109,9 +110,7 @@ export const useTransactionStore = defineStore("transaction", {
 
         return response;
       } catch (error) {
-        this.error =
-          error.message ||
-          "Process failed due to network issues or server error.";
+        this.error = DEFAULT_ERROR_MESSAGE;
         throw error;
       } finally {
         store.isLoading = false;
@@ -140,9 +139,7 @@ export const useTransactionStore = defineStore("transaction", {
 
         return response;
       } catch (error) {
-        this.error =
-          error.message ||
-          "Get locked rate failed due to network issues or server error.";
+        this.error = DEFAULT_ERROR_MESSAGE;
         throw error;
       } finally {
         store.isLoading = false;
@@ -172,9 +169,7 @@ export const useTransactionStore = defineStore("transaction", {
 
         return response;
       } catch (error) {
-        this.error =
-          error.message ||
-          "Get locked amount failed due to network issues or server error.";
+        this.error = DEFAULT_ERROR_MESSAGE;
         throw error;
       } finally {
         store.isLoading = false;
@@ -211,9 +206,7 @@ export const useTransactionStore = defineStore("transaction", {
 
         return response;
       } catch (error) {
-        this.error =
-          error.message ||
-          "Send reminder failed due to network issues or server error.";
+        this.error = DEFAULT_ERROR_MESSAGE;
         throw error;
       } finally {
         store.isLoading = false;
@@ -239,9 +232,7 @@ export const useTransactionStore = defineStore("transaction", {
 
         return response;
       } catch (error) {
-        this.error =
-          error.message ||
-          "Get rate failed due to network issues or server error.";
+        this.error = DEFAULT_ERROR_MESSAGE;
         throw error;
       } finally {
         // store.isLoading = false;
@@ -250,6 +241,15 @@ export const useTransactionStore = defineStore("transaction", {
     resetStore() {
       this.$reset();
     },
+    setTransactionData(data) {
+      this.sendingAmount = data.sendingAmount || this.sendingAmount;
+      this.sendingCurrency = data.sendingCurrency || this.sendingCurrency;
+      this.receivingAmount = data.receivingAmount || this.receivingAmount;
+      this.receivingCurrency = data.receivingCurrency || this.receivingCurrency;
+    },
+    clearTransactionData() {
+      localStorage.removeItem("transaction");
+    },
   },
   persist: {
     enabled: true,
@@ -257,7 +257,15 @@ export const useTransactionStore = defineStore("transaction", {
       {
         key: "transactionStore", // The key to use in localStorage
         storage: localStorage, // Use localStorage
-        paths: ["memoId", "rate", "fee"], // Only persist these specific values
+        paths: [
+          "memoId",
+          "rate",
+          "fee",
+          "sendingAmount",
+          "sendingCurrency",
+          "receivingAmount",
+          "receivingCurrency",
+        ],
       },
     ],
   },

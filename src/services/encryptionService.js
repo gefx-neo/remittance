@@ -41,7 +41,7 @@ export function decryptData(encryptedText, key, iv) {
   return plaintext;
 }
 
-const SECRET_KEY = "your-very-secure-key"; // Use a secure key
+const SECRET_KEY = "afsdg"; // Use a secure key
 
 // Encrypt data
 export const encryptQueryParams = (data) => {

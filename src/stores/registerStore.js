@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import apiService from "@/services/apiService";
+import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 import { useStore } from "@/stores/useStore";
 
 export const useRegisterStore = defineStore("registerStore", {
@@ -38,9 +39,7 @@ export const useRegisterStore = defineStore("registerStore", {
 
         return response;
       } catch (error) {
-        this.error =
-          error.message ||
-          "Request failed due to network issues or server error.";
+        this.error = DEFAULT_ERROR_MESSAGE;
         throw error;
       } finally {
         store.isLoading = false;

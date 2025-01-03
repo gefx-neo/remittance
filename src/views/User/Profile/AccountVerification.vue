@@ -538,15 +538,6 @@ const prevStep = () => {
   scrollToTop();
 };
 
-//   currentStep.value++;
-//   scrollToTop();
-// };
-
-// const prevStep = () => {
-//   currentStep.value > 1 && currentStep.value--;
-//   scrollToTop();
-// };
-
 // Sync profileDetails with forms
 watch(
   () => profileDetails,

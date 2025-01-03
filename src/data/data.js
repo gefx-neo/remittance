@@ -801,11 +801,10 @@ export const annualIncome = [
 ];
 
 export const sendingCurrencies = [
-  { code: "USD", name: "US dollar", icon: "src/assets/currency/usd.svg" },
+  { code: "USD", name: "US dollar" },
   {
     code: "SGD",
     name: "Singapore dollar",
-    icon: "src/assets/currency/sgd.svg",
   },
 ];
 
@@ -813,12 +812,10 @@ export const receivingCurrencies = [
   {
     code: "MYR",
     name: "Malaysian ringgit",
-    icon: "src/assets/currency/myr.svg",
   },
   {
     code: "IDR",
     name: "Indonesian rupiah",
-    icon: "src/assets/currency/idr.svg",
   },
 ];
 

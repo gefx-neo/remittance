@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import apiService from "@/services/apiService";
+import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 import { useStore } from "@/stores/useStore";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -30,9 +31,7 @@ export const useBeneficiaryStore = defineStore("beneficiary", {
 
         return response;
       } catch (error) {
-        this.error =
-          error.message ||
-          "Delete beneficiary failed due to network issues or server error.";
+        this.error = DEFAULT_ERROR_MESSAGE;
         throw error;
       } finally {
         store.isLoading = false;
@@ -59,9 +58,7 @@ export const useBeneficiaryStore = defineStore("beneficiary", {
 
         return response;
       } catch (error) {
-        this.error =
-          error.message ||
-          "Get beneficiary detail failed due to network issues or server error.";
+        this.error = DEFAULT_ERROR_MESSAGE;
         throw error;
       } finally {
         store.isLoading = false;
@@ -79,7 +76,7 @@ export const useBeneficiaryStore = defineStore("beneficiary", {
         );
         return response;
       } catch (error) {
-        console.error("File upload failed:", error);
+        this.error = DEFAULT_ERROR_MESSAGE;
         throw error;
       }
     },
@@ -107,9 +104,7 @@ export const useBeneficiaryStore = defineStore("beneficiary", {
 
         return response;
       } catch (error) {
-        this.error =
-          error.message ||
-          "Process failed due to network issues or server error.";
+        this.error = DEFAULT_ERROR_MESSAGE;
         throw error;
       } finally {
         store.isLoading = false;
@@ -140,7 +135,7 @@ export const useBeneficiaryStore = defineStore("beneficiary", {
         // Return the response for component handling
         return response;
       } catch (error) {
-        console.error("Error in updateFavourite:", error);
+        this.error = DEFAULT_ERROR_MESSAGE;
         throw error;
       }
     },
@@ -165,9 +160,7 @@ export const useBeneficiaryStore = defineStore("beneficiary", {
 
         return response;
       } catch (error) {
-        this.error =
-          error.message ||
-          "Delete beneficiary failed due to network issues or server error.";
+        this.error = DEFAULT_ERROR_MESSAGE;
         throw error;
       } finally {
         store.isLoading = false;
@@ -176,6 +169,10 @@ export const useBeneficiaryStore = defineStore("beneficiary", {
     setSelectedBeneficiary(beneficiary) {
       this.selectedBeneficiary = beneficiary;
     },
+    clearSelectedBeneficiary() {
+      this.selectedBeneficiary = null;
+    },
+
     clearBeneficiaryList() {
       this.beneficiaryList = null;
       this.error = null;

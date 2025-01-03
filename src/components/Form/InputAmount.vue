@@ -23,7 +23,10 @@
             :class="{ open: isDropdownOpen, disabled: props.disableDropdown }"
             :disabled="props.disableDropdown"
           >
-            <img :src="selectedCurrencyIcon" alt="currency-icon" />
+            <img
+              :src="getCurrencyImagePath(selectedCurrency)"
+              alt="currency-icon"
+            />
             <span>{{ selectedCurrency }}</span>
             <font-awesome-icon
               :icon="['fa', 'chevron-down']"
@@ -60,6 +63,7 @@ import CurrencyDropdown from "@/components/Dropdown/CurrencyDropdown.vue";
 import { sendingCurrencies, receivingCurrencies } from "@/data/data";
 import { useStore } from "@/stores/useStore";
 import { useAlertStore } from "@/stores/index.js";
+import { getCurrencyImagePath } from "@/utils/beneficiaryUtils";
 
 const props = defineProps({
   label: String,
@@ -96,13 +100,6 @@ const toggleDropdown = () => {
 const currencies = computed(() =>
   props.isSending ? sendingCurrencies : receivingCurrencies
 );
-
-const selectedCurrencyIcon = computed(() => {
-  const currency = currencies.value.find(
-    (currency) => currency.code === selectedCurrency.value
-  );
-  return currency ? currency.icon : "";
-});
 
 const updateCurrency = (currencyCode) => {
   selectedCurrency.value = currencyCode;

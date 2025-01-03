@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import apiService from "@/services/apiService";
+import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 import { useStore } from "@/stores/useStore";
 import { encryptData } from "../services/encryptionService.js";
 
@@ -22,7 +23,7 @@ export const useForgotPasswordStore = defineStore("forgotPasswordstore", {
         }
         return response;
       } catch (error) {
-        this.error = error.response?.message;
+        this.error = DEFAULT_ERROR_MESSAGE;
         return null;
       }
     },
@@ -41,10 +42,9 @@ export const useForgotPasswordStore = defineStore("forgotPasswordstore", {
         } else {
           this.error = response.message;
         }
-
         return response;
       } catch (error) {
-        this.error = error.response?.message;
+        this.error = DEFAULT_ERROR_MESSAGE;
         return null;
       } finally {
         store.isLoading = false;
@@ -83,7 +83,7 @@ export const useForgotPasswordStore = defineStore("forgotPasswordstore", {
         }
         return response;
       } catch (error) {
-        this.error = error.response?.message;
+        this.error = DEFAULT_ERROR_MESSAGE;
         return null;
       } finally {
         store.isLoading = false;
@@ -107,7 +107,7 @@ export const useForgotPasswordStore = defineStore("forgotPasswordstore", {
 
         return response;
       } catch (error) {
-        this.error = error.response?.message;
+        this.error = DEFAULT_ERROR_MESSAGE;
         return null;
       } finally {
         store.isResendLoading = false;
