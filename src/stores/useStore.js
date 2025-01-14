@@ -5,6 +5,7 @@ export const useStore = defineStore("main", {
     isSidebarOpen: false, // User tablet sidebar
     isDropdownOpen: false, // User profile dropdown
     isLoading: false, // Button API loading
+    isMoneyLoading: false, // For InputAmount
     isModalOpen: false, // Modal
     isResendLoading: false, // Loading state for "Send again"
     resendTime: 0, // Timer countdown for "Send again"
@@ -24,9 +25,6 @@ export const useStore = defineStore("main", {
     },
     closeDropdown() {
       this.isDropdownOpen = false;
-    },
-    setLoading(isLoading) {
-      this.isLoading = isLoading;
     },
     openModal() {
       this.isModalOpen = true;

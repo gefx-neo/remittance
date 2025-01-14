@@ -32,218 +32,229 @@
             </button>
           </div>
         </div>
-
+        <div v-if="store.isLoading">Loading...</div>
         <div
-          class="payment-category"
-          v-if="filteredNoPreferenceBeneficiaries.length > 0"
+          v-else-if="Array.isArray(beneficiaries) && beneficiaries.length === 0"
         >
-          <h4>No Preference</h4>
-          <div class="item-section">
-            <div
-              v-for="(beneficiary, index) in filteredNoPreferenceBeneficiaries"
-              :key="'nopreference-' + index"
-              class="item"
-              tabindex="0"
-              :class="{
-                selected:
-                  selectedBeneficiary &&
-                  selectedBeneficiary.id === beneficiary.id,
-              }"
-              @click="selectBeneficiary(beneficiary)"
-            >
-              <FavouriteButton
-                :beneficiaryId="beneficiary.id"
-                :isFav="!!beneficiary.isFav"
-                @update-list="refreshPage"
-                @click.stop
-              />
-              <div class="detail">
-                <span class="icon-round">
-                  {{ getInitials(beneficiary.beneName) }}
-                  <img
-                    :src="getCurrencyImagePath(beneficiary.currency)"
-                    alt="Currency"
-                  />
-                </span>
-                <span class="name">{{ beneficiary.beneName }}</span>
+          <EmptyList />
+        </div>
+        <div v-else>
+          <div
+            class="payment-category"
+            v-if="filteredNoPreferenceBeneficiaries.length > 0"
+          >
+            <h4>No Preference</h4>
+            <div class="item-section">
+              <div
+                v-for="(
+                  beneficiary, index
+                ) in filteredNoPreferenceBeneficiaries"
+                :key="'nopreference-' + index"
+                class="item"
+                tabindex="0"
+                :class="{
+                  selected:
+                    selectedBeneficiary &&
+                    selectedBeneficiary.id === beneficiary.id,
+                }"
+                @click="selectBeneficiary(beneficiary)"
+              >
+                <FavouriteButton
+                  :beneficiaryId="beneficiary.id"
+                  :isFav="!!beneficiary.isFav"
+                  @update-list="refreshPage"
+                  @click.stop
+                />
+                <div class="detail">
+                  <span class="icon-round">
+                    {{ getInitials(beneficiary.beneName) }}
+                    <img
+                      :src="getCurrencyImagePath(beneficiary.currency)"
+                      alt="Currency"
+                    />
+                  </span>
+                  <span class="name">{{ beneficiary.beneName }}</span>
 
-                <span>
-                  {{ getAccountType(beneficiary.accountType) }}
-                </span>
+                  <span>
+                    {{ getAccountType(beneficiary.accountType) }}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div
-          class="payment-category"
-          v-if="filteredLocalPaymentBeneficiaries.length > 0"
-        >
-          <h4>Local Payment</h4>
-          <div class="item-section">
-            <div
-              v-for="(beneficiary, index) in filteredLocalPaymentBeneficiaries"
-              :key="'local-' + index"
-              class="item"
-              tabindex="0"
-              :class="{
-                selected:
-                  selectedBeneficiary &&
-                  selectedBeneficiary.id === beneficiary.id,
-              }"
-              @click="selectBeneficiary(beneficiary)"
-            >
-              <FavouriteButton
-                :beneficiaryId="beneficiary.id"
-                :isFav="!!beneficiary.isFav"
-                @update-list="refreshPage"
-                @click.stop
-              />
-              <div class="detail">
-                <span class="icon-round">
-                  {{ getInitials(beneficiary.beneName) }}
-                  <img
-                    :src="getCurrencyImagePath(beneficiary.currency)"
-                    alt="Currency"
-                  />
-                </span>
-                <span class="name">{{ beneficiary.beneName }}</span>
+          <div
+            class="payment-category"
+            v-if="filteredLocalPaymentBeneficiaries.length > 0"
+          >
+            <h4>Local Payment</h4>
+            <div class="item-section">
+              <div
+                v-for="(
+                  beneficiary, index
+                ) in filteredLocalPaymentBeneficiaries"
+                :key="'local-' + index"
+                class="item"
+                tabindex="0"
+                :class="{
+                  selected:
+                    selectedBeneficiary &&
+                    selectedBeneficiary.id === beneficiary.id,
+                }"
+                @click="selectBeneficiary(beneficiary)"
+              >
+                <FavouriteButton
+                  :beneficiaryId="beneficiary.id"
+                  :isFav="!!beneficiary.isFav"
+                  @update-list="refreshPage"
+                  @click.stop
+                />
+                <div class="detail">
+                  <span class="icon-round">
+                    {{ getInitials(beneficiary.beneName) }}
+                    <img
+                      :src="getCurrencyImagePath(beneficiary.currency)"
+                      alt="Currency"
+                    />
+                  </span>
+                  <span class="name">{{ beneficiary.beneName }}</span>
 
-                <span>
-                  {{ getAccountType(beneficiary.accountType) }}
-                </span>
+                  <span>
+                    {{ getAccountType(beneficiary.accountType) }}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div
-          class="payment-category"
-          v-if="filteredSwiftSHAPaymentBeneficiaries.length > 0"
-        >
-          <h4>Swift SHA Payment</h4>
-          <div class="item-section">
-            <div
-              v-for="(
-                beneficiary, index
-              ) in filteredSwiftSHAPaymentBeneficiaries"
-              :key="'swift-' + index"
-              class="item"
-              tabindex="0"
-              :class="{
-                selected:
-                  selectedBeneficiary &&
-                  selectedBeneficiary.id === beneficiary.id,
-              }"
-              @click="selectBeneficiary(beneficiary)"
-            >
-              <FavouriteButton
-                :beneficiaryId="beneficiary.id"
-                :isFav="!!beneficiary.isFav"
-                @update-list="refreshPage"
-                @click.stop
-              />
-              <div class="detail">
-                <span class="icon-round">
-                  {{ getInitials(beneficiary.beneName) }}
-                  <img
-                    :src="getCurrencyImagePath(beneficiary.currency)"
-                    alt="Currency"
-                  />
-                </span>
-                <span class="name">{{ beneficiary.beneName }}</span>
+          <div
+            class="payment-category"
+            v-if="filteredSwiftSHAPaymentBeneficiaries.length > 0"
+          >
+            <h4>Swift SHA Payment</h4>
+            <div class="item-section">
+              <div
+                v-for="(
+                  beneficiary, index
+                ) in filteredSwiftSHAPaymentBeneficiaries"
+                :key="'swift-' + index"
+                class="item"
+                tabindex="0"
+                :class="{
+                  selected:
+                    selectedBeneficiary &&
+                    selectedBeneficiary.id === beneficiary.id,
+                }"
+                @click="selectBeneficiary(beneficiary)"
+              >
+                <FavouriteButton
+                  :beneficiaryId="beneficiary.id"
+                  :isFav="!!beneficiary.isFav"
+                  @update-list="refreshPage"
+                  @click.stop
+                />
+                <div class="detail">
+                  <span class="icon-round">
+                    {{ getInitials(beneficiary.beneName) }}
+                    <img
+                      :src="getCurrencyImagePath(beneficiary.currency)"
+                      alt="Currency"
+                    />
+                  </span>
+                  <span class="name">{{ beneficiary.beneName }}</span>
 
-                <span>
-                  {{ getAccountType(beneficiary.accountType) }}
-                </span>
+                  <span>
+                    {{ getAccountType(beneficiary.accountType) }}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div
-          class="payment-category"
-          v-if="filteredSwiftBENPaymentBeneficiaries.length > 0"
-        >
-          <h4>Swift BEN Payment</h4>
-          <div class="item-section">
-            <div
-              v-for="(
-                beneficiary, index
-              ) in filteredSwiftBENPaymentBeneficiaries"
-              :key="'swift-' + index"
-              class="item"
-              tabindex="0"
-              :class="{
-                selected:
-                  selectedBeneficiary &&
-                  selectedBeneficiary.id === beneficiary.id,
-              }"
-              @click="selectBeneficiary(beneficiary)"
-            >
-              <FavouriteButton
-                :beneficiaryId="beneficiary.id"
-                :isFav="!!beneficiary.isFav"
-                @update-list="refreshPage"
-                @click.stop
-              />
-              <div class="detail">
-                <span class="icon-round">
-                  {{ getInitials(beneficiary.beneName) }}
-                  <img
-                    :src="getCurrencyImagePath(beneficiary.currency)"
-                    alt="Currency"
-                  />
-                </span>
-                <span class="name">{{ beneficiary.beneName }}</span>
+          <div
+            class="payment-category"
+            v-if="filteredSwiftBENPaymentBeneficiaries.length > 0"
+          >
+            <h4>Swift BEN Payment</h4>
+            <div class="item-section">
+              <div
+                v-for="(
+                  beneficiary, index
+                ) in filteredSwiftBENPaymentBeneficiaries"
+                :key="'swift-' + index"
+                class="item"
+                tabindex="0"
+                :class="{
+                  selected:
+                    selectedBeneficiary &&
+                    selectedBeneficiary.id === beneficiary.id,
+                }"
+                @click="selectBeneficiary(beneficiary)"
+              >
+                <FavouriteButton
+                  :beneficiaryId="beneficiary.id"
+                  :isFav="!!beneficiary.isFav"
+                  @update-list="refreshPage"
+                  @click.stop
+                />
+                <div class="detail">
+                  <span class="icon-round">
+                    {{ getInitials(beneficiary.beneName) }}
+                    <img
+                      :src="getCurrencyImagePath(beneficiary.currency)"
+                      alt="Currency"
+                    />
+                  </span>
+                  <span class="name">{{ beneficiary.beneName }}</span>
 
-                <span>
-                  {{ getAccountType(beneficiary.accountType) }}
-                </span>
+                  <span>
+                    {{ getAccountType(beneficiary.accountType) }}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div
-          class="payment-category"
-          v-if="filteredSwiftOURPaymentBeneficiaries.length > 0"
-        >
-          <h4>Swift OUR Payment</h4>
-          <div class="item-section">
-            <div
-              v-for="(
-                beneficiary, index
-              ) in filteredSwiftOURPaymentBeneficiaries"
-              :key="'swift-' + index"
-              class="item"
-              tabindex="0"
-              :class="{
-                selected:
-                  selectedBeneficiary &&
-                  selectedBeneficiary.id === beneficiary.id,
-              }"
-              @click="selectBeneficiary(beneficiary)"
-            >
-              <FavouriteButton
-                :beneficiaryId="beneficiary.id"
-                :isFav="!!beneficiary.isFav"
-                @update-list="refreshPage"
-                @click.stop
-              />
-              <div class="detail">
-                <span class="icon-round">
-                  {{ getInitials(beneficiary.beneName) }}
-                  <img
-                    :src="getCurrencyImagePath(beneficiary.currency)"
-                    alt="Currency"
-                  />
-                </span>
-                <span class="name">{{ beneficiary.beneName }}</span>
+          <div
+            class="payment-category"
+            v-if="filteredSwiftOURPaymentBeneficiaries.length > 0"
+          >
+            <h4>Swift OUR Payment</h4>
+            <div class="item-section">
+              <div
+                v-for="(
+                  beneficiary, index
+                ) in filteredSwiftOURPaymentBeneficiaries"
+                :key="'swift-' + index"
+                class="item"
+                tabindex="0"
+                :class="{
+                  selected:
+                    selectedBeneficiary &&
+                    selectedBeneficiary.id === beneficiary.id,
+                }"
+                @click="selectBeneficiary(beneficiary)"
+              >
+                <FavouriteButton
+                  :beneficiaryId="beneficiary.id"
+                  :isFav="!!beneficiary.isFav"
+                  @update-list="refreshPage"
+                  @click.stop
+                />
+                <div class="detail">
+                  <span class="icon-round">
+                    {{ getInitials(beneficiary.beneName) }}
+                    <img
+                      :src="getCurrencyImagePath(beneficiary.currency)"
+                      alt="Currency"
+                    />
+                  </span>
+                  <span class="name">{{ beneficiary.beneName }}</span>
 
-                <span>
-                  {{ getAccountType(beneficiary.accountType) }}
-                </span>
+                  <span>
+                    {{ getAccountType(beneficiary.accountType) }}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -271,9 +282,9 @@ import { computed, reactive, ref, onMounted } from "vue";
 import { useValidation } from "@/composables/useValidation";
 import { formValidation } from "./schemas/stepOneSchema";
 import {
+  useStore,
   useAlertStore,
   useBeneficiaryStore,
-  useStepStore,
 } from "@/stores/index.js";
 import FavouriteButton from "../../Beneficiary/components/FavouriteButton.vue";
 import { useRoute, useRouter } from "vue-router";
@@ -283,7 +294,9 @@ import {
   getCurrencyImagePath,
 } from "@/utils/beneficiaryUtils.js";
 import { decryptQueryParams } from "@/services/encryptionService";
+import EmptyList from "@/views/EmptyList.vue";
 
+const store = useStore();
 const beneficiaryStore = useBeneficiaryStore();
 const alertStore = useAlertStore();
 

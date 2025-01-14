@@ -191,20 +191,20 @@ watch(
   { immediate: true } // Ensure it runs on component initialization
 );
 
-watch(
-  () => store.isLoading,
-  (isLoading) => {
-    if (isLoading) {
-      alertStore.alert("loading");
-    } else {
-      // Clear all alerts once loading is done
-      alertStore.alerts = alertStore.alerts.filter(
-        (alert) => alert.type !== "loading"
-      );
-    }
-  },
-  { immediate: true } // Ensures the watcher reacts immediately on mount
-);
+// watch(
+//   () => store.isMoneyLoading,
+//   (isMoneyLoading) => {
+//     if (isMoneyLoading) {
+//       alertStore.alert("loading");
+//     } else {
+//       // Clear all alerts once loading is done
+//       alertStore.alerts = alertStore.alerts.filter(
+//         (alert) => alert.type !== "loading"
+//       );
+//     }
+//   },
+//   { immediate: true } // Ensures the watcher reacts immediately on mount
+// );
 
 watch(
   () => props.modelCurrency,

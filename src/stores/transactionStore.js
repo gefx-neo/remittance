@@ -118,7 +118,7 @@ export const useTransactionStore = defineStore("transaction", {
       const store = useStore();
       const authStore = useAuthStore();
       const alertStore = useAlertStore();
-      store.isLoading = true;
+      store.isMoneyLoading = true;
       try {
         const response = await apiService.getRequest(
           `/transaction/getLockedRate?username=${authStore.username}&payCurrency=${payCurrency}&getCurrency=${getCurrency}`
@@ -141,14 +141,14 @@ export const useTransactionStore = defineStore("transaction", {
         alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         throw error;
       } finally {
-        store.isLoading = false;
+        store.isMoneyLoading = false;
       }
     },
     async getLockedAmount(amount, getOrPay) {
       const store = useStore();
       const authStore = useAuthStore();
       const alertStore = useAlertStore();
-      store.isLoading = true;
+      store.isMoneyLoading = true;
 
       try {
         const response = await apiService.getRequest(
@@ -169,7 +169,7 @@ export const useTransactionStore = defineStore("transaction", {
         alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         throw error;
       } finally {
-        store.isLoading = false;
+        store.isMoneyLoading = false;
       }
     },
     async sendReminder(payload) {
@@ -221,8 +221,6 @@ export const useTransactionStore = defineStore("transaction", {
           if (response.token) {
             authStore.refreshSession(response.token, authStore.username);
           }
-
-          console.log("dashboard response token", response.token);
         } else {
           alertStore.alert("error", response.message);
         }

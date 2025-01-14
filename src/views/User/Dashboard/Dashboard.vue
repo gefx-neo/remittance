@@ -40,7 +40,7 @@
 
       <div class="button-group">
         <ButtonAPI
-          :disabled="store.isLoading"
+          :disabled="store.isMoneyLoading"
           class="btn-red standard-button"
           @click="handleSubmit"
         >
@@ -55,7 +55,11 @@
           <h3>Transaction History</h3>
           <router-link to="/transaction">View all</router-link>
         </div>
-        <div class="item-section" v-if="transactions">
+        <div v-if="store.isLoading">Loading...</div>
+        <div v-else-if="transactions.length === 0">
+          <EmptyList />
+        </div>
+        <div class="item-section" v-else>
           <div
             v-for="(transaction, index) in transactions"
             :key="index"
@@ -113,14 +117,14 @@
             </div>
           </div>
         </div>
-        <EmptyList v-if="!transactions" />
       </div>
       <div class="currency">
         <div class="title">
           <h3>Current Rates</h3>
-          <!-- <router-link to="/history">View all</router-link> -->
+          <!-- <router-link to="/history">View all</router-link > -->
         </div>
-        <div class="item-section">
+        <div v-if="store.isLoading">Loading...</div>
+        <div class="item-section" v-else>
           <div v-for="(rate, index) in rates" :key="index" class="item">
             <div class="country">
               <div class="icon-round">
@@ -181,7 +185,7 @@
 
       <div class="button-group">
         <ButtonAPI
-          :disabled="store.isLoading"
+          :disabled="store.isMoneyLoading"
           class="btn-red standard-button"
           @click="handleSubmit"
         >
@@ -451,160 +455,78 @@ onMounted(async () => {
   }
 
   try {
-    // Step 1: Call getLockedRate
+    // Call getLockedRate, getTransactionList, and fetchRates sequentially
+
     const lockedRateResponse = await transactionStore.getLockedRate(
       form.sendingCurrency,
       form.receivingCurrency
     );
-
     if (lockedRateResponse?.status === 1) {
       console.log("Locked rate successfully retrieved:", lockedRateResponse);
-
-      // Step 2: Call getTransactionList
-      const transactionListResponse =
-        await transactionStore.getTransactionList();
-
-      if (transactionListResponse?.trxns) {
-        transactions.value = transactionListResponse.trxns
-          .sort((a, b) => new Date(b.date) - new Date(a.date))
-          .slice(0, 5); // Limit to 5 transactions
-        console.log("Transactions successfully retrieved:", transactions.value);
-
-        // Step 3: Call getRate and start interval
-        await fetchRates();
-        rateInterval = setInterval(fetchRates, 1000); // Fetch rates every second
-      } else {
-        console.error(
-          "Failed to retrieve transactions:",
-          transactionListResponse?.message
-        );
-      }
     } else {
       console.error(
         "Failed to retrieve locked rate:",
         lockedRateResponse?.message
       );
     }
+
+    const transactionListResponse = await transactionStore.getTransactionList();
+    if (transactionListResponse?.trxns) {
+      transactions.value = transactionListResponse.trxns
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice(0, 5); // Limit to 5 transactions
+      console.log("Transactions successfully retrieved:", transactions.value);
+    } else {
+      console.error(
+        "Failed to retrieve transactions:",
+        transactionListResponse?.message
+      );
+    }
+
+    const rateResponse = await transactionStore.getRate();
+    if (rateResponse?.status === 1 && rateResponse?.rates) {
+      const allowedCurrencies = ["USD", "MYR", "IDR", "YEN", "THB"]; // Specify the currencies to display
+
+      const newRates = rateResponse.rates
+        .filter((rate) => allowedCurrencies.includes(rate.currency)) // Filter allowed currencies
+        .sort(
+          (a, b) =>
+            allowedCurrencies.indexOf(a.currency) -
+            allowedCurrencies.indexOf(b.currency) // Sort by specified order
+        )
+        .map((rate) => ({
+          currency: rate.currency,
+          rate: parseFloat(rate.rate).toFixed(4),
+          fee: parseFloat(rate.fee).toFixed(4),
+          isIncreased:
+            previousRates.value[rate.currency] &&
+            parseFloat(rate.rate) > previousRates.value[rate.currency],
+          isDecreased:
+            previousRates.value[rate.currency] &&
+            parseFloat(rate.rate) < previousRates.value[rate.currency],
+          animateClass: "fade-in", // Initialize animation class
+        }));
+
+      // Trigger the fade-out animation before updating
+      rates.value.forEach((rate) => {
+        rate.animateClass = "fade-up-out";
+      });
+
+      setTimeout(() => {
+        previousRates.value = Object.fromEntries(
+          newRates.map((rate) => [rate.currency, parseFloat(rate.rate)])
+        );
+        rates.value = newRates;
+      }, 500); // Wait for fade-up-out animation to complete
+
+      rateInterval = setInterval(fetchRates, 1000); // Fetch rates every second
+    } else {
+      console.error("Failed to retrieve rates:", rateResponse?.message);
+    }
   } catch (error) {
-    console.error("Error in API call sequence:", error);
+    console.error("Error in API calls:", error);
   }
 });
-
-// const fetchRates = async () => {
-//   if (authStore.userStatus === "0") {
-//     console.log("User is not verified. Skipping rate fetching.");
-//     return; // Skip fetching rates if user is not verified
-//   }
-
-//   try {
-//     const response = await transactionStore.getRate();
-//     if (response?.status === 1 && response?.rates) {
-//       const newRates = response.rates
-//         .map((rate) => ({
-//           currency: rate.currency,
-//           rate: parseFloat(rate.rate).toFixed(4),
-//           fee: parseFloat(rate.fee).toFixed(4),
-//           isIncreased:
-//             previousRates.value[rate.currency] &&
-//             parseFloat(rate.rate) > previousRates.value[rate.currency],
-//           isDecreased:
-//             previousRates.value[rate.currency] &&
-//             parseFloat(rate.rate) < previousRates.value[rate.currency],
-//         }))
-//         .slice(0, 5);
-
-//       previousRates.value = Object.fromEntries(
-//         newRates.map((rate) => [rate.currency, parseFloat(rate.rate)])
-//       );
-
-//       rates.value = newRates;
-//     } else {
-//       console.error("Failed to retrieve rates:", response?.message);
-//     }
-//   } catch (error) {
-//     console.error("Error fetching rates:", error);
-//   }
-// };
-
-// onMounted(async () => {
-//   if (authStore.userStatus === "0") {
-//     await profileStore.getProfileDetail();
-//     console.log("Checking if user is verified");
-//   }
-// });
-
-// const fetchRates = async () => {
-//   try {
-//     const response = await transactionStore.getRate();
-//     if (response?.status === 1 && response?.rates) {
-//       const newRates = response.rates
-//         .map((rate) => ({
-//           currency: rate.currency,
-//           rate: parseFloat(rate.rate).toFixed(4),
-//           fee: parseFloat(rate.fee).toFixed(4),
-//           isIncreased:
-//             previousRates.value[rate.currency] &&
-//             parseFloat(rate.rate) > previousRates.value[rate.currency],
-//           isDecreased:
-//             previousRates.value[rate.currency] &&
-//             parseFloat(rate.rate) < previousRates.value[rate.currency],
-//         }))
-//         .slice(0, 5);
-
-//       previousRates.value = Object.fromEntries(
-//         newRates.map((rate) => [rate.currency, parseFloat(rate.rate)])
-//       );
-
-//       rates.value = newRates;
-//     } else {
-//       console.error("Failed to retrieve rates:", response?.message);
-//     }
-//   } catch (error) {
-//     console.error("Error fetching rates:", error);
-//   }
-// };
-
-// onMounted(async () => {
-//   console.log(form.sendingCurrency, "form sending currency");
-//   try {
-//     // Step 1: Call getLockedRate
-//     const lockedRateResponse = await transactionStore.getLockedRate(
-//       form.sendingCurrency,
-//       form.receivingCurrency
-//     );
-
-//     if (lockedRateResponse?.status === 1) {
-//       console.log("Locked rate successfully retrieved:", lockedRateResponse);
-
-//       // Step 2: Call getTransactionList
-//       const transactionListResponse =
-//         await transactionStore.getTransactionList();
-
-//       if (transactionListResponse?.trxns) {
-//         transactions.value = transactionListResponse.trxns
-//           .sort((a, b) => new Date(b.date) - new Date(a.date))
-//           .slice(0, 5); // Limit to 5 transactions
-//         console.log("Transactions successfully retrieved:", transactions.value);
-
-//         // Step 3: Call getRate and start interval
-//         await fetchRates();
-//         rateInterval = setInterval(fetchRates, 1000); // Fetch rates every second
-//       } else {
-//         console.error(
-//           "Failed to retrieve transactions:",
-//           transactionListResponse?.message
-//         );
-//       }
-//     } else {
-//       console.error(
-//         "Failed to retrieve locked rate:",
-//         lockedRateResponse?.message
-//       );
-//     }
-//   } catch (error) {
-//     console.error("Error in API call sequence:", error);
-//   }
-// });
 
 const fetchRates = async () => {
   if (authStore.userStatus === "0") {

@@ -1,11 +1,18 @@
 <template>
   <button
-    :class="['btn-api', props.class, { 'is-loading': store.isLoading }]"
+    :class="[
+      'btn-api',
+      props.class,
+      { 'is-loading': store.isLoading || store.isMoneyLoading },
+    ]"
     :disabled="store.isLoading || disabled"
     @click="handleClick"
   >
     <slot></slot>
-    <div v-if="store.isLoading && showLoader" class="loader">
+    <div
+      v-if="(store.isLoading && showLoader) || store.isMoneyLoading"
+      class="loader"
+    >
       <div></div>
       <div></div>
       <div></div>
@@ -36,7 +43,7 @@ const store = useStore();
 const emit = defineEmits(["click"]);
 
 const handleClick = (event) => {
-  if (!store.isLoading && !props.disabled) {
+  if (!store.isLoading && !props.disabled && !store.isMoneyLoading) {
     emit("click", event); // Only emit click if not loading and not disabled
   }
 };

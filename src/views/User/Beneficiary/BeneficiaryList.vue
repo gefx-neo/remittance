@@ -40,7 +40,6 @@
       >
         <EmptyList />
       </div>
-
       <div v-else>
         <div
           class="payment-category"

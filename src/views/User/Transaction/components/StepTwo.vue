@@ -25,13 +25,6 @@
           :disableDropdown="true"
           :error="errors.receivingAmount"
         />
-        <!-- :disableDropdown="
-            !!route.query.currency || localForm.selectedBeneficiary.currency
-          " -->
-        <!-- <div>
-          {{ localForm.selectedBeneficiary?.beneName || "" }}
-          {{ localForm.selectedBeneficiary?.id || "" }}
-        </div> -->
 
         <Select
           label="Payment type"
@@ -66,20 +59,19 @@
         <div class="footer">
           <ButtonAPI
             type="button"
-            :disabled="isProcessing"
+            :disabled="isProcessing || store.isMoneyLoading"
             @click="handleNext"
             class="btn-red standard-button"
           >
             Next
           </ButtonAPI>
-          <!-- <button
-            v-if="!isFromBeneficiaryDetail"
+          <button
             type="button"
             @click="handleBack"
             class="btn-back standard-button"
           >
             Back
-          </button> -->
+          </button>
         </div>
       </div>
     </fieldset>
@@ -212,7 +204,9 @@ onMounted(() => {
         Object.assign(localForm, {
           sendingAmount: parseFloat(decryptedData.sendingAmount) || 0,
           sendingCurrency:
-            decryptedData.sendingCurrency || localForm.sendingCurrency,
+            route.query.sendingCurrency ||
+            decryptedData.sendingCurrency ||
+            localForm.sendingCurrency,
           receivingAmount: parseFloat(decryptedData.receivingAmount) || 0,
           receivingCurrency:
             decryptedData.receivingCurrency || localForm.receivingCurrency,
@@ -372,7 +366,6 @@ const isFromDashboard =
   route.query.data &&
   decryptQueryParams(route.query.data)?.fromDashboard === "true";
 
-console.log("Is from Dashboard:", isFromDashboard); // Watch for beneficiary currency changes when navigating back from Step1
 const isProcessing = ref(false);
 
 watch(

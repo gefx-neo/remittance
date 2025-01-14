@@ -33,7 +33,9 @@
           </button>
         </div>
       </div>
-      <div class="item-section" v-if="transactions">
+      <div v-if="store.isLoading">Loading...</div>
+      <EmptyList v-else-if="transactions.length === 0" />
+      <div class="item-section" v-else>
         <div
           v-for="(transaction, index) in filteredTransactions"
           :key="index"
@@ -82,8 +84,6 @@
           </div>
         </div>
       </div>
-      <EmptyList v-else-if="transactions.length === 0" />
-      <div v-else>Loading...</div>
 
       <!-- <button class="btn-load">Load more</button> -->
     </div>
@@ -92,7 +92,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { useTransactionStore } from "@/stores/transactionStore";
+import { useTransactionStore, useStore } from "@/stores/index";
 import { useRouter } from "vue-router";
 import {
   formatNumber,
@@ -102,6 +102,7 @@ import {
 import EmptyList from "@/views/EmptyList.vue";
 
 const router = useRouter();
+const store = useStore();
 const transactionStore = useTransactionStore();
 const transactions = ref([]);
 const searchQuery = ref("");
