@@ -50,8 +50,18 @@ const routes = [
   { to: "/beneficiary", icon: ["fas", "user"], label: "Beneficiary" },
   {
     to: "/transaction",
-    icon: ["fas", "hand-holding-usd"],
+    icon: ["fas", "money-bill-wave"],
     label: "Transaction",
+  },
+  {
+    to: "/localtransfer",
+    icon: ["fas", "dollar-sign"],
+    label: "Local Transfer",
+  },
+  {
+    to: "/withdrawal",
+    icon: ["fas", "hand-holding-usd"],
+    label: "Withdrawal",
   },
   // { to: "/help", icon: ["fas", "question-circle"], label: "Help" },
 ];
@@ -180,7 +190,7 @@ router.afterEach(() => {
 
   .mobile-footer-container {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
     width: 100%;
     height: 60px;
     background: var(--white);

@@ -55,7 +55,9 @@
           <h3>Transaction History</h3>
           <router-link to="/transaction">View all</router-link>
         </div>
-        <div v-if="store.isLoading">Loading...</div>
+        <div v-if="store.isLoading">
+          <Loading />
+        </div>
         <div v-else-if="transactions.length === 0">
           <EmptyList />
         </div>
@@ -123,7 +125,7 @@
           <h3>Current Rates</h3>
           <!-- <router-link to="/history">View all</router-link > -->
         </div>
-        <div v-if="store.isLoading">Loading...</div>
+        <div v-if="store.isLoading"><Loading /></div>
         <div class="item-section" v-else>
           <div v-for="(rate, index) in rates" :key="index" class="item">
             <div class="country">
@@ -250,6 +252,7 @@ import {
   getTransactionStatus,
   formatDateTime,
 } from "@/utils/transactionUtils.js";
+import Loading from "@/views/Loading.vue";
 import EmptyList from "@/views/EmptyList.vue";
 import { encryptQueryParams } from "@/services/encryptionService";
 

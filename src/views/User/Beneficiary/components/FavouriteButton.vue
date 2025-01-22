@@ -32,7 +32,6 @@ const props = defineProps({
     required: true,
   },
 });
-const emit = defineEmits(["update-list"]);
 
 const authStore = useAuthStore();
 const beneficiaryStore = useBeneficiaryStore();
@@ -44,15 +43,15 @@ const tooltipContent = ref(
 );
 
 const handleToggle = async () => {
+  const username = authStore.username;
+
+  const form = {
+    beneId: Number(props.beneficiaryId), // Ensure ID is a number
+    status: isFavourite.value ? 0 : 1,
+    username: username,
+  };
+
   try {
-    const username = authStore.username;
-
-    const form = {
-      beneId: Number(props.beneficiaryId), // Ensure ID is a number
-      status: isFavourite.value ? 0 : 1,
-      username: username,
-    };
-
     const response = await beneficiaryStore.updateFavourite(form);
 
     if (response.status === 1) {
@@ -61,12 +60,10 @@ const handleToggle = async () => {
         ? "Remove favourite"
         : "Add favourite";
       alertStore.alert("success", "You have updated the beneficiary status");
-      emit("update-list");
-    } else {
-      console.error("Failed to update favourite status:", response.message);
+      window.location.reload();
     }
   } catch (error) {
-    console.error("Error while updating favourite status:", error);
+    console.error("Unexpected error during favourite status update:", error);
   }
 };
 </script>
@@ -94,11 +91,11 @@ const handleToggle = async () => {
   color: var(--white);
   padding: var(--size-8);
   border-radius: var(--border-sm);
-  white-space: nowrap;
   overflow: hidden;
   font-size: var(--text-sm);
   pointer-events: none;
   transition: opacity 0.3s ease-in-out;
+  line-height: 1.2;
 }
 
 .favourite:hover .tooltip {

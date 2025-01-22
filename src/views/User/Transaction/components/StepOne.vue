@@ -32,7 +32,7 @@
             </button>
           </div>
         </div>
-        <div v-if="store.isLoading">Loading...</div>
+        <div v-if="store.isLoading"><Loading /></div>
         <div
           v-else-if="Array.isArray(beneficiaries) && beneficiaries.length === 0"
         >
@@ -295,6 +295,7 @@ import {
 } from "@/utils/beneficiaryUtils.js";
 import { decryptQueryParams } from "@/services/encryptionService";
 import EmptyList from "@/views/EmptyList.vue";
+import Loading from "@/views/Loading.vue";
 
 const store = useStore();
 const beneficiaryStore = useBeneficiaryStore();

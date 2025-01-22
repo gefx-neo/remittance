@@ -34,7 +34,7 @@
           </button>
         </div>
       </div>
-      <div v-if="store.isLoading">Loading...</div>
+      <div v-if="store.isLoading"><Loading /></div>
       <div
         v-else-if="Array.isArray(beneficiaries) && beneficiaries.length === 0"
       >
@@ -58,7 +58,6 @@
                 <FavouriteButton
                   :beneficiaryId="beneficiary.id"
                   :isFav="!!beneficiary.isFav"
-                  @update-list="refreshPage"
                   @click.stop
                 />
               </div>
@@ -97,7 +96,6 @@
                 <FavouriteButton
                   :beneficiaryId="beneficiary.id"
                   :isFav="!!beneficiary.isFav"
-                  @update-list="refreshPage"
                   @click.stop
                 />
               </div>
@@ -138,7 +136,6 @@
                 <FavouriteButton
                   :beneficiaryId="beneficiary.id"
                   :isFav="!!beneficiary.isFav"
-                  @update-list="refreshPage"
                   @click.stop
                 />
               </div>
@@ -179,7 +176,6 @@
                 <FavouriteButton
                   :beneficiaryId="beneficiary.id"
                   :isFav="!!beneficiary.isFav"
-                  @update-list="refreshPage"
                   @click.stop
                 />
               </div>
@@ -220,7 +216,6 @@
                 <FavouriteButton
                   :beneficiaryId="beneficiary.id"
                   :isFav="!!beneficiary.isFav"
-                  @update-list="refreshPage"
                   @click.stop
                 />
               </div>
@@ -258,6 +253,7 @@ import {
   getAccountType,
   getCurrencyImagePath,
 } from "@/utils/beneficiaryUtils.js";
+import Loading from "@/views/Loading.vue";
 import EmptyList from "@/views/EmptyList.vue";
 
 const router = useRouter();
@@ -265,10 +261,6 @@ const store = useStore();
 const beneficiaryStore = useBeneficiaryStore();
 const beneficiaries = ref([]);
 const searchQuery = ref("");
-
-const refreshPage = () => {
-  window.location.reload();
-};
 
 onMounted(async () => {
   const response = await beneficiaryStore.getBeneficiaryList();

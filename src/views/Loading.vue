@@ -1,13 +1,13 @@
 <template>
-  <div class="empty-section">
+  <div class="loading">
     <div class="item">
-      <p>No records found.</p>
+      <p>Loading...</p>
     </div>
   </div>
 </template>
 
 <style scoped>
-.empty-section {
+.loading {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -16,7 +16,7 @@
   height: calc(100% - 49.86px);
 }
 
-.empty-section .item {
+.loading .item {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -25,7 +25,7 @@
   gap: var(--size-12);
 }
 
-.empty-section p {
+.loading p {
   color: var(--black);
   font-weight: var(--semi-bold);
 }

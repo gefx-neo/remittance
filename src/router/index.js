@@ -143,6 +143,30 @@ const routes = [
         ],
       },
       {
+        path: "localtransfer",
+        component: () =>
+          import("../views/User/LocalTransfer/LocalTransfer.vue"),
+        children: [
+          {
+            path: "",
+            name: "localtransfer",
+            component: () =>
+              import("../views/User/LocalTransfer/LocalTransfer.vue"),
+          },
+        ],
+      },
+      {
+        path: "withdrawal",
+        component: () => import("../views/User/Withdrawal/Withdrawal.vue"),
+        children: [
+          {
+            path: "",
+            name: "withdrawal",
+            component: () => import("../views/User/Withdrawal/Withdrawal.vue"),
+          },
+        ],
+      },
+      {
         path: "profile",
         component: () => import("../views/User/Profile/Profile.vue"),
         children: [
@@ -263,17 +287,5 @@ router.beforeEach((to, from, next) => {
 
   next();
 });
-
-// router.beforeEach((to, from, next) => {
-//   if (from.name === "addtransaction" && to.name !== "addtransaction") {
-//     localStorage.removeItem("transaction");
-//     localStorage.removeItem("beneficiary");
-//     const beneficiaryStore = useBeneficiaryStore();
-//     const transactionStore = useTransactionStore();
-//     beneficiaryStore.setSelectedBeneficiary(null);
-//     transactionStore.clearTransactionData(null);
-//   }
-//   next();
-// });
 
 export default router;

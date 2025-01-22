@@ -242,7 +242,7 @@ router.afterEach(() => {
 
   .mobile-footer-container {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
     width: 100%;
     height: 60px;
     background: var(--white);

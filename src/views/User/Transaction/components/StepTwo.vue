@@ -204,8 +204,8 @@ onMounted(() => {
         Object.assign(localForm, {
           sendingAmount: parseFloat(decryptedData.sendingAmount) || 0,
           sendingCurrency:
-            route.query.sendingCurrency ||
             decryptedData.sendingCurrency ||
+            route.query.sendingCurrency ||
             localForm.sendingCurrency,
           receivingAmount: parseFloat(decryptedData.receivingAmount) || 0,
           receivingCurrency:

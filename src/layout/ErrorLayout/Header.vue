@@ -1,9 +1,9 @@
 <template>
   <div class="header-area">
     <div class="logo">
-      <RouterLink to="/">
+      <a href="/">
         <img src="@/assets/logo.jpg" />
-      </RouterLink>
+      </a>
     </div>
   </div>
 </template>

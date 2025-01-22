@@ -282,7 +282,7 @@
         </template>
       </Modal>
     </div>
-    <div v-else>Loading...</div>
+    <div v-else><Loading /></div>
   </div>
 </template>
 
@@ -311,6 +311,8 @@ import {
   getTransactionStatus,
   formatDateTime,
 } from "@/utils/transactionUtils.js";
+import Loading from "@/views/Loading.vue";
+
 const route = useRoute();
 const router = useRouter();
 

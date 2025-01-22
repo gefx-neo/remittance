@@ -33,7 +33,7 @@
           </button>
         </div>
       </div>
-      <div v-if="store.isLoading">Loading...</div>
+      <div v-if="store.isLoading"><Loading /></div>
       <EmptyList v-else-if="transactions.length === 0" />
       <div class="item-section" v-else>
         <div
@@ -99,6 +99,7 @@ import {
   getTransactionStatus,
   formatDateTime,
 } from "@/utils/transactionUtils";
+import Loading from "@/views/Loading.vue";
 import EmptyList from "@/views/EmptyList.vue";
 
 const router = useRouter();

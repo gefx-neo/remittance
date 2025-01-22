@@ -134,6 +134,11 @@ const onInput = (event) => {
   const inputElement = event.target;
   let inputValue = inputElement.value;
 
+  // Remove leading zeros unless it's "0" or "0."
+  if (/^0[0-9]/.test(inputValue)) {
+    inputValue = inputValue.replace(/^0+/, "");
+  }
+
   // Ensure only one decimal point
   const parts = inputValue.split(".");
   if (parts.length > 2) {

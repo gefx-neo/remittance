@@ -83,7 +83,7 @@
         </div>
       </div>
     </div>
-    <div v-else>Loading...</div>
+    <div v-else><Loading /></div>
   </div>
 </template>
 
@@ -99,6 +99,7 @@ import {
 import cookieService from "@/services/cookieService";
 import { ButtonAPI } from "@/components/Form";
 import Tooltip from "@/components/Tooltip.vue";
+import Loading from "@/views/Loading.vue";
 
 const router = useRouter();
 
@@ -136,11 +137,8 @@ const handleReminder = async () => {
       window.location.reload();
 
       console.log("success", response);
-    } else {
-      console.log("Failed to remind:", profileStore.error);
     }
   } catch (error) {
-    alertStore.alert("error", "Reminder failed");
     console.log("Failed to remind:", profileStore.error);
   }
 };
