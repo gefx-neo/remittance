@@ -17,7 +17,6 @@ import { useAdminAuthStore } from "../stores/admin/adminAuthStore.js";
 const guestGuard = (to, from, next) => {
   const authStore = useAuthStore();
 
-  // If the user is already logged in, redirect to dashboard
   if (authStore.user) {
     next({ name: "dashboard" });
   } else {
@@ -28,23 +27,17 @@ const guestGuard = (to, from, next) => {
 const authGuard = (to, from, next) => {
   const authStore = useAuthStore();
 
-  // Call refresh cookie function only if the user is logged in
   authStore.checkSession();
 
-  // If the route requires authentication and the user is not logged in
   if (!authStore.user) {
-    next({ name: "login" }); // Redirect to login if the user is not logged in
-  } else if (
-    authStore.userStatus === "0" &&
-    (to.name === "transaction" || to.name === "addtransaction")
-  ) {
+    next({ name: "login" });
+  } else if (authStore.userStatus !== "2" && to.name === "addtransaction") {
     const alertStore = useAlertStore();
     alertStore.alert("pending", "Please verify your account");
 
-    // Redirect users with userStatus === 0 to account verification
     next({ name: "profiledetail" });
   } else {
-    next(); // Allow navigation for other cases
+    next();
   }
 };
 

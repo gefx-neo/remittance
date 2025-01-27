@@ -23,10 +23,7 @@
             :class="{ open: isDropdownOpen, disabled: props.disableDropdown }"
             :disabled="props.disableDropdown"
           >
-            <img
-              :src="getCurrencyImagePath(selectedCurrency)"
-              alt="currency-icon"
-            />
+            <img :src="getCurrencyImagePath(selectedCurrency)" />
             <span>{{ selectedCurrency }}</span>
             <font-awesome-icon
               :icon="['fa', 'chevron-down']"
@@ -43,9 +40,6 @@
         </div>
       </div>
     </div>
-  </div>
-  <div class="error-group" :class="{ dashboard: isDashboard }">
-    <label></label>
     <span v-if="error" class="error">{{ error }}</span>
   </div>
 </template>
@@ -239,8 +233,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-@import "@/assets/dashboard.css";
-
 .input-item {
   position: relative;
   width: 100%;
@@ -248,6 +240,7 @@ onBeforeUnmount(() => {
 
 .form-group {
   display: flex;
+  margin-bottom: var(--size-24);
 }
 
 .form-group input {
@@ -307,15 +300,5 @@ onBeforeUnmount(() => {
 .dropdown button.open svg {
   color: var(--slate-blue);
   transition: color 0.3s ease-in-out;
-}
-
-.dashboard input {
-  min-height: var(--size-56);
-  max-height: var(--size-56);
-  font-size: var(--text-xl) !important;
-}
-
-.dashboard .input-item button span {
-  font-size: var(--text-xl) !important;
 }
 </style>

@@ -6,151 +6,56 @@
 
 .exchange-rate {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
   background: var(--sky-blue);
   border-radius: var(--border-md);
   padding: var(--size-24);
   width: 100%;
+  gap: var(--size-24);
 }
 
 .exchange-rate .form-section {
-  display: flex;
-  flex-direction: column;
-  min-width: 60%;
-  max-width: 60%;
-  /* gap: var(--size-24); */
-}
-
-.exchange-rate .form-group {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 2.5%;
-}
-
-.exchange-rate .form-group label {
-  min-width: 130px;
-  max-width: 130px;
-  text-align: end;
-}
-
-.exchange-rate .form-group input {
-  width: 100%;
-  font-size: var(--text-lg);
-  color: var(--slate-blue);
-  font-weight: var(--semi-bold);
-  padding-right: 118px;
-  letter-spacing: 0.3px;
-}
-
-.form-group .input-group {
-  width: 100%;
-}
-
-.form-group .input-item {
   position: relative;
-  width: 100%;
-}
-
-.exchange-rate .form-group .input-item button {
   display: flex;
-  align-items: center;
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  gap: var(--size-6);
-  padding: 0;
-  padding-right: var(--size-16);
-  color: var(--slate-blue);
-  cursor: pointer;
-}
-
-.exchange-rate .form-group .input-item button img {
-  min-width: var(--size-24);
-  max-width: var(--size-24);
-  min-height: var(--size-24);
-  max-height: var(--size-24);
-}
-
-.exchange-rate .form-group .input-item button span {
-  font-size: var(--text-lg);
-  font-weight: var(--semi-bold);
-  letter-spacing: 0.1px;
-}
-
-.error-group {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: var(--size-24);
-}
-
-.error-group.dashboard {
-  gap: 2.5%;
-}
-
-.error-group:last-child {
-  margin-bottom: 0;
-}
-
-.error-group label {
-  display: none;
-}
-
-.exchange-rate .error-group.dashboard label {
-  display: flex;
-  min-width: 130px;
-  max-width: 130px;
-  text-align: end;
-}
-
-.exchange-rate .error-group input {
-  width: 100%;
-  font-size: var(--text-lg);
-  color: var(--slate-blue);
-  font-weight: var(--semi-bold);
-  padding-right: 118px;
-  letter-spacing: 0.3px;
-}
-
-.form-group .input-group {
-  width: 100%;
-}
-
-.exchange-rate .rate-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 15%;
-  max-width: 15%;
-  color: var(--slate-blue);
-  font-size: var(--text-lg);
-  font-style: italic;
   gap: var(--size-12);
 }
 
-.exchange-rate .rate-group div {
-  font-weight: var(--semi-bold);
+.exchange-rate .form-section .exchange-item {
+  position: absolute;
+  top: 67%;
+  left: 67%;
+  transform: translate(-50%, -50%);
+  background: var(--sky-blue);
+  box-shadow: inset 0 0 0 1px var(--cool-blue);
+  border-radius: var(--border-circle);
+  padding: var(--size-8);
+  z-index: 1;
 }
 
-.exchange-rate .rate-group svg {
-  transform: rotate(90deg);
+.exchange-rate .form-section .exchange-item svg {
+  display: flex;
+  justify-content: center;
   min-width: var(--size-12);
   max-width: var(--size-12);
+  min-height: var(--size-12);
+  max-height: var(--size-12);
   fill: var(--slate-blue);
 }
 
-.exchange-rate .rate-group .equal {
-  display: none;
+.exchange-rate .button-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.exchange-rate .rate-group {
+  color: var(--grey);
+  font-weight: var(--semi-bold);
 }
 
 .exchange-rate .button-group {
-  display: flex;
-  flex-direction: column;
-  min-width: 20%;
-  max-width: 20%;
+  min-width: calc(33.33% - 12px);
+  max-width: calc(33.33% - 12px);
 }
 
 .transaction {
@@ -397,6 +302,51 @@
   gap: var(--size-12);
 }
 
+.onboarding .item-section {
+  position: relative;
+  background: var(--white);
+  border: 1px solid var(--light-grey);
+  border-radius: var(--border-md);
+  z-index: 0;
+  overflow: hidden;
+}
+
+.onboarding .item-section:nth-child(2):before {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  top: 50%;
+  left: 50%;
+  width: 99999px;
+  height: 99999px;
+  transform: translate(-50%, -50%) rotate(0deg);
+  background-image: conic-gradient(
+    rgba(0, 0, 0, 0),
+    var(--cool-blue),
+    rgba(0, 0, 0, 0) 25%
+  );
+  background-repeat: no-repeat;
+  animation: rotate 4s linear infinite;
+}
+
+.onboarding .item-section:nth-child(2):after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 2px;
+  left: 2px;
+  width: calc(100% - 4px);
+  height: calc(100% - 4px);
+  background: var(--white); /* Background color inside the border */
+  border-radius: 7px;
+}
+
+@keyframes rotate {
+  100% {
+    transform: translate(-50%, -50%) rotate(1turn);
+  }
+}
+
 .onboarding .item-section .heading {
   font-size: var(--text-lg);
 
@@ -410,14 +360,6 @@
 }
 
 @media (max-width: 1279px) {
-  .exchange-rate .form-group {
-    gap: 4%;
-  }
-
-  .error-group.dashboard {
-    gap: 4%;
-  }
-
   .transaction {
     flex-direction: column-reverse;
     gap: var(--size-24);
@@ -463,47 +405,18 @@
   }
 
   .exchange-rate .form-section,
-  .exchange-rate .form-group,
   .exchange-rate .button-section,
   .exchange-rate .button-group {
-    min-width: 100%;
-    max-width: 100%;
-  }
-
-  .exchange-rate .form-group {
     flex-direction: column;
-    align-items: start;
-  }
-
-  .exchange-rate .form-group label {
-    text-align: start;
     min-width: 100%;
     max-width: 100%;
   }
 
-  .exchange-rate .form-group .input-item {
-    min-width: 100%;
-    max-width: 100%;
+  .exchange-rate .button-section {
+    gap: var(--size-12);
   }
 
-  .error-group label {
-    display: none !important;
-  }
-
-  .exchange-rate .rate-group {
-    flex-direction: row;
-    justify-content: center;
-    min-width: 100%;
-    max-width: 100%;
-    font-size: var(--text-md);
-    gap: var(--size-4);
-  }
-
-  .exchange-rate .rate-group .equal {
-    display: block;
-  }
-
-  .exchange-rate .rate-group svg {
+  .exchange-rate .form-section .exchange-item {
     display: none;
   }
 

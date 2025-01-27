@@ -2,25 +2,24 @@
   <div class="form-group" ref="dropdownContainer">
     <label :for="id">{{ label }}</label>
     <div class="input-group">
-      <div class="currency-item">
-        <div class="dropdown">
-          <button
-            type="button"
-            @click="toggleDropdown"
-            :class="{ open: isDropdownOpen }"
-          >
-            <img :src="getCurrencyImagePath(selectedCurrency)" />
-            <span>{{ selectedCurrency }} - {{ selectedCurrencyName }}</span>
-            <font-awesome-icon :icon="['fa', 'chevron-down']" />
-          </button>
-          <CurrencyDropdown
-            :isDropdownOpen="isDropdownOpen"
-            :selectedCurrency="selectedCurrency"
-            :currencies="receivingCurrencies"
-            @updateCurrency="updateCurrency"
-            @closeDropdown="isDropdownOpen = false"
-          />
-        </div>
+      <div class="dropdown">
+        <button
+          type="button"
+          @click="toggleDropdown"
+          :class="{ open: isDropdownOpen }"
+        >
+          <img :src="getCurrencyImagePath(selectedCurrency)" />
+          <span>{{ selectedCurrency }}</span>
+          <span>{{ selectedCurrencyName }}</span>
+          <font-awesome-icon :icon="['fa', 'chevron-down']" />
+        </button>
+        <CurrencyDropdown
+          :isDropdownOpen="isDropdownOpen"
+          :selectedCurrency="selectedCurrency"
+          :currencies="sendingCurrencies"
+          @updateCurrency="updateCurrency"
+          @closeDropdown="isDropdownOpen = false"
+        />
       </div>
     </div>
     <span v-if="error" class="error">{{ error }}</span>
@@ -30,7 +29,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import CurrencyDropdown from "@/components/Dropdown/CurrencyDropdown.vue";
-import { receivingCurrencies } from "@/data/data";
+import { sendingCurrencies } from "@/data/data";
 import { getCurrencyImagePath } from "@/utils/beneficiaryUtils";
 
 const props = defineProps({
@@ -45,9 +44,7 @@ const emit = defineEmits(["update:modelCurrency"]);
 
 const isDropdownOpen = ref(false);
 
-const selectedCurrency = ref(
-  props.modelCurrency || receivingCurrencies[0].code
-);
+const selectedCurrency = ref(props.modelCurrency || sendingCurrencies[0].code);
 
 const dropdownContainer = ref(null);
 
@@ -56,7 +53,7 @@ const toggleDropdown = () => {
 };
 
 const selectedCurrencyName = computed(() => {
-  const currency = receivingCurrencies.find(
+  const currency = sendingCurrencies.find(
     (currency) => currency.code === selectedCurrency.value
   );
   return currency ? currency.name : "";
@@ -103,6 +100,10 @@ onBeforeUnmount(() => {
   width: 100%;
 }
 
+.form-group label {
+  font-weight: var(--semi-bold);
+}
+
 .input-group {
   position: relative;
   width: 100%;
@@ -128,8 +129,22 @@ onBeforeUnmount(() => {
   max-height: var(--size-24);
 }
 
-/* .form-group button span {
-} */
+.form-group button span:nth-child(2) {
+  color: var(--slate-blue);
+  font-size: var(--text-xl);
+  font-weight: var(--semi-bold);
+  letter-spacing: 0.1px;
+}
+
+.form-group button span:nth-child(3) {
+  color: var(--grey);
+}
+
+@media (min-width: 767px) and (max-width: 1023px) {
+  .form-group button span:nth-child(3) {
+    display: none;
+  }
+}
 
 .dropdown {
   width: 100%;
@@ -140,8 +155,8 @@ onBeforeUnmount(() => {
   align-items: center;
   position: relative;
   width: 100%;
-  min-height: var(--size-48);
-  max-height: var(--size-48);
+  min-height: var(--size-56);
+  max-height: var(--size-56);
   padding: var(--size-dropdown-item);
   box-shadow: inset 0 0 0 1px var(--cool-blue);
   border-radius: var(--border-md);

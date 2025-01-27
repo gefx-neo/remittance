@@ -13,7 +13,7 @@
         :options="isYourAccount"
       />
       <InputReceivingCurrency
-        label="Currency"
+        label="Receiving currency"
         id="currency"
         v-model:modelCurrency="localForm.currency"
       />

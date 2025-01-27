@@ -125,7 +125,7 @@ onBeforeUnmount(() => {
   min-height: var(--size-48);
   max-height: var(--size-48);
   padding: var(--size-dropdown-item);
-  border: 1px solid var(--cool-blue);
+  box-shadow: inset 0 0 0 1px var(--cool-blue);
   border-radius: var(--border-md);
 }
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="content-area">
+  <div class="content-area" v-if="authStore.userStatus === '1'">
     <div class="transaction">
       <div class="title">
         <h3>Transaction History</h3>
@@ -88,11 +88,37 @@
       <!-- <button class="btn-load">Load more</button> -->
     </div>
   </div>
+  <div class="content-area" v-if="authStore.userStatus !== '1'">
+    <div class="account-locked">
+      <h1>Access restricted</h1>
+      <div v-if="authStore.userStatus === '0'">
+        <span
+          >Please complete your account verification to unlock this feature.
+        </span>
+        <p>For further assistance, please contact customer support.</p>
+      </div>
+      <div v-if="authStore.userStatus === '2'">
+        <span
+          >Please wait as your account is currently pending management
+          approval</span
+        >
+
+        <p>For further assistance, please contact customer support.</p>
+      </div>
+
+      <p></p>
+    </div>
+  </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { useTransactionStore, useStore } from "@/stores/index";
+import {
+  useStore,
+  useAuthStore,
+  useProfileStore,
+  useTransactionStore,
+} from "@/stores/index";
 import { useRouter } from "vue-router";
 import {
   formatNumber,
@@ -104,11 +130,19 @@ import EmptyList from "@/views/EmptyList.vue";
 
 const router = useRouter();
 const store = useStore();
+const authStore = useAuthStore();
+const profileStore = useProfileStore();
 const transactionStore = useTransactionStore();
+
 const transactions = ref([]);
 const searchQuery = ref("");
 
 onMounted(async () => {
+  await profileStore.getProfileDetail();
+
+  if (authStore.userStatus !== "1") {
+    return;
+  }
   const response = await transactionStore.getTransactionList();
   transactions.value = response.trxns || [];
   transactions.value.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -152,9 +186,12 @@ const navigateToAddTransaction = () => {
 
 <style scoped>
 .content-area {
+  position: relative;
   display: flex;
+  align-items: center;
   flex-direction: column;
   gap: var(--size-24);
+  height: calc(100vh - 150px);
 }
 
 .transaction {
@@ -353,6 +390,55 @@ const navigateToAddTransaction = () => {
 
   .transaction .item .detail .first-column .second-row span:nth-child(3) {
     display: none;
+  }
+}
+
+.account-locked {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--size-12);
+  text-align: center;
+  white-space: nowrap;
+  min-width: 300px;
+}
+
+.account-locked h1 {
+  font-family: "Rubik Dirt", serif;
+  color: var(--black);
+  font-size: var(--size-48);
+  font-weight: 400;
+}
+
+.account-locked div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-12);
+}
+
+.account-locked div span {
+  font-family: "Archivo Black", serif;
+  color: var(--grey);
+  font-weight: var(--semi-bold);
+}
+
+@media (max-width: 1023px) {
+  .account-locked {
+    gap: var(--size-8);
+  }
+
+  .account-locked h1 {
+    font-size: var(--size-40);
+  }
+}
+
+@media (max-width: 767px) {
+  .account-locked {
+    white-space: normal;
   }
 }
 </style>

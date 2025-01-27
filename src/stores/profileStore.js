@@ -28,7 +28,7 @@ export const useProfileStore = defineStore("profile", {
           if (response.token) {
             authStore.refreshSession(response.token, authStore.username);
           }
-          if (response.userStatus === 0) {
+          if (response.userStatus !== "1") {
             console.log("userStatus", response.userStatus);
             setLocalStorageWithExpiry("userStatus", response.userStatus);
             console.log("setting userstatus");

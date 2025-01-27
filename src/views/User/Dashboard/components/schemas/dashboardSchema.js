@@ -14,19 +14,19 @@ export const formValidation = (form) => ({
         ),
     ],
   },
-  receivingAmount: {
-    value: form?.receivingAmount || "",
-    rules: [
-      validationService.isRequired,
-      (value) =>
-        validationService.validateAmount(
-          value,
-          form.receivingCurrency,
-          currencySchema,
-          "receiving"
-        ),
-    ],
-  },
+  // receivingAmount: {
+  //   value: form?.receivingAmount || "",
+  //   rules: [
+  //     validationService.isRequired,
+  //     (value) =>
+  //       validationService.validateAmount(
+  //         value,
+  //         form.receivingCurrency,
+  //         currencySchema,
+  //         "receiving"
+  //       ),
+  //   ],
+  // },
 });
 
 export const currencySchema = {

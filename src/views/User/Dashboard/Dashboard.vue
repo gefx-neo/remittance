@@ -1,20 +1,36 @@
 <template>
-  <div class="content-area" v-if="authStore.userStatus !== '0'">
+  <div class="content-area" v-if="authStore.userStatus === '1'">
     <div class="exchange-rate">
       <div class="form-section">
         <InputAmount
           id="sendingAmount"
           label="Sending amount"
           :modelValue="form.sendingAmount"
-          :modelCurrency="form.sendingCurrency"
           :isSending="true"
           @update:modelValue="updateSendingAmount"
-          @update:modelCurrency="updateSendingCurrency"
-          :isDashboard="true"
           :error="errors.sendingAmount"
         />
+        <InputSendingCurrency
+          label="Sending currency"
+          id="currency"
+          :modelCurrency="form.sendingCurrency"
+          @update:modelCurrency="updateSendingCurrency"
+        />
+        <div class="exchange-item">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+            <path
+              d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"
+            />
+          </svg>
+        </div>
 
-        <InputAmount
+        <InputReceivingCurrency
+          label="Receiving currency"
+          id="receivingCurrency"
+          :modelCurrency="form.receivingCurrency"
+          @update:modelCurrency="updateReceivingCurrency"
+        />
+        <!-- <InputAmount
           id="receivingAmount"
           label="Receiving amount"
           :modelValue="form.receivingAmount"
@@ -24,28 +40,23 @@
           @update:modelCurrency="updateReceivingCurrency"
           :isDashboard="true"
           :error="errors.receivingAmount"
-        />
+        />  -->
       </div>
 
-      <div class="rate-group">
-        <div>1 {{ form.sendingCurrency }}</div>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
-          <path
-            d="M438.6 150.6c12.5-12.5 12.5-32.8 0-45.3l-96-96c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.7 96 32 96C14.3 96 0 110.3 0 128s14.3 32 32 32l306.7 0-41.4 41.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l96-96zm-333.3 352c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 416 416 416c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0 41.4-41.4c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-96 96c-12.5 12.5-12.5 32.8 0 45.3l96 96z"
-          />
-        </svg>
-        <div class="equal">=</div>
-        <div>{{ transactionStore.rate }} {{ form.receivingCurrency }}</div>
-      </div>
-
-      <div class="button-group">
-        <ButtonAPI
-          :disabled="store.isMoneyLoading"
-          class="btn-red standard-button"
-          @click="handleSubmit"
-        >
-          Calculate
-        </ButtonAPI>
+      <div class="button-section">
+        <div class="rate-group">
+          1 {{ form.sendingCurrency }} =
+          {{ formatNumber(transactionStore.rate) }} {{ form.receivingCurrency }}
+        </div>
+        <div class="button-group">
+          <ButtonAPI
+            :disabled="store.isMoneyLoading"
+            class="btn-red standard-button"
+            @click="handleSubmit"
+          >
+            Calculate
+          </ButtonAPI>
+        </div>
       </div>
     </div>
 
@@ -152,47 +163,25 @@
       </div>
     </div>
   </div>
-  <div class="content-area" v-if="authStore.userStatus === '0'">
+  <div class="content-area" v-if="authStore.userStatus !== '1'">
     <div class="exchange-rate blur">
       <div class="form-section">
-        <InputAmount
-          id="sendingAmount"
-          label="Sending amount"
-          :modelValue="form.sendingAmount"
-          :modelCurrency="form.sendingCurrency"
-          :isSending="true"
-          :isDashboard="true"
-        />
+        <InputAmount id="sendingAmount" label="Sending amount" />
+        <InputSendingCurrency label="Sending currency" id="currency" />
 
-        <InputAmount
-          id="receivingAmount"
-          label="Receiving amount"
-          :modelValue="form.receivingAmount"
-          :modelCurrency="form.receivingCurrency"
-          :isSending="false"
-          :isDashboard="true"
+        <InputReceivingCurrency
+          label="Receiving currency"
+          id="receivingCurrency"
         />
       </div>
 
-      <div class="rate-group">
-        <div>1 {{ form.sendingCurrency }}</div>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
-          <path
-            d="M438.6 150.6c12.5-12.5 12.5-32.8 0-45.3l-96-96c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.7 96 32 96C14.3 96 0 110.3 0 128s14.3 32 32 32l306.7 0-41.4 41.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l96-96zm-333.3 352c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 416 416 416c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0 41.4-41.4c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-96 96c-12.5 12.5-12.5 32.8 0 45.3l96 96z"
-          />
-        </svg>
-        <div class="equal">=</div>
-        <div>3.3 {{ form.receivingCurrency }}</div>
-      </div>
-
-      <div class="button-group">
-        <ButtonAPI
-          :disabled="store.isMoneyLoading"
-          class="btn-red standard-button"
-          @click="handleSubmit"
-        >
-          Calculate
-        </ButtonAPI>
+      <div class="button-section">
+        <div class="rate-group">1 SGD = 0.30 MYR</div>
+        <div class="button-group">
+          <button type="button" class="btn-red standard-button">
+            Calculate
+          </button>
+        </div>
       </div>
     </div>
     <div class="onboarding">
@@ -209,13 +198,12 @@
           </button>
         </div>
       </div>
-      <div class="item-section">
+      <div class="item-section" v-if="authStore.userStatus === '0'">
         <div class="item">
           <div class="heading">2. Account Verification</div>
           <div class="body">
-            To unlock full access and continue your transactions, please
-            complete your account verification. Please re-login or visit the
-            Profile page to check your verification status.
+            Please complete your account verification to unlock full access and
+            proceed with your transactions.
           </div>
           <div class="footer">
             <button class="btn-blue standard-button" @click="navigateToProfile">
@@ -224,6 +212,7 @@
           </div>
         </div>
       </div>
+
       <div></div>
     </div>
   </div>
@@ -231,7 +220,10 @@
 
 <script setup>
 import { ref, reactive, onMounted, onBeforeUnmount, watch } from "vue";
-import { InputAmount, ButtonAPI } from "@/components/Form";
+import { ButtonAPI } from "@/components/Form";
+import InputAmount from "@/components/Form/Dashboard/InputAmount.vue";
+import InputSendingCurrency from "@/components/Form/Dashboard/InputSendingCurrency.vue";
+import InputReceivingCurrency from "@/components/Form/Dashboard/InputReceivingCurrency.vue";
 import { sendingCurrencies, receivingCurrencies } from "@/data/data";
 import { useRouter } from "vue-router";
 import {
@@ -284,39 +276,18 @@ const updateSendingAmount = async (amount) => {
 
   form.sendingAmount = formattedAmount;
 
-  try {
-    const response = await transactionStore.getLockedAmount(
-      form.sendingAmount,
-      "pay"
-    );
+  // try {
+  //   const response = await transactionStore.getLockedAmount(
+  //     form.sendingAmount,
+  //     "pay"
+  //   );
 
-    if (response && response.status === 1) {
-      form.receivingAmount = parseFloat(response.getAmount);
-    }
-  } catch (error) {
-    console.error("Error in updateSendingAmount:", error);
-  }
-};
-
-const updateReceivingAmount = async (amount) => {
-  const formattedAmount = parseFloat(amount).toFixed(2);
-
-  if (form.receivingAmount === formattedAmount) return;
-
-  form.receivingAmount = formattedAmount;
-
-  try {
-    const response = await transactionStore.getLockedAmount(
-      form.receivingAmount,
-      "get"
-    );
-
-    if (response && response.status === 1) {
-      form.sendingAmount = parseFloat(response.payAmount);
-    }
-  } catch (error) {
-    console.error("Error in updateReceivingAmount:", error);
-  }
+  //   if (response && response.status === 1) {
+  //     form.receivingAmount = parseFloat(response.getAmount);
+  //   }
+  // } catch (error) {
+  //   console.error("Error in updateSendingAmount:", error);
+  // }
 };
 
 const updateSendingCurrency = async (currency) => {
@@ -376,45 +347,76 @@ const updateReceivingCurrency = async (currency) => {
   }
 };
 
-watch(
-  () => [
+const handleSubmit = async () => {
+  // Validate sending amount
+  validateSendingAmount(
     form.sendingAmount,
-    form.receivingAmount,
     form.sendingCurrency,
-    form.receivingCurrency,
-  ],
-  ([
-    newSendingAmount,
-    newReceivingAmount,
-    newSendingCurrency,
-    newReceivingCurrency,
-  ]) => {
-    // Validate sending amount
-    validateSendingAmount(
-      newSendingAmount,
-      newSendingCurrency,
-      currencySchema,
-      "sending"
-    );
+    currencySchema,
+    "sending"
+  );
 
-    // Validate receiving amount
-    validateReceivingAmount(
-      newReceivingAmount,
-      newReceivingCurrency,
-      currencySchema,
-      "receiving"
-    );
+  if (errors.sendingAmount) {
+    alertStore.alert("error", errors.sendingAmount);
+    return; // Stop execution if there's an error in sendingAmount
   }
-);
 
-const handleSubmit = () => {
   const schema = formValidation(form);
 
   // Validate the form fields
   const isValid = validateForm(form, schema);
   console.log("Validation Errors:", errors);
 
-  if (isValid) {
+  if (!isValid) {
+    if (form.sendingAmount === 0 || form.receivingAmount === 0) {
+      alertStore.alert("error", "Please fill in the required fields.");
+    } else if (errors.sendingAmount || errors.receivingAmount) {
+      alertStore.alert(
+        "error",
+        "Please provide valid amounts for both sending and receiving"
+      );
+    } else {
+      alertStore.alert(
+        "error",
+        "Please provide valid amounts for both sending and receiving"
+      );
+    }
+    return;
+  }
+
+  try {
+    // // Call getLockedRate API
+    // const lockedRateResponse = await transactionStore.getLockedRate(
+    //   form.sendingCurrency,
+    //   form.receivingCurrency
+    // );
+
+    // if (!lockedRateResponse || lockedRateResponse.status !== 1) {
+    //   alertStore.alert("error", "Failed to retrieve locked rate.");
+    //   return;
+    // }
+
+    // console.log("Locked rate successfully retrieved:", lockedRateResponse);
+
+    // Call getLockedAmount API
+    const lockedAmountResponse = await transactionStore.getLockedAmount(
+      form.sendingAmount,
+      "pay"
+    );
+
+    if (!lockedAmountResponse || lockedAmountResponse.status !== 1) {
+      alertStore.alert("error", "Failed to retrieve locked amount.");
+      return;
+    }
+
+    console.log("Locked amount successfully retrieved:", lockedAmountResponse);
+
+    // Update receiving amount based on the locked amount response
+    form.receivingAmount = parseFloat(lockedAmountResponse.getAmount).toFixed(
+      2
+    );
+
+    // Prepare query data for navigation
     const queryData = {
       sendingAmount: form.sendingAmount,
       sendingCurrency: form.sendingCurrency,
@@ -431,48 +433,127 @@ const handleSubmit = () => {
       path: "/transaction/addtransaction",
       query: { data: encryptedData },
     });
-  } else {
-    // If sendingAmount is 0, show a specific error message for required fields
-    if (form.sendingAmount === 0 || form.receivingAmount === 0) {
-      alertStore.alert("error", "Please fill in the required fields.");
-    } else if (errors.sendingAmount || errors.receivingAmount) {
-      // If there are range validation errors, show the appropriate message
-      alertStore.alert(
-        "error",
-        "Please provide valid amounts for both sending and receiving"
-      );
-    } else {
-      alertStore.alert(
-        "error",
-        "Please provide valid amounts for both sending and receiving"
-      );
-    }
+  } catch (error) {
+    console.error("Error in handleSubmit:", error);
+    alertStore.alert(
+      "error",
+      "An error occurred while processing your request."
+    );
   }
 };
 
+// watch(
+//   () => [
+//     form.sendingAmount,
+//     form.receivingAmount,
+//     form.sendingCurrency,
+//     form.receivingCurrency,
+//   ],
+//   ([
+//     newSendingAmount,
+//     newReceivingAmount,
+//     newSendingCurrency,
+//     newReceivingCurrency,
+//   ]) => {
+//     // Validate sending amount
+//     validateSendingAmount(
+//       newSendingAmount,
+//       newSendingCurrency,
+//       currencySchema,
+//       "sending"
+//     );
+
+//     // Validate receiving amount
+//     validateReceivingAmount(
+//       newReceivingAmount,
+//       newReceivingCurrency,
+//       currencySchema,
+//       "receiving"
+//     );
+//   }
+// );
+
+// const handleSubmit = () => {
+//   // Log the values of the form
+//   console.log("Sending Amount:", form.sendingAmount);
+//   console.log("Sending Currency:", form.sendingCurrency);
+//   console.log("Receiving Currency:", form.receivingCurrency);
+//   validateSendingAmount(
+//     form.sendingAmount,
+//     form.sendingCurrency,
+//     currencySchema,
+//     "sending"
+//   );
+
+//   if (errors.sendingAmount) {
+//     alertStore.alert("error", errors.sendingAmount);
+//     return; // Stop execution if there's an error in sendingAmount
+//   }
+
+//   const schema = formValidation(form);
+
+//   // Validate the form fields
+//   const isValid = validateForm(form, schema);
+//   console.log("Validation Errors:", errors);
+
+//   if (isValid) {
+//     const queryData = {
+//       sendingAmount: form.sendingAmount,
+//       sendingCurrency: form.sendingCurrency,
+//       receivingAmount: form.receivingAmount,
+//       receivingCurrency: form.receivingCurrency,
+//       fromDashboard: "true",
+//     };
+
+//     // Encrypt data
+//     const encryptedData = encryptQueryParams(queryData);
+
+//     // Navigate to StepTwo with encrypted query parameters
+//     router.push({
+//       path: "/transaction/addtransaction",
+//       query: { data: encryptedData },
+//     });
+//   } else {
+//     // If sendingAmount is 0, show a specific error message for required fields
+//     if (form.sendingAmount === 0 || form.receivingAmount === 0) {
+//       alertStore.alert("error", "Please fill in the required fields.");
+//     } else if (errors.sendingAmount || errors.receivingAmount) {
+//       // If there are range validation errors, show the appropriate message
+//       alertStore.alert(
+//         "error",
+//         "Please provide valid amounts for both sending and receiving"
+//       );
+//     } else {
+//       alertStore.alert(
+//         "error",
+//         "Please provide valid amounts for both sending and receiving"
+//       );
+//     }
+//   }
+// };
+
 onMounted(async () => {
-  if (authStore.userStatus === "0") {
-    await profileStore.getProfileDetail();
-    console.log("User is not verified. Skipping API calls.");
-    return; // Skip the rest of the initialization if user is not verified
+  await profileStore.getProfileDetail();
+
+  if (authStore.userStatus !== "1") {
+    return;
   }
 
-  try {
-    // Call getLockedRate, getTransactionList, and fetchRates sequentially
+  // Call getLockedRate, getTransactionList, and fetchRates sequentially
 
-    const lockedRateResponse = await transactionStore.getLockedRate(
-      form.sendingCurrency,
-      form.receivingCurrency
+  const lockedRateResponse = await transactionStore.getLockedRate(
+    form.sendingCurrency,
+    form.receivingCurrency
+  );
+  if (lockedRateResponse?.status === 1) {
+    console.log("Locked rate successfully retrieved:", lockedRateResponse);
+  } else {
+    console.error(
+      "Failed to retrieve locked rate:",
+      lockedRateResponse?.message
     );
-    if (lockedRateResponse?.status === 1) {
-      console.log("Locked rate successfully retrieved:", lockedRateResponse);
-    } else {
-      console.error(
-        "Failed to retrieve locked rate:",
-        lockedRateResponse?.message
-      );
-    }
-
+  }
+  try {
     const transactionListResponse = await transactionStore.getTransactionList();
     if (transactionListResponse?.trxns) {
       transactions.value = transactionListResponse.trxns
@@ -532,11 +613,6 @@ onMounted(async () => {
 });
 
 const fetchRates = async () => {
-  if (authStore.userStatus === "0") {
-    console.log("User is not verified. Skipping rate fetching.");
-    return; // Skip fetching rates if user is not verified
-  }
-
   try {
     const response = await transactionStore.getRate();
     if (response?.status === 1 && response?.rates) {
