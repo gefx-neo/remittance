@@ -31,7 +31,7 @@ const authGuard = (to, from, next) => {
 
   if (!authStore.user) {
     next({ name: "login" });
-  } else if (authStore.userStatus !== "2" && to.name === "addtransaction") {
+  } else if (authStore.userStatus !== "1" && to.name === "addtransaction") {
     const alertStore = useAlertStore();
     alertStore.alert("pending", "Please verify your account");
 
