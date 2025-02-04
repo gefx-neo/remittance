@@ -6,8 +6,8 @@ export const formatNumber = (value) => {
   return number % 1 === 0
     ? number.toLocaleString() // No decimal places for whole numbers
     : number.toLocaleString(undefined, {
-        minimumFractionDigits: 4,
-        maximumFractionDigits: 4,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
       });
 };
 

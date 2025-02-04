@@ -24,8 +24,6 @@ export const useTransactionStore = defineStore("transaction", {
           if (response.token) {
             authStore.refreshSession(response.token, authStore.username);
           }
-
-          console.log("transaction response token", response.token);
         } else {
           alertStore.alert("error", response.message);
         }
@@ -52,8 +50,6 @@ export const useTransactionStore = defineStore("transaction", {
           if (response.token) {
             authStore.refreshSession(response.token, authStore.username);
           }
-
-          console.log("transaction response token", response.token);
         } else {
           alertStore.alert("error", response.message);
         }
@@ -101,8 +97,6 @@ export const useTransactionStore = defineStore("transaction", {
             authStore.refreshSession(response.token, payload.username);
           }
           this.resetStore();
-
-          console.log("transation response token", response.token);
         } else {
           alertStore.alert("error", response.message);
         }
@@ -130,8 +124,6 @@ export const useTransactionStore = defineStore("transaction", {
           this.memoId = response.memoId;
           this.rate = response.rates?.[0]?.rate || null;
           this.fee = response.rates?.[0]?.fee || null;
-
-          console.log("transaction response token", response.token);
         } else {
           alertStore.alert("error", response.message);
         }
@@ -159,7 +151,6 @@ export const useTransactionStore = defineStore("transaction", {
           if (response.token) {
             authStore.refreshSession(response.token, authStore.username);
           }
-          console.log("Locked Amount Response:", response);
         } else {
           alertStore.alert("error", response.message);
         }
@@ -197,7 +188,6 @@ export const useTransactionStore = defineStore("transaction", {
           if (response.token) {
             authStore.refreshSession(response.token, authStore.username);
           }
-          console.log("Reminder sent successfully:", response);
         } else {
           alertStore.alert("error", response.message);
         }

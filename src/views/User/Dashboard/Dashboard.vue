@@ -45,8 +45,8 @@
 
       <div class="button-section">
         <div class="rate-group">
-          1 {{ form.sendingCurrency }} =
-          {{ formatNumber(transactionStore.rate) }} {{ form.receivingCurrency }}
+          1 {{ form.sendingCurrency }} = {{ transactionStore.rate }}
+          {{ form.receivingCurrency }}
         </div>
         <div class="button-group">
           <ButtonAPI
@@ -137,26 +137,73 @@
           <!-- <router-link to="/history">View all</router-link > -->
         </div>
         <div v-if="store.isLoading"><Loading /></div>
-        <div class="item-section" v-else>
-          <div v-for="(rate, index) in rates" :key="index" class="item">
-            <div class="country">
-              <div class="icon-round">
-                <img
-                  :src="getCurrencyImagePath(rate.currency)"
-                  alt="Currency"
-                />
+        <div v-else>
+          <!-- <div class="header">
+            <div>From</div>
+            <div></div>
+            <div>To</div>
+          </div> -->
+          <div class="item-section">
+            <div v-for="(rate, index) in rates" :key="index" class="item">
+              <div class="country">
+                <div class="icon-round">
+                  <img
+                    :src="
+                      rateToggles[rate.currency]
+                        ? getCurrencyImagePath('SGD')
+                        : getCurrencyImagePath(rate.currency)
+                    "
+                    alt="Currency"
+                  />
+                </div>
+                <button
+                  @click="toggleRate(rate.currency)"
+                  class="exchange-item"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 17 17"
+                    aria-hidden="true"
+                    class="h-4 w-4 rotate-90 text-greyblue-400 md:rotate-0"
+                  >
+                    <path
+                      fill="currentColor"
+                      fill-rule="evenodd"
+                      d="M11.726 1.273l2.387 2.394H.667V5h13.446l-2.386 2.393.94.94 4-4-4-4-.94.94zM.666 12.333l4 4 .94-.94L3.22 13h13.447v-1.333H3.22l2.386-2.394-.94-.94-4 4z"
+                      clip-rule="evenodd"
+                    ></path>
+                    <path
+                      stroke="currentColor"
+                      fill="currentColor"
+                      fill-rule="evenodd"
+                      d="M11.726 1.273l2.387 2.394H.667V5h13.446l-2.386 2.393.94.94 4-4-4-4-.94.94zM.666 12.333l4 4 .94-.94L3.22 13h13.447v-1.333H3.22l2.386-2.394-.94-.94-4 4z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                </button>
+                <div class="icon-round">
+                  <img
+                    :src="
+                      rateToggles[rate.currency]
+                        ? getCurrencyImagePath(rate.currency)
+                        : getCurrencyImagePath('SGD')
+                    "
+                    alt="Currency"
+                  />
+                </div>
               </div>
-              <div class="name">{{ rate.currency }}</div>
-            </div>
-            <div
-              class="rate"
-              :class="[
-                rate.isIncreased ? 'increased' : '',
-                rate.isDecreased ? 'decreased' : '',
-                rate.animateClass,
-              ]"
-            >
-              {{ rate.rate }}
+
+              <div
+                class="rate"
+                :class="[
+                  rate.isIncreased ? 'increased' : '',
+                  rate.isDecreased ? 'decreased' : '',
+                  rate.animateClass,
+                ]"
+              >
+                {{ rate.rate }}
+              </div>
             </div>
           </div>
         </div>
@@ -219,7 +266,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onBeforeUnmount, watch } from "vue";
+import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { ButtonAPI } from "@/components/Form";
 import InputAmount from "@/components/Form/Dashboard/InputAmount.vue";
 import InputSendingCurrency from "@/components/Form/Dashboard/InputSendingCurrency.vue";
@@ -275,19 +322,6 @@ const updateSendingAmount = async (amount) => {
   if (form.sendingAmount === formattedAmount) return;
 
   form.sendingAmount = formattedAmount;
-
-  // try {
-  //   const response = await transactionStore.getLockedAmount(
-  //     form.sendingAmount,
-  //     "pay"
-  //   );
-
-  //   if (response && response.status === 1) {
-  //     form.receivingAmount = parseFloat(response.getAmount);
-  //   }
-  // } catch (error) {
-  //   console.error("Error in updateSendingAmount:", error);
-  // }
 };
 
 const updateSendingCurrency = async (currency) => {
@@ -348,7 +382,6 @@ const updateReceivingCurrency = async (currency) => {
 };
 
 const handleSubmit = async () => {
-  // Validate sending amount
   validateSendingAmount(
     form.sendingAmount,
     form.sendingCurrency,
@@ -358,12 +391,11 @@ const handleSubmit = async () => {
 
   if (errors.sendingAmount) {
     alertStore.alert("error", errors.sendingAmount);
-    return; // Stop execution if there's an error in sendingAmount
+    return;
   }
 
   const schema = formValidation(form);
 
-  // Validate the form fields
   const isValid = validateForm(form, schema);
   console.log("Validation Errors:", errors);
 
@@ -385,19 +417,6 @@ const handleSubmit = async () => {
   }
 
   try {
-    // // Call getLockedRate API
-    // const lockedRateResponse = await transactionStore.getLockedRate(
-    //   form.sendingCurrency,
-    //   form.receivingCurrency
-    // );
-
-    // if (!lockedRateResponse || lockedRateResponse.status !== 1) {
-    //   alertStore.alert("error", "Failed to retrieve locked rate.");
-    //   return;
-    // }
-
-    // console.log("Locked rate successfully retrieved:", lockedRateResponse);
-
     // Call getLockedAmount API
     const lockedAmountResponse = await transactionStore.getLockedAmount(
       form.sendingAmount,
@@ -434,7 +453,6 @@ const handleSubmit = async () => {
       query: { data: encryptedData },
     });
   } catch (error) {
-    console.error("Error in handleSubmit:", error);
     alertStore.alert(
       "error",
       "An error occurred while processing your request."
@@ -442,223 +460,101 @@ const handleSubmit = async () => {
   }
 };
 
-// watch(
-//   () => [
-//     form.sendingAmount,
-//     form.receivingAmount,
-//     form.sendingCurrency,
-//     form.receivingCurrency,
-//   ],
-//   ([
-//     newSendingAmount,
-//     newReceivingAmount,
-//     newSendingCurrency,
-//     newReceivingCurrency,
-//   ]) => {
-//     // Validate sending amount
-//     validateSendingAmount(
-//       newSendingAmount,
-//       newSendingCurrency,
-//       currencySchema,
-//       "sending"
-//     );
-
-//     // Validate receiving amount
-//     validateReceivingAmount(
-//       newReceivingAmount,
-//       newReceivingCurrency,
-//       currencySchema,
-//       "receiving"
-//     );
-//   }
-// );
-
-// const handleSubmit = () => {
-//   // Log the values of the form
-//   console.log("Sending Amount:", form.sendingAmount);
-//   console.log("Sending Currency:", form.sendingCurrency);
-//   console.log("Receiving Currency:", form.receivingCurrency);
-//   validateSendingAmount(
-//     form.sendingAmount,
-//     form.sendingCurrency,
-//     currencySchema,
-//     "sending"
-//   );
-
-//   if (errors.sendingAmount) {
-//     alertStore.alert("error", errors.sendingAmount);
-//     return; // Stop execution if there's an error in sendingAmount
-//   }
-
-//   const schema = formValidation(form);
-
-//   // Validate the form fields
-//   const isValid = validateForm(form, schema);
-//   console.log("Validation Errors:", errors);
-
-//   if (isValid) {
-//     const queryData = {
-//       sendingAmount: form.sendingAmount,
-//       sendingCurrency: form.sendingCurrency,
-//       receivingAmount: form.receivingAmount,
-//       receivingCurrency: form.receivingCurrency,
-//       fromDashboard: "true",
-//     };
-
-//     // Encrypt data
-//     const encryptedData = encryptQueryParams(queryData);
-
-//     // Navigate to StepTwo with encrypted query parameters
-//     router.push({
-//       path: "/transaction/addtransaction",
-//       query: { data: encryptedData },
-//     });
-//   } else {
-//     // If sendingAmount is 0, show a specific error message for required fields
-//     if (form.sendingAmount === 0 || form.receivingAmount === 0) {
-//       alertStore.alert("error", "Please fill in the required fields.");
-//     } else if (errors.sendingAmount || errors.receivingAmount) {
-//       // If there are range validation errors, show the appropriate message
-//       alertStore.alert(
-//         "error",
-//         "Please provide valid amounts for both sending and receiving"
-//       );
-//     } else {
-//       alertStore.alert(
-//         "error",
-//         "Please provide valid amounts for both sending and receiving"
-//       );
-//     }
-//   }
-// };
-
 onMounted(async () => {
-  await profileStore.getProfileDetail();
+  await profileStore.getProfileDetail(); // Fetch profile first
 
-  if (authStore.userStatus !== "1") {
-    return;
-  }
+  if (authStore.userStatus !== "1") return; // Exit early if user is not authorized
 
-  // Call getLockedRate, getTransactionList, and fetchRates sequentially
-
-  const lockedRateResponse = await transactionStore.getLockedRate(
-    form.sendingCurrency,
-    form.receivingCurrency
-  );
-  if (lockedRateResponse?.status === 1) {
-    console.log("Locked rate successfully retrieved:", lockedRateResponse);
-  } else {
-    console.error(
-      "Failed to retrieve locked rate:",
-      lockedRateResponse?.message
-    );
-  }
   try {
-    const transactionListResponse = await transactionStore.getTransactionList();
+    // Call all APIs concurrently
+    const [lockedRateResponse, transactionListResponse, rateResponse] =
+      await Promise.all([
+        transactionStore.getLockedRate(
+          form.sendingCurrency,
+          form.receivingCurrency
+        ),
+        transactionStore.getTransactionList(),
+        transactionStore.getRate(),
+      ]);
+
+    // Process transaction list response
     if (transactionListResponse?.trxns) {
       transactions.value = transactionListResponse.trxns
         .sort((a, b) => new Date(b.date) - new Date(a.date))
         .slice(0, 5); // Limit to 5 transactions
-      console.log("Transactions successfully retrieved:", transactions.value);
-    } else {
-      console.error(
-        "Failed to retrieve transactions:",
-        transactionListResponse?.message
-      );
     }
 
-    const rateResponse = await transactionStore.getRate();
+    // Process rates response
     if (rateResponse?.status === 1 && rateResponse?.rates) {
-      const allowedCurrencies = ["USD", "MYR", "IDR", "YEN", "THB"]; // Specify the currencies to display
-
-      const newRates = rateResponse.rates
-        .filter((rate) => allowedCurrencies.includes(rate.currency)) // Filter allowed currencies
-        .sort(
-          (a, b) =>
-            allowedCurrencies.indexOf(a.currency) -
-            allowedCurrencies.indexOf(b.currency) // Sort by specified order
-        )
-        .map((rate) => ({
-          currency: rate.currency,
-          rate: parseFloat(rate.rate).toFixed(4),
-          fee: parseFloat(rate.fee).toFixed(4),
-          isIncreased:
-            previousRates.value[rate.currency] &&
-            parseFloat(rate.rate) > previousRates.value[rate.currency],
-          isDecreased:
-            previousRates.value[rate.currency] &&
-            parseFloat(rate.rate) < previousRates.value[rate.currency],
-          animateClass: "fade-in", // Initialize animation class
-        }));
-
-      // Trigger the fade-out animation before updating
-      rates.value.forEach((rate) => {
-        rate.animateClass = "fade-up-out";
-      });
-
-      setTimeout(() => {
-        previousRates.value = Object.fromEntries(
-          newRates.map((rate) => [rate.currency, parseFloat(rate.rate)])
-        );
-        rates.value = newRates;
-      }, 500); // Wait for fade-up-out animation to complete
-
-      rateInterval = setInterval(fetchRates, 1000); // Fetch rates every second
-    } else {
-      console.error("Failed to retrieve rates:", rateResponse?.message);
+      fetchRates(); // Calls the optimized function to update rates
+      rateInterval = setInterval(fetchRates, 1000); // Start periodic rate updates
     }
   } catch (error) {
     console.error("Error in API calls:", error);
   }
 });
 
+// Track toggle state for each currency
+const rateToggles = ref({}); // Object to store toggle state
+
 const fetchRates = async () => {
   try {
     const response = await transactionStore.getRate();
     if (response?.status === 1 && response?.rates) {
-      const allowedCurrencies = ["USD", "MYR", "IDR", "YEN", "THB"]; // Specify the currencies to display
+      const allowedCurrencies = ["USD", "MYR", "IDR", "YEN", "THB"];
 
-      const newRates = response.rates
-        .filter((rate) => allowedCurrencies.includes(rate.currency)) // Filter allowed currencies
+      // Store updated rates before modifying them
+      previousRates.value = Object.fromEntries(
+        response.rates.map((rate) => [rate.currency, parseFloat(rate.rate)])
+      );
+
+      rates.value = response.rates
+        .filter((rate) => allowedCurrencies.includes(rate.currency))
+        .map((rate) => {
+          const currency = rate.currency;
+          const isToggled = rateToggles.value[currency] || false;
+
+          return {
+            currency,
+            rate: isToggled
+              ? (1 / previousRates.value[currency]).toFixed(4) // Inverted rate
+              : previousRates.value[currency].toFixed(4),
+            fee: parseFloat(rate.fee).toFixed(4),
+            isIncreased:
+              previousRates.value[currency] &&
+              parseFloat(rate.rate) > previousRates.value[currency],
+            isDecreased:
+              previousRates.value[currency] &&
+              parseFloat(rate.rate) < previousRates.value[currency],
+            animateClass: "fade-in",
+          };
+        })
         .sort(
           (a, b) =>
             allowedCurrencies.indexOf(a.currency) -
-            allowedCurrencies.indexOf(b.currency) // Sort by specified order
-        )
-        .map((rate) => ({
-          currency: rate.currency,
-          rate: parseFloat(rate.rate).toFixed(4),
-          fee: parseFloat(rate.fee).toFixed(4),
-          isIncreased:
-            previousRates.value[rate.currency] &&
-            parseFloat(rate.rate) > previousRates.value[rate.currency],
-          isDecreased:
-            previousRates.value[rate.currency] &&
-            parseFloat(rate.rate) < previousRates.value[rate.currency],
-          animateClass: "fade-in", // Initialize animation class
-        }));
-
-      // Trigger the fade-out animation before updating
-      rates.value.forEach((rate) => {
-        rate.animateClass = "fade-up-out";
-      });
-
-      setTimeout(() => {
-        previousRates.value = Object.fromEntries(
-          newRates.map((rate) => [rate.currency, parseFloat(rate.rate)])
-        );
-        rates.value = newRates;
-      }, 500); // Wait for fade-up-out animation to complete
-    } else {
-      console.error("Failed to retrieve rates:", response?.message);
+            allowedCurrencies.indexOf(b.currency)
+        ); // Sort by predefined order
     }
   } catch (error) {
     console.error("Error fetching rates:", error);
   }
 };
 
+const toggleRate = async (currency) => {
+  rateToggles.value[currency] = !rateToggles.value[currency]; // Toggle the state
+
+  await nextTick(); // Wait for Vue to apply updates
+
+  const rateObj = rates.value.find((rate) => rate.currency === currency);
+  if (rateObj) {
+    rateObj.rate = rateToggles.value[currency]
+      ? (1 / previousRates.value[currency]).toFixed(4) // Inverted rate
+      : previousRates.value[currency].toFixed(4);
+  }
+};
+
 onBeforeUnmount(() => {
-  if (rateInterval) clearInterval(rateInterval);
+  clearInterval(rateInterval);
 });
 
 const navigateToTransactionDetail = async (memoId) => {

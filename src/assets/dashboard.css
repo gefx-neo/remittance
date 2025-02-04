@@ -45,12 +45,13 @@
 .exchange-rate .button-section {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: start;
 }
 
 .exchange-rate .rate-group {
   color: var(--grey);
   font-weight: var(--semi-bold);
+  padding-left: var(--size-4);
 }
 
 .exchange-rate .button-group {
@@ -265,19 +266,65 @@
 }
 
 .currency .item:hover {
-  background: var(--sky-blue);
+  /* border: 1px solid var(--light-grey); */
   margin-inline: -16px;
 }
 
 .currency .item .country {
   display: flex;
   align-items: center;
-  gap: var(--size-12);
+  position: relative;
+  gap: var(--size-16);
+}
+
+.currency .item .country .icon-round {
+  /* min-width: var(--size-24);
+  max-width: var(--size-24);
+  min-height: var(--size-24);
+  max-height: var(--size-24); */
 }
 
 .currency .item .country .name {
   color: var(--slate-blue);
   font-weight: var(--semi-bold);
+}
+
+.currency .item .exchange-item {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: var(--border-circle);
+  background: var(--white);
+  padding: var(--size-8);
+  border: 1px solid var(--light-grey);
+}
+
+.currency .item .exchange-item:hover {
+  background: #d9d9d9;
+}
+
+.currency .item .exchange-item:focus {
+  background: #bfbfbf;
+}
+
+.currency .item .exchange-item:focus:not(:focus-visible) {
+  background: var(--white);
+}
+
+.currency .item .exchange-item:focus:hover {
+  background: #d9d9d9;
+}
+
+.currency .item .exchange-item:focus:active {
+  background: #bfbfbf;
+}
+.currency .item .exchange-item svg {
+  min-width: var(--size-12);
+  max-width: var(--size-12);
+  min-height: var(--size-12);
+  min-width: var(--size-12);
+  fill: var(--cool-blue);
 }
 
 .currency .item .rate {
@@ -414,6 +461,10 @@
 
   .exchange-rate .button-section {
     gap: var(--size-12);
+  }
+
+  .exchange-rate .rate-group {
+    padding-left: 0px;
   }
 
   .exchange-rate .form-section .exchange-item {

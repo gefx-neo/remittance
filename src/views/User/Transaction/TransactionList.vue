@@ -99,8 +99,8 @@
       </div>
       <div v-if="authStore.userStatus === '2'">
         <span
-          >Please wait as your account is currently pending management
-          approval</span
+          >Kindly hold on while your account is awaiting management
+          approval.</span
         >
 
         <p>For further assistance, please contact customer support.</p>
