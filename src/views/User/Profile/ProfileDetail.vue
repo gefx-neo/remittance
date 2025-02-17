@@ -9,14 +9,6 @@
           >
           <span>
             <Tooltip
-              text="Verified"
-              v-if="profileDetails.userStatus === 1"
-              class="verified"
-            >
-              <font-awesome-icon :icon="['fas', 'certificate']" />
-              <font-awesome-icon :icon="['fas', 'check']" />
-            </Tooltip>
-            <Tooltip
               text="Pending processing"
               v-if="profileDetails.userStatus === 2"
               class="pending"
@@ -31,8 +23,16 @@
               <font-awesome-icon :icon="['fas', 'hourglass-half']" />
             </Tooltip>
             <Tooltip
-              text="Rejected"
+              text="Verified"
               v-if="profileDetails.userStatus === 3"
+              class="verified"
+            >
+              <font-awesome-icon :icon="['fas', 'certificate']" />
+              <font-awesome-icon :icon="['fas', 'check']" />
+            </Tooltip>
+            <Tooltip
+              text="Rejected"
+              v-if="profileDetails.userStatus === 4"
               class="rejected"
             >
               <font-awesome-icon :icon="['fas', 'ban']" />
@@ -41,7 +41,7 @@
         </div>
         <button
           @click="navigateToAccountVerification"
-          v-if="profileDetails.userStatus === 0"
+          v-if="profileDetails.userStatus == 0"
           class="btn-blue"
         >
           Verify account
@@ -169,6 +169,7 @@ const navigateToAccountVerification = () => {
   display: flex;
   flex-direction: column;
   gap: var(--size-24);
+  min-height: calc(100vh - 140px);
 }
 
 .profile {

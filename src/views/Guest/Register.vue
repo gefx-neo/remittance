@@ -77,22 +77,38 @@
     <div v-if="registerStore.error" class="error">
       {{ registerStore.error }}
     </div>
-
+    <div class="footer">
+      By clicking Register, you agree to our
+      <span @click="openTermsModal">Terms</span> and
+      <span @click="openPolicyModal">Privacy Policy</span>
+    </div>
     <Modal
       :isModalOpen="store.isModalOpen"
       title="Account created"
       :checkYourEmail="true"
+    />
+    <ModalTerms
+      :isModalOpen="isTermsModal"
+      title="Terms and conditions"
+      @close="isTermsModal = false"
+    />
+    <ModalPolicy
+      :isModalOpen="isPolicyModal"
+      title="Privacy Policy"
+      @close="isPolicyModal = false"
     />
   </div>
 </template>
 
 <script setup>
 import { onBeforeRouteLeave } from "vue-router";
-import { reactive } from "vue";
+import { ref, reactive } from "vue";
 import { useRegisterStore } from "@/stores/registerStore";
 import { useStore } from "@/stores/useStore";
 import { validationService } from "@/services/validationUserService.js";
 import Modal from "@/components/Modal.vue";
+import ModalTerms from "./components/ModalTerms.vue";
+import ModalPolicy from "./components/ModalPolicy.vue";
 import { ButtonAPI } from "@/components/Form";
 
 const registerStore = useRegisterStore();
@@ -107,6 +123,14 @@ const form = reactive({
 });
 
 const errors = reactive({});
+const isTermsModal = ref(false);
+const isPolicyModal = ref(false);
+const openTermsModal = () => {
+  isTermsModal.value = true;
+};
+const openPolicyModal = () => {
+  isPolicyModal.value = true;
+};
 
 const handleRegister = async () => {
   // Clear previous errors before validation
@@ -151,6 +175,7 @@ onBeforeRouteLeave((to, from, next) => {
   flex-direction: column;
   align-items: center;
   gap: var(--size-24);
+  min-height: calc(100vh - 140px);
 }
 
 .heading {
@@ -162,9 +187,19 @@ onBeforeRouteLeave((to, from, next) => {
 }
 
 .heading a {
-  color: var(--grey);
+  color: var(--grey) !important;
   font-weight: var(--semi-bold);
   text-decoration: underline;
+  cursor: pointer;
+}
+
+.footer {
+  color: var(--grey) !important;
+  font-size: var(--text-sm);
+}
+
+.footer span {
+  font-weight: var(--semi-bold);
   cursor: pointer;
 }
 

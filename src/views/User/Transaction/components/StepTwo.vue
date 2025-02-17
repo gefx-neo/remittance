@@ -233,7 +233,7 @@ watch(
       sendingCurrency: query.sendingCurrency || "SGD",
       receivingAmount:
         parseFloat(query.receivingAmount) || localForm.receivingAmount,
-      receivingCurrency: query.currency || localForm.receivingCurrency,
+      receivingCurrency: query.currency || localForm.receivingCurrency || "MYR",
     });
     emit("update:modelValue", { ...localForm });
   },
@@ -273,8 +273,9 @@ const updateReceivingAmount = async (amount) => {
       "get"
     );
     if (response && response.status === 1) {
-      localForm.sendingAmount = parseFloat(response.payAmount);
-      console.log(typeof localForm.sendingAmount, localForm.sendingAmount); // Should output: "number"
+      localForm.sendingAmount = parseFloat(
+        response.payAmount - transactionStore.fee
+      );
     }
   } catch (error) {
     console.error("Error in updateReceivingAmount:", error);

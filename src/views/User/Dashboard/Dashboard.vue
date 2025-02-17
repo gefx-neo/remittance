@@ -1,5 +1,5 @@
 <template>
-  <div class="content-area" v-if="authStore.userStatus === '1'">
+  <div class="content-area" v-if="profileDetails.userStatus === 3">
     <div class="exchange-rate">
       <div class="form-section">
         <InputAmount
@@ -210,10 +210,14 @@
       </div>
     </div>
   </div>
-  <div class="content-area" v-if="authStore.userStatus !== '1'">
+  <div class="content-area" v-if="profileDetails.userStatus !== 3">
     <div class="exchange-rate blur">
       <div class="form-section">
-        <InputAmount id="sendingAmount" label="Sending amount" />
+        <InputAmount
+          id="sendingAmount"
+          label="Sending amount"
+          :modelValue="form.sendingAmount"
+        />
         <InputSendingCurrency label="Sending currency" id="currency" />
 
         <InputReceivingCurrency
@@ -245,7 +249,7 @@
           </button>
         </div>
       </div>
-      <div class="item-section" v-if="authStore.userStatus === '0'">
+      <div class="item-section" v-if="profileDetails.userStatus === 0">
         <div class="item">
           <div class="heading">2. Account Verification</div>
           <div class="body">
@@ -310,6 +314,8 @@ const form = reactive({
   receivingAmount: 0,
   receivingCurrency: receivingCurrencies[0].code,
 });
+
+const profileDetails = reactive({});
 
 const transactions = ref([]);
 const rates = ref([]);
@@ -461,9 +467,12 @@ const handleSubmit = async () => {
 };
 
 onMounted(async () => {
-  await profileStore.getProfileDetail(); // Fetch profile first
-
-  if (authStore.userStatus !== "1") return; // Exit early if user is not authorized
+  await profileStore.getProfileDetail();
+  Object.assign(profileDetails, profileStore.profileDetails); // Assign store data to reactive object
+  console.log(profileDetails);
+  if (profileDetails.userStatus !== 3) {
+    return;
+  }
 
   try {
     // Call all APIs concurrently
@@ -571,7 +580,7 @@ const navigateToTransactionDetail = async (memoId) => {
 };
 
 const navigateToProfile = () => {
-  router.push({ name: "profiledetail" }); // Replace "profile" with the route name or path
+  router.push({ name: "accountverification" }); // Replace "profile" with the route name or path
 };
 
 const navigateToSetting = () => {

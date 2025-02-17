@@ -201,7 +201,7 @@ onUnmounted(() => {
 
 /* Custom Scrollbar */
 .dropdown-menu .body::-webkit-scrollbar {
-  width: 8px;
+  width: var(--size-8);
   cursor: pointer;
 }
 

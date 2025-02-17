@@ -14,7 +14,7 @@
   align-items: center;
   flex-direction: column;
   gap: var(--size-12);
-  height: calc(100vh - 150px);
+  min-height: calc(100vh - 140px);
 }
 
 .coming-soon {

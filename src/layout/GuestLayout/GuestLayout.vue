@@ -3,6 +3,7 @@
     <Header />
     <div class="main-container">
       <RouterView />
+      <Footer />
     </div>
   </div>
 </template>
@@ -10,6 +11,7 @@
 <script setup>
 import { RouterView } from "vue-router";
 import Header from "./Header.vue";
+import Footer from "./Footer.vue";
 </script>
 
 <style scoped>
@@ -24,7 +26,7 @@ import Header from "./Header.vue";
 }
 
 .main-container {
-  padding-bottom: var(--size-24);
+  padding: 0 var(--size-24);
 }
 
 /* DESKTOP */

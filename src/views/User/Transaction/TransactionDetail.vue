@@ -99,7 +99,11 @@
               <div class="item">
                 <span>Amount paid</span>
                 <span>
-                  {{ formatNumber(amountPaid) }}
+                  {{
+                    formatNumber(
+                      transactionDetail.payAmount + transactionDetail.fee
+                    )
+                  }}
                   {{ transactionDetail.payCurrency }}</span
                 >
               </div>
@@ -170,7 +174,6 @@ import {
   formatNumber,
   getTransactionStatus,
   formatDateTime,
-  getTotalAmount,
 } from "@/utils/transactionUtils";
 import {
   getInitials,
@@ -240,13 +243,6 @@ onMounted(async () => {
   }
 });
 
-const amountPaid = computed(() => {
-  return getTotalAmount(
-    transactionDetail.value?.payAmount,
-    transactionDetail.value?.fee
-  );
-});
-
 const goBack = () => {
   router.go(-1);
 };
@@ -257,6 +253,7 @@ const goBack = () => {
   display: flex;
   flex-direction: column;
   gap: var(--size-24);
+  min-height: calc(100vh - 140px);
 }
 
 .transaction {

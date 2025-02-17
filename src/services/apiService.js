@@ -35,26 +35,6 @@ axiosInstance.interceptors.request.use(
 );
 
 // Response interceptor to handle  errors
-// axiosInstance.interceptors.response.use(
-//   (response) => response,
-//   (error) => {
-//     if (error.response) {
-//       error.response.data = {
-//         ...error.response.data,
-//         message: error.response.data?.message || DEFAULT_ERROR_MESSAGE,
-//       };
-
-//       if (error.response.status === 401) {
-//         console.log("401 Unauthorized detected, logging out...");
-//         const authStore = useAuthStore();
-//         authStore.logout();
-//       }
-//     } else {
-//       error.message = "Network error or server is unreachable.";
-//     }
-//     return Promise.reject(error);
-//   }
-// );
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {

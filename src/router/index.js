@@ -27,17 +27,30 @@ const guestGuard = (to, from, next) => {
 const authGuard = (to, from, next) => {
   const authStore = useAuthStore();
 
+  // Start a periodic check for token validity
+  const startSessionCheck = () => {
+    const intervalId = setInterval(() => {
+      authStore.checkSession(); // Check if the token is still valid
+    }, 1000); // Check every minute (adjust as needed)
+
+    // Clear the interval when the user navigates away or logs out
+    return () => clearInterval(intervalId);
+  };
+
   authStore.checkSession();
 
   if (!authStore.user) {
     next({ name: "login" });
-  } else if (authStore.userStatus !== "1" && to.name === "addtransaction") {
+  } else if (authStore.userStatus !== "3" && to.name === "addtransaction") {
     const alertStore = useAlertStore();
     alertStore.alert("pending", "Please verify your account");
 
     next({ name: "profiledetail" });
   } else {
     next();
+    if (authStore.user) {
+      startSessionCheck();
+    }
   }
 };
 
@@ -275,8 +288,9 @@ const router = createRouter({
 // Global beforeEach to check session
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
-
-  authStore.checkSession();
+  if (authStore.user) {
+    authStore.checkSession();
+  }
 
   next();
 });

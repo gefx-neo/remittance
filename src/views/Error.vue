@@ -23,7 +23,7 @@ const authStore = useAuthStore();
   display: flex;
   align-items: center;
   flex-direction: column;
-  height: calc(100vh - 150px);
+  min-height: calc(100vh - 140px);
 }
 
 .error {

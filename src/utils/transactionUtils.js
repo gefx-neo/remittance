@@ -1,6 +1,6 @@
 export const formatNumber = (value) => {
   const number = parseFloat(value);
-  if (isNaN(number)) return "";
+  if (isNaN(number)) return "0";
 
   // Format without unnecessary decimals
   return number % 1 === 0
@@ -40,9 +40,4 @@ export const formatDateTime = (dateTimeString) => {
   const minutes = date.getMinutes().toString().padStart(2, "0");
 
   return `${day} ${month} ${year}, ${hours}:${minutes}`;
-};
-
-export const getTotalAmount = (sendingAmount = 0, fee = 0) => {
-  const total = parseFloat(sendingAmount) + parseFloat(fee || 0);
-  return isNaN(total) ? 0 : total;
 };

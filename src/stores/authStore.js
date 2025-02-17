@@ -5,7 +5,6 @@ import apiService from "@/services/apiService";
 import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 import {
   useStore,
-  useProfileStore,
   useTransactionStore,
   useAlertStore,
 } from "@/stores/index.js";
@@ -36,25 +35,15 @@ export const useAuthStore = defineStore("auth", {
         this.username = username; // Update the state
       }
     },
-
     async checkSession() {
       const token = getLocalStorageWithExpiry("token");
       const username = getLocalStorageWithExpiry("username");
 
       if (token && username) {
         this.user = username;
-        console.log("User session found with token:", token);
       } else {
-        this.clearSession();
+        this.logout();
       }
-    },
-
-    clearSession() {
-      removeLocalStorageWithExpiry("token");
-      removeLocalStorageWithExpiry("username");
-      this.username = null;
-      this.token = null;
-      console.log("Session cleared.");
     },
 
     // Step 1: Fetch reqKey (hex and iv) for the username
@@ -116,8 +105,6 @@ export const useAuthStore = defineStore("auth", {
           this.error = null;
 
           this.refreshSession(response.token, form.username);
-          const profileStore = useProfileStore();
-          await profileStore.getProfileDetail();
 
           router.push({ name: "dashboard" });
         } else {
@@ -150,8 +137,8 @@ export const useAuthStore = defineStore("auth", {
           removeLocalStorageWithExpiry("userStatus");
           transactionStore.$reset();
 
-          router.push("/"); // Redirect here works perfectly
-          console.log("Logged out successfully and session cleared.");
+          // Clear any active intervals
+          window.clearInterval(this.tokenCheckInterval);
         } else {
           alertStore.alert("error", response.message);
         }
@@ -159,6 +146,7 @@ export const useAuthStore = defineStore("auth", {
         alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
       } finally {
         store.isLoading = false;
+        window.location.href = "/";
       }
     },
   },

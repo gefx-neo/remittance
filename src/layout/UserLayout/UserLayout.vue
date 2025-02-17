@@ -4,6 +4,7 @@
     <div class="main-container">
       <Header />
       <RouterView />
+      <Footer />
     </div>
   </div>
 </template>
@@ -12,6 +13,7 @@
 import { RouterView } from "vue-router";
 import Sidebar from "./Sidebar.vue";
 import Header from "./Header.vue";
+import Footer from "./Footer.vue";
 import { useAuthStore } from "../../stores/authStore.js";
 
 const authStore = useAuthStore();
@@ -34,7 +36,6 @@ const authStore = useAuthStore();
   padding: 0 var(--size-32);
   display: block;
   width: calc(100% - 240px);
-  padding-bottom: var(--size-24);
 }
 
 /* TABLET */
@@ -42,7 +43,6 @@ const authStore = useAuthStore();
   .main-container {
     width: 100%;
     padding: 0 var(--size-24);
-    padding-bottom: var(--size-24);
   }
 }
 /* TABLET */
@@ -52,7 +52,7 @@ const authStore = useAuthStore();
   .main-container {
     width: 100%;
     padding: 0 var(--size-16);
-    padding-bottom: 76px;
+    padding-bottom: 60px;
   }
 }
 /* MOBILE */

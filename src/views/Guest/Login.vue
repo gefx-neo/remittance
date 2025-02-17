@@ -18,6 +18,7 @@
             errors.username
           }}</span>
         </div>
+
         <ButtonAPI class="btn-red standard-button" :disabled="store.isLoading">
           Next
         </ButtonAPI>
@@ -68,10 +69,25 @@
       </fieldset>
     </form>
 
-    <footer>
-      <router-link to="/forgotpassword">Forgot password?</router-link>
-    </footer>
+    <div class="footer">
+      <div><router-link to="/forgotpassword">Forgot password</router-link></div>
+      <div>
+        By clicking Login, you agree to our
+        <span @click="openTermsModal">Terms</span> and
+        <span @click="openPolicyModal">Privacy Policy</span>
+      </div>
+    </div>
   </div>
+  <ModalTerms
+    :isModalOpen="isTermsModal"
+    title="Terms and conditions"
+    @close="isTermsModal = false"
+  />
+  <ModalPolicy
+    :isModalOpen="isPolicyModal"
+    title="Privacy Policy"
+    @close="isPolicyModal = false"
+  />
 </template>
 
 <script setup>
@@ -80,6 +96,8 @@ import { ref, reactive } from "vue";
 import { useAuthStore } from "@/stores/authStore";
 import { useStore } from "@/stores/useStore";
 import { validationService } from "@/services/validationUserService.js";
+import ModalTerms from "./components/ModalTerms.vue";
+import ModalPolicy from "./components/ModalPolicy.vue";
 import { ButtonAPI } from "@/components/Form";
 
 const authStore = useAuthStore();
@@ -92,6 +110,15 @@ const form = reactive({
   username: "",
   password: "",
 });
+
+const isTermsModal = ref(false);
+const isPolicyModal = ref(false);
+const openTermsModal = () => {
+  isTermsModal.value = true;
+};
+const openPolicyModal = () => {
+  isPolicyModal.value = true;
+};
 
 const errors = reactive({});
 
@@ -167,6 +194,7 @@ onBeforeRouteLeave((to, from, next) => {
   flex-direction: column;
   align-items: center;
   gap: var(--size-24);
+  min-height: calc(100vh - 140px);
 }
 
 .heading {
@@ -188,6 +216,15 @@ form {
   width: 100%;
   max-width: 400px;
   gap: var(--size-24);
+}
+
+form a {
+  display: flex;
+  justify-content: start;
+  color: var(--grey);
+  text-decoration: underline;
+  font-weight: var(--semi-bold);
+  margin-bottom: var(--size-12);
 }
 
 .form-group {
@@ -264,10 +301,23 @@ form {
   }
 }
 
-footer a {
+.footer {
   color: var(--grey);
+  font-size: var(--text-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--size-12);
+}
+
+.footer a {
+  color: var(--grey) !important;
   font-weight: var(--semi-bold);
   text-decoration: underline;
+}
+
+.footer span {
+  font-weight: var(--semi-bold);
   cursor: pointer;
 }
 </style>

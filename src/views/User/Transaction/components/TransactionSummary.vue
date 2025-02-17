@@ -17,7 +17,7 @@
         <div class="item">
           <div class="label">Sending amount</div>
           <div class="value">
-            {{ formatNumber(sendingAmount) }} {{ sendingCurrency }}
+            {{ formatNumber(props.sendingAmount) }} {{ sendingCurrency }}
           </div>
         </div>
         <div class="item">
@@ -34,14 +34,15 @@
         <div class="item">
           <div class="label">Receiving amount</div>
           <div class="value">
-            {{ formatNumber(receivingAmount) }} {{ receivingCurrency }}
+            {{ formatNumber(props.receivingAmount) }} {{ receivingCurrency }}
           </div>
         </div>
       </div>
       <div class="footerr">
         <div class="label">Amount to be paid</div>
         <div class="value">
-          {{ formatNumber(amountToBePaid) }} {{ sendingCurrency }}
+          {{ formatNumber(props.sendingAmount + props.fee) }}
+          {{ sendingCurrency }}
         </div>
       </div>
     </div>
@@ -49,8 +50,8 @@
 </template>
 
 <script setup>
-import { ref, computed, defineProps } from "vue";
-import { formatNumber, getTotalAmount } from "@/utils/transactionUtils.js";
+import { ref, defineProps } from "vue";
+import { formatNumber } from "@/utils/transactionUtils.js";
 const props = defineProps({
   sendingAmount: Number,
   sendingCurrency: String,
@@ -58,10 +59,7 @@ const props = defineProps({
   receivingCurrency: String,
   fee: Number,
   rate: Number,
-});
-
-const amountToBePaid = computed(() => {
-  return getTotalAmount(props.sendingAmount, props.fee);
+  payAmount: Number,
 });
 
 const isAccordionOpen = ref(true);

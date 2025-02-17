@@ -287,8 +287,10 @@ onBeforeRouteLeave((to, from, next) => {
 <style scoped>
 .content-area {
   display: flex;
+  align-items: center;
   flex-direction: column;
   gap: var(--size-24);
+  min-height: calc(100vh - 140px);
 }
 
 .setting {

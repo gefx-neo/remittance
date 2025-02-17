@@ -106,9 +106,9 @@
       {{ forgotPasswordStore.error }}
     </div>
 
-    <footer>
+    <div class="footer">
       <router-link to="/">Go back to login</router-link>
-    </footer>
+    </div>
 
     <Modal
       :isModalOpen="store.isModalOpen"
@@ -265,6 +265,7 @@ onBeforeRouteLeave((to, from, next) => {
   flex-direction: column;
   align-items: center;
   gap: var(--size-24);
+  min-height: calc(100vh - 140px);
 }
 
 .heading {
@@ -383,8 +384,8 @@ form .remark .btn-timer:disabled {
   }
 }
 
-footer a {
-  color: var(--grey);
+.footer a {
+  color: var(--grey) !important;
   font-weight: var(--semi-bold);
   text-decoration: underline;
   cursor: pointer;

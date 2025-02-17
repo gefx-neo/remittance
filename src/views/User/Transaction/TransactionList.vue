@@ -1,5 +1,5 @@
 <template>
-  <div class="content-area" v-if="authStore.userStatus === '1'">
+  <div class="content-area" v-if="profileDetails.userStatus === 3">
     <div class="transaction">
       <div class="title">
         <h3>Transaction History</h3>
@@ -73,7 +73,7 @@
             </div>
             <div class="second-column">
               <div class="first-row">
-                {{ formatNumber(transaction.payAmount) }}
+                {{ formatNumber(transaction.payAmount + transaction.fee) }}
                 {{ transaction.payCurrency }}
               </div>
               <div class="second-row">
@@ -88,37 +88,35 @@
       <!-- <button class="btn-load">Load more</button> -->
     </div>
   </div>
-  <div class="content-area" v-if="authStore.userStatus !== '1'">
+  <div class="content-area" v-if="profileDetails.userStatus !== 3">
     <div class="account-locked">
       <h1>Access restricted</h1>
-      <div v-if="authStore.userStatus === '0'">
+      <div v-if="profileDetails.userStatus === 0">
         <span
           >Please complete your account verification to unlock this feature.
         </span>
         <p>For further assistance, please contact customer support.</p>
       </div>
-      <div v-if="authStore.userStatus === '2'">
+      <div v-if="profileDetails.userStatus === 2">
         <span
           >Kindly hold on while your account is awaiting management
           approval.</span
         >
+        <p>For further assistance, please contact customer support.</p>
+      </div>
+      <div v-if="profileDetails.userStatus === 4">
+        <span>Your account verification has been rejected.</span>
 
         <p>For further assistance, please contact customer support.</p>
       </div>
-
       <p></p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
-import {
-  useStore,
-  useAuthStore,
-  useProfileStore,
-  useTransactionStore,
-} from "@/stores/index";
+import { ref, reactive, computed, onMounted } from "vue";
+import { useStore, useProfileStore, useTransactionStore } from "@/stores/index";
 import { useRouter } from "vue-router";
 import {
   formatNumber,
@@ -130,17 +128,18 @@ import EmptyList from "@/views/EmptyList.vue";
 
 const router = useRouter();
 const store = useStore();
-const authStore = useAuthStore();
 const profileStore = useProfileStore();
 const transactionStore = useTransactionStore();
 
 const transactions = ref([]);
 const searchQuery = ref("");
+const profileDetails = reactive({});
 
 onMounted(async () => {
   await profileStore.getProfileDetail();
-
-  if (authStore.userStatus !== "1") {
+  Object.assign(profileDetails, profileStore.profileDetails); // Assign store data to reactive object
+  console.log(profileDetails);
+  if (profileDetails.userStatus !== 3) {
     return;
   }
   const response = await transactionStore.getTransactionList();
@@ -191,7 +190,7 @@ const navigateToAddTransaction = () => {
   align-items: center;
   flex-direction: column;
   gap: var(--size-24);
-  height: calc(100vh - 150px);
+  min-height: calc(100vh - 140px);
 }
 
 .transaction {
