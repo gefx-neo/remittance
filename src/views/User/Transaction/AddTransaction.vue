@@ -351,12 +351,13 @@ onMounted(() => {
 // });
 
 const handleCancel = () => {
-  router.push({ path: "/dashboard" });
+  window.location.href = "/#/dashboard";
 };
 
 onUnmounted(() => {
   localStorage.removeItem("transaction");
   localStorage.removeItem("beneficiary");
+  localStorage.removeItem("stepStore");
   console.log("Local storage cleared on component unmount.");
 });
 </script>

@@ -1,21 +1,16 @@
 export function setLocalStorageWithExpiry(key, value, hours) {
   const now = new Date();
   const expiryTime = now.getTime() + hours * 60 * 60 * 1000; // Convert hours to milliseconds
-  //   const expiryTime = now.getTime() + seconds * 1000; // Seconds for testin
+  // const expiryTime = now.getTime() + seconds * 1000; // Seconds for testing
 
-  // Set value in localStorage
   localStorage.setItem(key, value);
-
-  // Set expiry time in a separate key
   localStorage.setItem(`${key}_expiry`, expiryTime);
 }
 
 // Helper function to get localStorage and check expiration
 export function getLocalStorageWithExpiry(key) {
-  // Retrieve the value
   const value = localStorage.getItem(key);
 
-  // If the value doesn't exist, return null
   if (!value) {
     return null;
   }
@@ -35,11 +30,7 @@ export function getLocalStorageWithExpiry(key) {
   return value;
 }
 
-// Helper function to remove localStorage item and its expiry
 export function removeLocalStorageWithExpiry(key) {
-  // Remove the value
   localStorage.removeItem(key);
-
-  // Remove the expiry time
   localStorage.removeItem(`${key}_expiry`);
 }

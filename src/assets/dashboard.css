@@ -160,6 +160,14 @@
   background: var(--midnight-violet);
 }
 
+.history .item .detail .first-column .second-row span:nth-child(1).priority {
+  color: var(--dark-yellow);
+}
+
+.history .item .detail .first-column .second-row span:nth-child(2).priority {
+  background: var(--dark-yellow);
+}
+
 .history .item .detail .first-column .second-row span:nth-child(1).completed {
   color: var(--pastel-green);
 }

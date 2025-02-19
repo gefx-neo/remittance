@@ -101,15 +101,6 @@ const handleClickOutside = (event) => {
   }
 };
 
-const isAddTransactionRoute = ref(false);
-
-router.afterEach((to) => {
-  console.log("Route Name:", to.name);
-  console.log("Full Route Object:", to);
-  isAddTransactionRoute.value = to.name === "addtransaction";
-  console.log("isAddTransactionRoute:", isAddTransactionRoute.value);
-});
-
 router.beforeEach((to, from, next) => {
   store.closeDropdown();
   next();

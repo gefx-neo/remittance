@@ -96,7 +96,6 @@ export const useTransactionStore = defineStore("transaction", {
           if (response.token) {
             authStore.refreshSession(response.token, payload.username);
           }
-          this.resetStore();
         } else {
           alertStore.alert("error", response.message);
         }
@@ -223,9 +222,6 @@ export const useTransactionStore = defineStore("transaction", {
     },
     resetStore() {
       this.$reset();
-    },
-    clearTransactionData() {
-      localStorage.removeItem("transaction");
     },
   },
   persist: {

@@ -8,11 +8,11 @@ import Login from "../views/Guest/Login.vue"; // Static import
 import AdminLogin from "../views/Guest/AdminLogin.vue"; // Admin Login
 import {
   useAuthStore,
+  useProfileStore,
   useAlertStore,
-  useBeneficiaryStore,
-  useTransactionStore,
 } from "../stores/index.js";
 import { useAdminAuthStore } from "../stores/admin/adminAuthStore.js";
+import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 
 const guestGuard = (to, from, next) => {
   const authStore = useAuthStore();
@@ -24,35 +24,109 @@ const guestGuard = (to, from, next) => {
   }
 };
 
-const authGuard = (to, from, next) => {
+const authGuard = async (to, from, next) => {
   const authStore = useAuthStore();
+  const profileStore = useProfileStore(); // Access Profile Store
 
-  // Start a periodic check for token validity
+  authStore.checkSession();
+
+  // Function to start session check
   const startSessionCheck = () => {
-    const intervalId = setInterval(() => {
-      authStore.checkSession(); // Check if the token is still valid
-    }, 1000); // Check every minute (adjust as needed)
+    let intervalId = null;
+
+    const checkAndHandleSession = async () => {
+      try {
+        const isValid = await authStore.checkSession();
+        if (!isValid) {
+          clearInterval(intervalId); // Stop the interval
+          authStore.logout(); // Log out the user
+        }
+      } catch (error) {
+        clearInterval(intervalId); // Stop the interval in case of an error
+        authStore.logout(); // Log out the user
+      }
+    };
+
+    intervalId = setInterval(checkAndHandleSession, 1000); // Check every second
 
     // Clear the interval when the user navigates away or logs out
     return () => clearInterval(intervalId);
   };
 
-  authStore.checkSession();
-
   if (!authStore.user) {
     next({ name: "login" });
-  } else if (authStore.userStatus !== "3" && to.name === "addtransaction") {
-    const alertStore = useAlertStore();
-    alertStore.alert("pending", "Please verify your account");
-
-    next({ name: "profiledetail" });
   } else {
-    next();
+    try {
+      // Fetch profile details using the profile store's API
+      const profileDetail = await profileStore.getProfileDetail();
+
+      // Assuming the profileDetail contains a `status` or similar field
+      if (
+        profileDetail &&
+        profileDetail.userStatus !== 3 &&
+        to.name === "addtransaction"
+      ) {
+        const alertStore = useAlertStore();
+        alertStore.alert("pending", "Please verify your account");
+
+        next({ name: "profiledetail" });
+      } else {
+        next(); // Proceed with the transaction
+      }
+    } catch (error) {
+      const alertStore = useAlertStore();
+      alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
+      next({ name: "profiledetail" });
+    }
+
     if (authStore.user) {
       startSessionCheck();
     }
   }
 };
+
+// const authGuard = (to, from, next) => {
+//   const authStore = useAuthStore();
+
+//   authStore.checkSession();
+
+//   // Function to start session check
+//   const startSessionCheck = () => {
+//     let intervalId = null;
+
+//     const checkAndHandleSession = async () => {
+//       try {
+//         const isValid = await authStore.checkSession();
+//         if (!isValid) {
+//           clearInterval(intervalId); // Stop the interval
+//           authStore.logout(); // Log out the user
+//         }
+//       } catch (error) {
+//         clearInterval(intervalId); // Stop the interval in case of an error
+//         authStore.logout(); // Log out the user
+//       }
+//     };
+
+//     intervalId = setInterval(checkAndHandleSession, 1000); // Check every second
+
+//     // Clear the interval when the user navigates away or logs out
+//     return () => clearInterval(intervalId);
+//   };
+
+//   if (!authStore.user) {
+//     next({ name: "login" });
+//   } else if (authStore.userStatus !== "3" && to.name === "addtransaction") {
+//     const alertStore = useAlertStore();
+//     alertStore.alert("pending", "Please verify your account");
+
+//     next({ name: "profiledetail" });
+//   } else {
+//     next();
+//     if (authStore.user) {
+//       startSessionCheck();
+//     }
+//   }
+// };
 
 // Admin Authentication Guard
 const adminAuthGuard = (to, from, next) => {
@@ -288,9 +362,7 @@ const router = createRouter({
 // Global beforeEach to check session
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
-  if (authStore.user) {
-    authStore.checkSession();
-  }
+  authStore.checkSession();
 
   next();
 });

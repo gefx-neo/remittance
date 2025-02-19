@@ -12,14 +12,12 @@ import { encryptData } from "../services/encryptionService.js";
 import {
   setLocalStorageWithExpiry,
   getLocalStorageWithExpiry,
-  removeLocalStorageWithExpiry,
 } from "@/services/localStorageService.js";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     username: getLocalStorageWithExpiry("username") || null,
     token: getLocalStorageWithExpiry("token") || null,
-    userStatus: getLocalStorageWithExpiry("userStatus") || null,
     error: null,
     cookieRefreshed: false,
     hex: null,
@@ -41,15 +39,20 @@ export const useAuthStore = defineStore("auth", {
 
       if (token && username) {
         this.user = username;
+        return true;
       } else {
-        this.logout();
+        this.clearSession();
+        return false;
       }
+    },
+
+    clearSession() {
+      localStorage.clear();
     },
 
     // Step 1: Fetch reqKey (hex and iv) for the username
     async getReqKey(username) {
       const store = useStore();
-      const authStore = useAuthStore();
       const alertStore = useAlertStore();
       store.isLoading = true;
       try {
@@ -122,23 +125,14 @@ export const useAuthStore = defineStore("auth", {
       const transactionStore = useTransactionStore();
       const alertStore = useAlertStore();
       store.isLoading = true;
+
       try {
         const username = getLocalStorageWithExpiry("username");
-
         const response = await apiService.postRequest("user/logout", username);
 
         if (response.status === 1) {
-          this.user = false;
-          this.error = null;
-
-          // Clear session and redirect
-          removeLocalStorageWithExpiry("token");
-          removeLocalStorageWithExpiry("username");
-          removeLocalStorageWithExpiry("userStatus");
-          transactionStore.$reset();
-
-          // Clear any active intervals
-          window.clearInterval(this.tokenCheckInterval);
+          this.clearSession();
+          window.clearInterval(this.tokenCheckInterval); // Clear any active intervals
         } else {
           alertStore.alert("error", response.message);
         }
@@ -146,7 +140,7 @@ export const useAuthStore = defineStore("auth", {
         alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
       } finally {
         store.isLoading = false;
-        window.location.href = "/";
+        window.location.href = "/"; // Redirect to login page
       }
     },
   },

@@ -6,6 +6,7 @@ import piniaPluginPersistedState from "pinia-plugin-persistedstate"; // Import p
 import App from "./App.vue";
 import router from "./router";
 import { FontAwesomeIcon } from "@/fontawesome/fontawesome"; // Use named import
+import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 
 const app = createApp(App);
 

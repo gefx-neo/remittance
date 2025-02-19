@@ -2,9 +2,11 @@
 <template>
   <RouterView />
   <Alert />
+  <ModalTokenExpiration />
 </template>
 
 <script setup>
 import { RouterView } from "vue-router";
-import Alert from "@/components/Alert.vue"; // Import the alert component globally
+import Alert from "@/components/Alert.vue";
+import ModalTokenExpiration from "@/components/Modal/ModalTokenExpiration.vue";
 </script>

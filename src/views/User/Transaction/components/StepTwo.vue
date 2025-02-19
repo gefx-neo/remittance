@@ -204,18 +204,18 @@ onMounted(() => {
         Object.assign(localForm, {
           sendingAmount: parseFloat(decryptedData.sendingAmount) || 0,
           sendingCurrency:
-            decryptedData.sendingCurrency ||
             route.query.sendingCurrency ||
+            decryptedData.sendingCurrency ||
             localForm.sendingCurrency,
           receivingAmount: parseFloat(decryptedData.receivingAmount) || 0,
           receivingCurrency:
             decryptedData.receivingCurrency || localForm.receivingCurrency,
         });
 
-        console.log(
-          "Decrypted data successfully applied to localForm:",
-          decryptedData
-        );
+        // console.log(
+        //   "Decrypted data successfully applied to localForm:",
+        //   decryptedData
+        // );
       } else {
         console.error("Failed to decrypt data: Data is null or invalid.");
       }

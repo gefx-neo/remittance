@@ -93,6 +93,9 @@
                         getTransactionStatus(transaction.status) === 'Unpaid',
                       pending:
                         getTransactionStatus(transaction.status) === 'Pending',
+                      priority:
+                        getTransactionStatus(transaction.status) ===
+                          'Pending' && transaction.isUrgent === 1,
                       completed:
                         getTransactionStatus(transaction.status) === 'Success',
                       failed:
@@ -107,6 +110,9 @@
                         getTransactionStatus(transaction.status) === 'Unpaid',
                       pending:
                         getTransactionStatus(transaction.status) === 'Pending',
+                      priority:
+                        getTransactionStatus(transaction.status) ===
+                          'Pending' && transaction.isUrgent === 1,
                       completed:
                         getTransactionStatus(transaction.status) === 'Success',
                       failed:

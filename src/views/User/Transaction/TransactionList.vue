@@ -53,6 +53,9 @@
                       getTransactionStatus(transaction.status) === 'Unpaid',
                     pending:
                       getTransactionStatus(transaction.status) === 'Pending',
+                    priority:
+                      getTransactionStatus(transaction.status) === 'Pending' &&
+                      transaction.isUrgent === 1,
                     completed:
                       getTransactionStatus(transaction.status) === 'Success',
                     failed:
@@ -73,7 +76,7 @@
             </div>
             <div class="second-column">
               <div class="first-row">
-                {{ formatNumber(transaction.payAmount + transaction.fee) }}
+                {{ formatNumber(transaction.payAmount) }}
                 {{ transaction.payCurrency }}
               </div>
               <div class="second-row">
@@ -300,8 +303,15 @@ const navigateToAddTransaction = () => {
 .transaction .item .detail .first-column .first-row span:nth-child(2) {
   font-weight: var(--semi-bold);
   font-style: italic;
-  color: var(--midnight-violet);
   font-size: var(--text-sm);
+}
+
+.transaction .item .detail .first-column .first-row span:nth-child(2).pending {
+  color: var(--midnight-violet);
+}
+
+.transaction .item .detail .first-column .first-row span:nth-child(2).priority {
+  color: var(--dark-yellow);
 }
 
 .transaction

@@ -578,23 +578,6 @@ const props = defineProps({
     type: String,
     default: "",
   },
-  redirectToLogin: {
-    // For Reset password
-    type: Boolean,
-    default: false,
-  },
-  checkYourEmail: {
-    // For Register
-    type: Boolean,
-    default: false,
-  },
-  showAction: { type: Boolean, default: false },
-
-  success: {
-    // For User success action
-    type: Boolean,
-    default: false,
-  },
 });
 
 const emit = defineEmits(["close", "submit", "cancel"]);

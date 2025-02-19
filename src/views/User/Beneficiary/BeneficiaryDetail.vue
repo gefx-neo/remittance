@@ -224,6 +224,9 @@
                         pending:
                           getTransactionStatus(transaction.status) ===
                           'Pending',
+                        priority:
+                          getTransactionStatus(transaction.status) ===
+                            'Pending' && transaction.isUrgent === 1,
                         completed:
                           getTransactionStatus(transaction.status) ===
                           'Success',
@@ -241,6 +244,9 @@
                         pending:
                           getTransactionStatus(transaction.status) ===
                           'Pending',
+                        priority:
+                          getTransactionStatus(transaction.status) ===
+                            'Pending' && transaction.isUrgent === 1,
                         completed:
                           getTransactionStatus(transaction.status) ===
                           'Success',
@@ -373,6 +379,7 @@ onMounted(async () => {
       transactions.value = transactionsResponse.trxns.filter(
         (transaction) => transaction.beneficiaryId === parseInt(id)
       );
+      transactions.value.sort((a, b) => new Date(b.date) - new Date(a.date));
     }
   } catch (error) {
     console.error("Error fetching data:", error);
@@ -642,6 +649,50 @@ const goBack = () => {
   height: 4px;
   background: var(--black);
   border-radius: var(--border-circle);
+}
+
+.beneficiary
+  .transaction
+  .item-group
+  .item
+  .information
+  .first-column
+  .second-row
+  span:nth-child(1).pending {
+  color: var(--midnight-violet);
+}
+
+.beneficiary
+  .transaction
+  .item-group
+  .item
+  .information
+  .first-column
+  .second-row
+  span:nth-child(2).pending {
+  background: var(--midnight-violet);
+}
+
+.beneficiary
+  .transaction
+  .item-group
+  .item
+  .information
+  .first-column
+  .second-row
+  span:nth-child(1).priority {
+  color: var(--dark-yellow);
+}
+
+.beneficiary
+  .transaction
+  .item-group
+  .item
+  .information
+  .first-column
+  .second-row
+  span:nth-child(2).priority {
+  background: var(--dark-yellow);
 }
 
 .beneficiary

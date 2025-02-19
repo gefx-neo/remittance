@@ -18,7 +18,9 @@
             <span>{{ transactionDetail.beneName }}</span>
           </div>
           <ButtonAPI
-            v-if="transactionDetail.isUrgent === 0"
+            v-if="
+              transactionDetail.status === 3 && transactionDetail.isUrgent === 0
+            "
             @click="handleReminder"
             class="btn-blue"
             :disabled="store.isLoading"
@@ -99,11 +101,7 @@
               <div class="item">
                 <span>Amount paid</span>
                 <span>
-                  {{
-                    formatNumber(
-                      transactionDetail.payAmount + transactionDetail.fee
-                    )
-                  }}
+                  {{ formatNumber(transactionDetail.payAmount) }}
                   {{ transactionDetail.payCurrency }}</span
                 >
               </div>
@@ -199,21 +197,33 @@ const transactionDetail = ref(null);
 const beneficiaryDetail = ref(null);
 
 const handleReminder = async () => {
-  const form = {
-    username: authStore.username,
-    memoId: memoId,
-  };
   try {
+    const form = {
+      username: authStore.username,
+      memoId: memoId,
+    };
+
     const response = await transactionStore.sendReminder(form);
 
     if (response.status === 1) {
       alertStore.alert("success", "We have received your reminder.");
-      window.location.reload();
 
-      console.log("success", response);
+      const updatedTransactionResponse =
+        await transactionStore.getTransactionDetail(memoId);
+      if (updatedTransactionResponse?.trx) {
+        transactionDetail.value = updatedTransactionResponse.trx;
+
+        const beneficiaryId = transactionDetail.value.beneficiaryId;
+        const beneficiaryResponse = await beneficiaryStore.getBeneficiaryDetail(
+          beneficiaryId
+        );
+        if (beneficiaryResponse?.beneDetails) {
+          beneficiaryDetail.value = beneficiaryResponse.beneDetails;
+        }
+      }
     }
   } catch (error) {
-    console.log("Failed to remind:", transactionStore.error);
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 };
 
@@ -233,13 +243,13 @@ onMounted(async () => {
       if (beneficiaryResponse?.beneDetails) {
         beneficiaryDetail.value = beneficiaryResponse.beneDetails;
       } else {
-        console.error("Beneficiary details not found.");
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
       }
     } else {
-      console.error("Transaction details not found.");
+      alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
     }
   } catch (error) {
-    console.error("Error fetching transaction or beneficiary details:", error);
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 });
 

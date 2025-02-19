@@ -1,6 +1,6 @@
 <template>
   <div class="footer-area">
-    <p>Great East Forex © {{ currentYear }} All Rights Reserved.</p>
+    <p>Great East Forex © {{ currentYear }} All Rights Reserved</p>
   </div>
 </template>
 
