@@ -1,98 +1,308 @@
 <template>
-  <div class="second-form" @keydown.enter.prevent="handleNext">
-    <fieldset>
-      <div class="left-form">
-        <!-- Sending Amount Input -->
-        <InputAmount
-          id="sendingAmount"
-          label="Sending amount"
-          :modelValue="localForm.sendingAmount"
-          :modelCurrency="localForm.sendingCurrency"
-          :isSending="true"
-          @update:modelValue="updateSendingAmount"
-          @update:modelCurrency="updateSendingCurrency"
-          :error="errors.sendingAmount"
-        />
-
-        <InputAmount
-          id="receivingAmount"
-          label="Receiving amount"
-          :modelValue="localForm.receivingAmount"
-          :modelCurrency="localForm.receivingCurrency"
-          :isSending="false"
-          @update:modelValue="updateReceivingAmount"
-          @update:modelCurrency="updateReceivingCurrency"
-          :disableDropdown="true"
-          :error="errors.receivingAmount"
-        />
-
-        <Select
-          label="Payment type"
-          id="paymentType"
-          v-model="localForm.paymentType"
-          :options="paymentTypes"
-          :error="errors.paymentType"
-          :tooltip="true"
-          tooltipText="1. No preference: The best payment type for the transaction will be recommended <br/> 2. Local Payment: Domestic payment with lower fees. <br/> 3. Swift SHA (Shared): Sender and beneficiary split bank charges. <br/> 4. Swift BEN (Beneficiary): Beneficiary pays all bank charges. <br/> 5. Swift OUR (US): Sender pays all bank charges, beneficiary gets full amount.
-"
-        />
-
-        <Select
-          label="GEFX banks"
-          id="gefxBank"
-          v-model="localForm.gefxBank"
-          :options="gefxBanks"
-          :error="errors.gefxBank"
-          submitKey="id"
-        />
-      </div>
-      <div class="right-form">
-        <TransactionSummary
-          :sendingAmount="localForm.sendingAmount"
-          :sendingCurrency="localForm.sendingCurrency"
-          :receivingAmount="localForm.receivingAmount"
-          :receivingCurrency="localForm.receivingCurrency"
-          :fee="transactionStore.fee"
-          :rate="transactionStore.rate"
-        />
-
-        <div class="footer">
-          <ButtonAPI
-            type="button"
-            :disabled="isProcessing || store.isMoneyLoading"
-            @click="handleNext"
-            class="btn-red standard-button"
+  <div class="first-form" @keydown.enter.prevent="handleNext">
+    <div class="content-area">
+      <div class="beneficiary">
+        <div class="search-section">
+          <div class="input-group">
+            <input
+              type="text"
+              placeholder="Search beneficiary"
+              v-model="searchQuery"
+            />
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+              <path
+                d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"
+              />
+            </svg>
+          </div>
+          <div class="button-group">
+            <button
+              type="button"
+              @click="navigateToAddBeneficiary"
+              class="btn-blue standard-button"
+            >
+              <span class="desktop"> New Beneficiary </span>
+              <span class="mobile">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
+                  <path
+                    d="M96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM0 482.3C0 383.8 79.8 304 178.3 304l91.4 0C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7L29.7 512C13.3 512 0 498.7 0 482.3zM504 312l0-64-64 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l64 0 0-64c0-13.3 10.7-24 24-24s24 10.7 24 24l0 64 64 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-64 0 0 64c0 13.3-10.7 24-24 24s-24-10.7-24-24z"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
+        </div>
+        <div v-if="store.isLoading"><Loading /></div>
+        <div
+          v-else-if="Array.isArray(beneficiaries) && beneficiaries.length === 0"
+        >
+          <EmptyList />
+        </div>
+        <div v-else>
+          <div
+            class="payment-category"
+            v-if="filteredNoPreferenceBeneficiaries.length > 0"
           >
-            Next
-          </ButtonAPI>
-          <button
-            type="button"
-            @click="handleBack"
-            class="btn-back standard-button"
+            <h4>No Preference</h4>
+            <div class="item-section">
+              <div
+                v-for="(
+                  beneficiary, index
+                ) in filteredNoPreferenceBeneficiaries"
+                :key="'nopreference-' + index"
+                class="item"
+                tabindex="0"
+                :class="{
+                  selected:
+                    selectedBeneficiary &&
+                    selectedBeneficiary.id === beneficiary.id,
+                }"
+                @click="selectBeneficiary(beneficiary)"
+              >
+                <FavouriteButton
+                  :beneficiaryId="beneficiary.id"
+                  :isFav="!!beneficiary.isFav"
+                  @update-list="refreshPage"
+                  @click.stop
+                />
+                <div class="detail">
+                  <span class="icon-round">
+                    {{ getInitials(beneficiary.beneName) }}
+                    <img
+                      :src="getCurrencyImagePath(beneficiary.currency)"
+                      alt="Currency"
+                    />
+                  </span>
+                  <span class="name">{{ beneficiary.beneName }}</span>
+
+                  <span>
+                    {{ getAccountType(beneficiary.accountType) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="payment-category"
+            v-if="filteredLocalPaymentBeneficiaries.length > 0"
           >
-            Back
-          </button>
+            <h4>Local Payment</h4>
+            <div class="item-section">
+              <div
+                v-for="(
+                  beneficiary, index
+                ) in filteredLocalPaymentBeneficiaries"
+                :key="'local-' + index"
+                class="item"
+                tabindex="0"
+                :class="{
+                  selected:
+                    selectedBeneficiary &&
+                    selectedBeneficiary.id === beneficiary.id,
+                }"
+                @click="selectBeneficiary(beneficiary)"
+              >
+                <FavouriteButton
+                  :beneficiaryId="beneficiary.id"
+                  :isFav="!!beneficiary.isFav"
+                  @update-list="refreshPage"
+                  @click.stop
+                />
+                <div class="detail">
+                  <span class="icon-round">
+                    {{ getInitials(beneficiary.beneName) }}
+                    <img
+                      :src="getCurrencyImagePath(beneficiary.currency)"
+                      alt="Currency"
+                    />
+                  </span>
+                  <span class="name">{{ beneficiary.beneName }}</span>
+
+                  <span>
+                    {{ getAccountType(beneficiary.accountType) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="payment-category"
+            v-if="filteredSwiftSHAPaymentBeneficiaries.length > 0"
+          >
+            <h4>Swift SHA Payment</h4>
+            <div class="item-section">
+              <div
+                v-for="(
+                  beneficiary, index
+                ) in filteredSwiftSHAPaymentBeneficiaries"
+                :key="'swift-' + index"
+                class="item"
+                tabindex="0"
+                :class="{
+                  selected:
+                    selectedBeneficiary &&
+                    selectedBeneficiary.id === beneficiary.id,
+                }"
+                @click="selectBeneficiary(beneficiary)"
+              >
+                <FavouriteButton
+                  :beneficiaryId="beneficiary.id"
+                  :isFav="!!beneficiary.isFav"
+                  @update-list="refreshPage"
+                  @click.stop
+                />
+                <div class="detail">
+                  <span class="icon-round">
+                    {{ getInitials(beneficiary.beneName) }}
+                    <img
+                      :src="getCurrencyImagePath(beneficiary.currency)"
+                      alt="Currency"
+                    />
+                  </span>
+                  <span class="name">{{ beneficiary.beneName }}</span>
+
+                  <span>
+                    {{ getAccountType(beneficiary.accountType) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="payment-category"
+            v-if="filteredSwiftBENPaymentBeneficiaries.length > 0"
+          >
+            <h4>Swift BEN Payment</h4>
+            <div class="item-section">
+              <div
+                v-for="(
+                  beneficiary, index
+                ) in filteredSwiftBENPaymentBeneficiaries"
+                :key="'swift-' + index"
+                class="item"
+                tabindex="0"
+                :class="{
+                  selected:
+                    selectedBeneficiary &&
+                    selectedBeneficiary.id === beneficiary.id,
+                }"
+                @click="selectBeneficiary(beneficiary)"
+              >
+                <FavouriteButton
+                  :beneficiaryId="beneficiary.id"
+                  :isFav="!!beneficiary.isFav"
+                  @update-list="refreshPage"
+                  @click.stop
+                />
+                <div class="detail">
+                  <span class="icon-round">
+                    {{ getInitials(beneficiary.beneName) }}
+                    <img
+                      :src="getCurrencyImagePath(beneficiary.currency)"
+                      alt="Currency"
+                    />
+                  </span>
+                  <span class="name">{{ beneficiary.beneName }}</span>
+
+                  <span>
+                    {{ getAccountType(beneficiary.accountType) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="payment-category"
+            v-if="filteredSwiftOURPaymentBeneficiaries.length > 0"
+          >
+            <h4>Swift OUR Payment</h4>
+            <div class="item-section">
+              <div
+                v-for="(
+                  beneficiary, index
+                ) in filteredSwiftOURPaymentBeneficiaries"
+                :key="'swift-' + index"
+                class="item"
+                tabindex="0"
+                :class="{
+                  selected:
+                    selectedBeneficiary &&
+                    selectedBeneficiary.id === beneficiary.id,
+                }"
+                @click="selectBeneficiary(beneficiary)"
+              >
+                <FavouriteButton
+                  :beneficiaryId="beneficiary.id"
+                  :isFav="!!beneficiary.isFav"
+                  @update-list="refreshPage"
+                  @click.stop
+                />
+                <div class="detail">
+                  <span class="icon-round">
+                    {{ getInitials(beneficiary.beneName) }}
+                    <img
+                      :src="getCurrencyImagePath(beneficiary.currency)"
+                      alt="Currency"
+                    />
+                  </span>
+                  <span class="name">{{ beneficiary.beneName }}</span>
+
+                  <span>
+                    {{ getAccountType(beneficiary.accountType) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </fieldset>
+    </div>
+
+    <div class="footer">
+      <button type="button" @click="handleNext" class="btn-red standard-button">
+        Next
+      </button>
+      <button
+        type="button"
+        @click="handleBack"
+        class="btn-back standard-button"
+      >
+        Back
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup>
-import TransactionSummary from "./TransactionSummary.vue";
-import { onMounted, ref, reactive, watch, defineProps, defineEmits } from "vue";
-import { InputAmount, Select, ButtonAPI } from "@/components/Form";
-import { paymentTypes, gefxBanks } from "@/data/data";
+import { computed, reactive, ref, onMounted } from "vue";
 import { useValidation } from "@/composables/useValidation";
-import { formValidation, currencySchema } from "./schemas/stepTwoSchema";
+import { formValidation } from "./schemas/stepOneSchema";
 import {
   useStore,
   useAlertStore,
   useBeneficiaryStore,
-  useTransactionStore,
 } from "@/stores/index.js";
-import { useRoute, useRouter } from "vue-router";
-import { decryptQueryParams } from "@/services/encryptionService";
+import FavouriteButton from "../../Beneficiary/components/FavouriteButton.vue";
+import { useRouter } from "vue-router";
+import {
+  getInitials,
+  getAccountType,
+  getCurrencyImagePath,
+} from "@/utils/beneficiaryUtils.js";
+import EmptyList from "@/views/EmptyList.vue";
+import Loading from "@/views/Loading.vue";
+
+const store = useStore();
+const beneficiaryStore = useBeneficiaryStore();
+const alertStore = useAlertStore();
+
+const router = useRouter();
+
+const { errors, validateForm, scrollToErrors } = useValidation();
 
 const props = defineProps({
   modelValue: {
@@ -101,78 +311,144 @@ const props = defineProps({
   },
   beneficiaries: {
     type: Array,
-    default: () => [], // Default to an empty array
-  },
-  selectedBeneficiary: Object,
-  isFromBeneficiaryDetail: {
-    type: Boolean,
-    default: false, // Default to false if not passed
+    default: () => [],
   },
 });
-const emit = defineEmits(["update:modelValue", "nextStep", "prevStep"]);
-const {
-  errors,
-  validateForm,
-  validateSendingAmount,
-  validateReceivingAmount,
-  scrollToErrors,
-} = useValidation();
-const route = useRoute();
-const router = useRouter();
 
-const store = useStore();
-const alertStore = useAlertStore();
-const beneficiaryStore = useBeneficiaryStore();
-const transactionStore = useTransactionStore();
+const emit = defineEmits([
+  "update:modelValue",
+  "nextStep",
+  "prevStep",
+  "beneficiaryChanged",
+]);
 
+const searchQuery = ref("");
 const localForm = reactive({
   selectedBeneficiary: beneficiaryStore.selectedBeneficiary || null,
-  sendingAmount: props.modelValue.sendingAmount || 0,
-  receivingAmount: props.modelValue.receivingAmount || 0,
-  paymentType: props.modelValue.paymentType,
-  gefxBank: props.modelValue.gefxBank,
   ...props.modelValue,
 });
+const selectedBeneficiary = ref(null);
 
-watch(
-  () => [
-    localForm.sendingAmount,
-    localForm.receivingAmount,
-    localForm.sendingCurrency,
-    localForm.receivingCurrency,
-  ],
-  ([
-    newSendingAmount,
-    newReceivingAmount,
-    newSendingCurrency,
-    newReceivingCurrency,
-  ]) => {
-    // Validate sending amount
-    validateSendingAmount(
-      newSendingAmount,
-      newSendingCurrency,
-      currencySchema,
-      "sending"
+const filteredBeneficiaries = computed(() => {
+  return props.beneficiaries.filter((beneficiary) => {
+    const query = searchQuery.value.toLowerCase();
+    return (
+      beneficiary.beneName.toLowerCase().includes(query) ||
+      beneficiary.currency.toLowerCase().includes(query)
     );
+  });
+});
 
-    // Validate receiving amount
-    validateReceivingAmount(
-      newReceivingAmount,
-      newReceivingCurrency,
-      currencySchema,
-      "receiving"
-    );
-  },
-  { immediate: false }
+const filteredNoPreferenceBeneficiaries = computed(() =>
+  filteredBeneficiaries.value.filter(
+    (beneficiary) => beneficiary.paymentType === "No preference"
+  )
 );
 
+const filteredLocalPaymentBeneficiaries = computed(() =>
+  filteredBeneficiaries.value.filter(
+    (beneficiary) => beneficiary.paymentType === "Local Payment"
+  )
+);
+
+const filteredSwiftSHAPaymentBeneficiaries = computed(() =>
+  filteredBeneficiaries.value.filter((beneficiary) =>
+    beneficiary.paymentType.includes("Swift SHA")
+  )
+);
+
+const filteredSwiftBENPaymentBeneficiaries = computed(() =>
+  filteredBeneficiaries.value.filter((beneficiary) =>
+    beneficiary.paymentType.includes("Swift BEN")
+  )
+);
+
+const filteredSwiftOURPaymentBeneficiaries = computed(() =>
+  filteredBeneficiaries.value.filter((beneficiary) =>
+    beneficiary.paymentType.includes("Swift OUR")
+  )
+);
+
+// const selectBeneficiary = (beneficiary) => {
+//   selectedBeneficiary.value = beneficiary;
+//   beneficiaryStore.setSelectedBeneficiary(beneficiary);
+//   // Update only the local form state
+//   emit("update:modelValue", {
+//     ...localForm,
+//     beneficiary,
+//   });
+// };
+
+const selectBeneficiary = (beneficiary) => {
+  selectedBeneficiary.value = beneficiary;
+  // emit("beneficiaryChanged", beneficiary); // Emit an event for recalculation
+};
+
+const syncBeneficiaryFromQuery = () => {
+  const { beneId } = router.currentRoute.value.query;
+
+  // Check if a beneficiary is already stored
+  if (beneficiaryStore.selectedBeneficiary) {
+    selectedBeneficiary.value = beneficiaryStore.selectedBeneficiary;
+    return;
+  }
+
+  if (beneId) {
+    const beneficiary = props.beneficiaries.find((b) => b.id === beneId);
+
+    if (beneficiary) {
+      selectedBeneficiary.value = beneficiary;
+      beneficiaryStore.setSelectedBeneficiary(beneficiary);
+      emit("update:modelValue", { ...localForm });
+    } else {
+      selectedBeneficiary.value = null;
+      beneficiaryStore.setSelectedBeneficiary(null);
+    }
+  }
+};
+
+onMounted(() => {
+  const { beneId } = router.currentRoute.value.query;
+
+  if (beneId) {
+    syncBeneficiaryFromQuery();
+  }
+});
+
 const handleNext = () => {
+  if (!selectedBeneficiary.value) {
+    alertStore.alert("error", "Please select a beneficiary before proceeding.");
+    return; // Stop execution if no beneficiary is selected
+  }
+
+  if (selectedBeneficiary.value.currency !== localForm.receivingCurrency) {
+    alertStore.alert(
+      "error",
+      `Selected beneficiary's currency (${selectedBeneficiary.value.currency}) does not match the receiving currency (${localForm.receivingCurrency}).`
+    );
+    return; // Stop execution if the currencies don't match
+  }
+
   const schema = formValidation(localForm);
 
   const isValid = validateForm(localForm, schema);
   console.log("Validation Errors:", errors);
 
   if (isValid) {
+    // Add query parameters when navigating to the next step
+    router.push({
+      query: {
+        ...router.currentRoute.value.query,
+        beneId: selectedBeneficiary.value.id,
+        currency: selectedBeneficiary.value.currency,
+      },
+    });
+
+    // Emit the updated form state, including the selected beneficiary
+    emit("update:modelValue", {
+      ...localForm,
+      selectedBeneficiary: selectedBeneficiary.value,
+    });
     emit("nextStep");
   } else {
     alertStore.alert("error", "Please fill in all the required inputs.");
@@ -180,293 +456,279 @@ const handleNext = () => {
   }
 };
 
-watch(
-  localForm,
-  (newVal) => {
-    if (JSON.stringify(newVal) !== JSON.stringify(props.modelValue)) {
-      emit("update:modelValue", { ...newVal });
-    }
-  },
-  { deep: true }
-);
-onMounted(() => {
-  // Retrieve encrypted data from the route query
-  const encryptedData = route.query.data;
-
-  if (encryptedData) {
-    try {
-      // Decrypt the data
-      const decryptedData = decryptQueryParams(encryptedData);
-
-      // Check if decrypted data is valid
-      if (decryptedData) {
-        // Update localForm with decrypted values
-        Object.assign(localForm, {
-          sendingAmount: parseFloat(decryptedData.sendingAmount) || 0,
-          sendingCurrency:
-            route.query.sendingCurrency ||
-            decryptedData.sendingCurrency ||
-            localForm.sendingCurrency,
-          receivingAmount: parseFloat(decryptedData.receivingAmount) || 0,
-          receivingCurrency:
-            decryptedData.receivingCurrency || localForm.receivingCurrency,
-        });
-
-        // console.log(
-        //   "Decrypted data successfully applied to localForm:",
-        //   decryptedData
-        // );
-      } else {
-        console.error("Failed to decrypt data: Data is null or invalid.");
-      }
-    } catch (error) {
-      console.error("Error decrypting query data:", error);
-    }
-  }
-});
-
-watch(
-  () => route.query,
-  (query) => {
-    Object.assign(localForm, {
-      sendingAmount: parseFloat(query.sendingAmount) || localForm.sendingAmount,
-      sendingCurrency: query.sendingCurrency || "SGD",
-      receivingAmount:
-        parseFloat(query.receivingAmount) || localForm.receivingAmount,
-      receivingCurrency: query.currency || localForm.receivingCurrency || "MYR",
-    });
-    emit("update:modelValue", { ...localForm });
-  },
-  { immediate: true, deep: true }
-);
-
-const updateSendingAmount = async (amount) => {
-  const formattedAmount = parseFloat(amount).toFixed(2);
-
-  if (localForm.sendingAmount === formattedAmount) return;
-
-  localForm.sendingAmount = parseFloat(formattedAmount); // Convert back to number
-
-  try {
-    const response = await transactionStore.getLockedAmount(
-      localForm.sendingAmount,
-      "pay"
-    );
-    if (response && response.status === 1) {
-      localForm.receivingAmount = parseFloat(response.getAmount);
-    }
-  } catch (error) {
-    console.error("Error in updateSendingAmount:", error);
-  } finally {
-  }
-};
-
-const updateReceivingAmount = async (amount) => {
-  const formattedAmount = parseFloat(amount).toFixed(2);
-  if (localForm.receivingAmount === formattedAmount) return;
-
-  localForm.receivingAmount = parseFloat(formattedAmount); // Convert back to number
-
-  try {
-    const response = await transactionStore.getLockedAmount(
-      localForm.receivingAmount,
-      "get"
-    );
-    if (response && response.status === 1) {
-      localForm.sendingAmount = parseFloat(
-        response.payAmount - transactionStore.fee
-      );
-    }
-  } catch (error) {
-    console.error("Error in updateReceivingAmount:", error);
-  } finally {
-  }
-};
-
-const updateSendingCurrency = async (currency) => {
-  if (localForm.sendingCurrency === currency) return;
-
-  localForm.sendingCurrency = currency;
-
-  try {
-    const lockedRateResponse = await transactionStore.getLockedRate(
-      localForm.sendingCurrency,
-      localForm.receivingCurrency
-    );
-    if (lockedRateResponse && lockedRateResponse.status === 1) {
-      if (localForm.sendingAmount) {
-        const response = await transactionStore.getLockedAmount(
-          localForm.sendingAmount,
-          "pay"
-        );
-        if (response && response.status === 1) {
-          localForm.receivingAmount = parseFloat(response.getAmount);
-        }
-      }
-    }
-  } catch (error) {
-    console.error("Failed to update sending currency:", error);
-  } finally {
-  }
-};
-
-const updateReceivingCurrency = async (currency) => {
-  if (localForm.receivingCurrency === currency) return;
-
-  localForm.receivingCurrency = currency;
-
-  try {
-    const lockedRateResponse = await transactionStore.getLockedRate(
-      localForm.sendingCurrency,
-      localForm.receivingCurrency
-    );
-    if (lockedRateResponse && lockedRateResponse.status === 1) {
-      if (localForm.receivingAmount) {
-        const response = await transactionStore.getLockedAmount(
-          localForm.receivingAmount,
-          "get"
-        );
-        if (response && response.status === 1) {
-          localForm.sendingAmount = parseFloat(response.payAmount);
-        }
-      }
-    }
-  } catch (error) {
-    console.error("Failed to update receiving currency:", error);
-  } finally {
-  }
-};
-
-// If no transaction store, then call getLockedRate API to get memoId, fee and rate
-onMounted(async () => {
-  const transactionData = localStorage.getItem("transaction");
-
-  if (!transactionData) {
-    try {
-      const lockedRateResponse = await transactionStore.getLockedRate(
-        localForm.sendingCurrency,
-        localForm.receivingCurrency
-      );
-
-      if (lockedRateResponse && lockedRateResponse.status === 1) {
-        console.log("Locked rate fetched successfully:", lockedRateResponse);
-      }
-    } catch (error) {
-      console.error("Error fetching locked rate:", error);
-    }
-  } else {
-    console.log(
-      "Transaction exists in localStorage. Skipping locked rate fetch."
-    );
-  }
-});
-
-// This is to track when user enters Amount on Step2 and goes back to
-// Step1 to change beneficiary to different currency to reupdate the amount
-const isFromDashboard =
-  route.query.data &&
-  decryptQueryParams(route.query.data)?.fromDashboard === "true";
-
-const isProcessing = ref(false);
-
-watch(
-  () => localForm.receivingCurrency,
-  async (newCurrency, oldCurrency) => {
-    if (newCurrency !== oldCurrency && !isFromDashboard) {
-      console.log(
-        "Beneficiary's currency changed, updating amounts and rates."
-      );
-      isProcessing.value = true;
-      try {
-        await transactionStore.getLockedRate(
-          localForm.sendingCurrency,
-          newCurrency
-        );
-
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
-        const response = await transactionStore.getLockedAmount(
-          localForm.sendingAmount,
-          "pay"
-        );
-        if (response && response.status === 1) {
-          localForm.receivingAmount = parseFloat(response.getAmount);
-        }
-      } catch (error) {
-        console.error("Error updating rates and amounts:", error);
-      } finally {
-        isProcessing.value = false;
-      }
-    }
-  }
-);
-
 const handleBack = () => {
   emit("prevStep");
+
+  // beneficiaryStore.setSelectedBeneficiary(null);
+  // router.push({ path: "/dashboard" });
 };
 
-// *** Maintain beneficiary state at StepTwo and StepThree ***
-onMounted(async () => {
-  beneficiaryStore.setSelectedBeneficiary(localForm.selectedBeneficiary);
-});
+const refreshPage = () => {
+  window.location.reload();
+};
 
-watch(
-  () => localForm.sendingCurrency,
-  (newCurrency) => {
-    console.log("Sending Currency Updated:", newCurrency);
-    // Update the query parameter without reloading the page
-    router.replace({
-      query: {
-        ...route.query,
-        sendingCurrency: newCurrency,
-      },
-    });
-  }
-);
+const navigateToAddBeneficiary = () => {
+  router.push({
+    name: "addbeneficiary",
+    query: {
+      from: "transaction",
+      redirectTo: "addtransaction",
+    },
+  });
+};
 </script>
 
 <style scoped>
-@import "@/assets/dashboard.css";
-
-.second-form {
+.first-form {
   width: 100%;
-  max-width: 900px;
+  max-width: 500px;
 }
-
-.second-form fieldset {
+.first-form .footer {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: var(--size-12);
+}
+.form-group {
+  margin-bottom: var(--size-24);
 }
 
-.second-form .left-form,
-.second-form .right-form {
-  width: 400px;
-  max-width: 400px;
+.content-area {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-24);
 }
 
-.second-form .footer {
+.beneficiary {
+  min-width: 100%;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   gap: var(--size-12);
 }
 
-.form-group {
+.beneficiary .title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--size-12) 0;
+  border-bottom: 1px solid var(--light-grey);
+}
+
+.beneficiary .title a {
+  font-size: var(--text-sm);
+  font-weight: var(--semi-bold);
+}
+
+.beneficiary .search-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.beneficiary .search-section .input-group {
+  min-width: 69%;
+  max-width: 69%;
+  position: relative;
+}
+
+.beneficiary .search-section .input-group input {
+  min-width: 100%;
+  max-width: 100%;
+  padding-right: var(--size-48);
+}
+
+.beneficiary .search-section .input-group input::placeholder {
+  color: var(--grey);
+}
+
+.beneficiary .search-section .input-group svg {
+  min-width: var(--size-24);
+  max-width: var(--size-24);
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translate(-50%, -50%);
+  fill: var(--cool-blue);
+  cursor: pointer;
+}
+
+.beneficiary .search-section .button-group {
+  min-width: 30%;
+  max-width: 30%;
+}
+
+.beneficiary .search-section .button-group .btn-blue .desktop {
+  display: flex;
+  font-weight: var(--semi-bold);
+}
+
+.beneficiary .search-section .button-group .btn-blue .mobile {
+  display: none;
+}
+
+.beneficiary .payment-category {
   margin-bottom: var(--size-24);
 }
 
+.beneficiary .payment-category h4 {
+  margin-bottom: var(--size-8);
+}
+
+.beneficiary .item-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  justify-content: center;
+  place-items: center;
+  gap: var(--size-16);
+}
+
+.beneficiary .item-section .item {
+  position: relative;
+  min-width: 100%;
+  max-width: 100%;
+  border: 1px solid var(--light-grey);
+  border-radius: var(--border-md);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.beneficiary .item-section .item .favourite-group {
+  display: flex;
+  justify-content: end;
+  align-items: center;
+}
+
+.beneficiary .item-section .item .favourite {
+  position: absolute;
+  top: var(--size-8);
+  right: var(--size-8);
+}
+
+.beneficiary .item-section .item .detail {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: var(--size-24) 0;
+}
+
+.beneficiary .item-section .item .detail .icon-round {
+  position: relative;
+  min-width: var(--size-60);
+  max-width: var(--size-60);
+  min-height: var(--size-60);
+  max-height: var(--size-60);
+  font-size: var(--text-xl);
+  font-weight: var(--semi-bold);
+  color: var(--slate-blue);
+  margin-bottom: var(--size-8);
+}
+
+.beneficiary .item-section .item .detail .icon-round img {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  min-width: var(--size-20);
+  max-width: var(--size-20);
+  min-height: var(--size-20);
+  max-height: var(--size-20);
+  border: 2px solid var(--white);
+  border-radius: var(--border-circle);
+}
+
+.beneficiary .item-section .item .detail span:nth-child(2) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
+}
+
+.beneficiary .item-section .item .detail span:nth-child(3) {
+  font-size: var(--text-sm);
+  color: var(--grey);
+}
+
+/* Hover and Selected Styles */
+.beneficiary .item-section .item:hover,
+.beneficiary .item-section .item.selected {
+  background: var(--sky-blue);
+}
+
+.beneficiary .item-section .item:hover .icon-round,
+.beneficiary .item-section .item.selected .icon-round {
+  background: var(--slate-blue);
+  color: var(--sky-blue);
+}
+
+.beneficiary .item-section .item:hover span:nth-child(2),
+.beneficiary .item-section .item.selected span:nth-child(2) {
+  color: var(--slate-blue);
+  font-weight: var(--semi-bold);
+}
+
+/* Responsive styling */
 @media (max-width: 1023px) {
-  .second-form {
-    max-width: 400px;
+  .beneficiary .item-section {
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  .beneficiary .search-section .button-group .btn-blue .desktop {
+    display: none;
   }
 
-  .second-form fieldset {
-    flex-direction: column;
+  .beneficiary .search-section .button-group .btn-blue .mobile {
+    display: flex;
   }
 
-  .second-form .left-form,
-  .second-form .right-form {
-    width: 100%;
-    max-width: 400px;
+  .beneficiary .search-section .button-group .btn-blue .mobile svg {
+    min-width: var(--size-24);
+    max-width: var(--size-24);
+    fill: #fff;
+  }
+
+  .beneficiary .search-section .input-group {
+    min-width: calc(100% - 56px);
+    max-width: calc(100% - 56px);
+  }
+
+  .beneficiary .search-section .button-group {
+    min-width: var(--size-48);
+    max-width: var(--size-48);
+  }
+
+  .beneficiary .item-section {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .beneficiary .item-section .item .detail {
+    padding: var(--size-12) 0;
+  }
+
+  .beneficiary .item-section .item .favourite {
+    top: var(--size-4);
+    right: var(--size-4);
+    min-width: var(--size-16);
+    max-width: var(--size-16);
+    min-height: var(--size-16);
+    max-height: var(--size-16);
+  }
+
+  .beneficiary .item-section .item .detail .icon-round {
+    min-width: var(--size-48);
+    max-width: var(--size-48);
+    min-height: var(--size-48);
+    max-height: var(--size-48);
+    font-size: var(--text-lg);
+    margin-bottom: var(--size-8);
+  }
+
+  .beneficiary .item-section .item .detail .icon-round img {
+    min-width: var(--size-16);
+    max-width: var(--size-16);
+    min-height: var(--size-16);
+    max-height: var(--size-16);
   }
 }
 </style>

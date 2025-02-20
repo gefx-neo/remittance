@@ -30,8 +30,8 @@ export const formValidation = (form) => ({
 });
 
 export const currencySchema = {
-  USD: { min: 100, max: 500000 },
-  MYR: { min: 100, max: 5000000 },
-  IDR: { min: 1000000, max: 100000000 },
-  SGD: { min: 100, max: 500000 },
+  USD: { min: 100, max: 15000 },
+  MYR: { min: 100, max: 80000 },
+  IDR: { min: 1000000, max: 250000000 },
+  SGD: { min: 100, max: 20000 },
 };

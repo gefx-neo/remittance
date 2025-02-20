@@ -8,9 +8,19 @@ export const useTransactionStore = defineStore("transaction", {
     memoId: null,
     rate: null,
     fee: null,
+    sendingAmount: 0,
+    sendingCurrency: "SGD",
+    receivingAmount: 0,
+    receivingCurrency: "MYR",
     error: null,
   }),
   actions: {
+    setTransactionData(data) {
+      this.sendingAmount = data.sendingAmount;
+      this.receivingAmount = data.receivingAmount;
+      this.sendingCurrency = data.sendingCurrency;
+      this.receivingCurrency = data.receivingCurrency;
+    },
     async getTransactionList() {
       const store = useStore();
       const authStore = useAuthStore();
@@ -123,6 +133,9 @@ export const useTransactionStore = defineStore("transaction", {
           this.memoId = response.memoId;
           this.rate = response.rates?.[0]?.rate || null;
           this.fee = response.rates?.[0]?.fee || null;
+
+          this.sendingCurrency = payCurrency;
+          this.receivingCurrency = getCurrency;
         } else {
           alertStore.alert("error", response.message);
         }
@@ -230,7 +243,15 @@ export const useTransactionStore = defineStore("transaction", {
       {
         key: "transactionStore", // The key to use in localStorage
         storage: localStorage, // Use localStorage
-        paths: ["memoId", "rate", "fee"],
+        paths: [
+          "memoId",
+          "rate",
+          "fee",
+          "sendingAmount",
+          "sendingCurrency",
+          "receivingAmount",
+          "receivingCurrency",
+        ],
       },
     ],
   },

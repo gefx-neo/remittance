@@ -17,7 +17,7 @@
           v-if="stepStore.currentStep === 1"
           v-model="form"
           @nextStep="nextStep"
-          :beneficiaries="beneficiaries"
+          :isFromBeneficiaryDetail="isFromBeneficiaryDetail"
         />
 
         <StepTwo
@@ -25,8 +25,9 @@
           v-model="form"
           @nextStep="nextStep"
           @prevStep="prevStep"
-          :isFromBeneficiaryDetail="isFromBeneficiaryDetail"
+          :beneficiaries="beneficiaries"
         />
+
         <StepThree
           v-if="stepStore.currentStep === 3"
           v-model="form"
@@ -70,9 +71,9 @@ const form = ref({});
 const beneficiaries = ref([]);
 const isFromBeneficiaryDetail = ref(
   route.query.fromBeneficiaryDetail === "true"
-); // const isFromTransactionList = ref(false);
-// const isFromDashboard = ref(false);
-
+);
+// const isFromTransactionList = ref(false);
+const isFromDashboard = ref(route.query.fromDashboard === "true");
 const handleSubmit = async () => {
   form.value.username = authStore.username;
 
@@ -222,24 +223,6 @@ const prevStep = () => {
   scrollToTop();
 };
 
-// onMounted(async () => {
-//   try {
-//     // Step 1: Fetch beneficiary list when the component mounts
-//     const response = await beneficiaryStore.getBeneficiaryList();
-//     beneficiaries.value = response.beneficiaries || [];
-//     beneficiaries.value.sort((a, b) => b.isFav - a.isFav);
-
-//     // Step 2: If beneId exists in query, fetch its details on mount
-//     const beneId = router.currentRoute.value.query.beneId;
-//     if (beneId) {
-//       console.log("Fetching details for beneId on mount:", beneId);
-//       await fetchBeneficiaryDetail(beneId);
-//     }
-//   } catch (error) {
-//     console.error("Error fetching beneficiary list or details:", error);
-//   }
-// });
-
 // Watcher to track changes to beneId and fetch details
 watch(
   () => router.currentRoute.value.query.beneId,
@@ -251,42 +234,58 @@ watch(
   }
 );
 
-// When user clicks Send Money from Beneficiary detail
-
 onMounted(async () => {
   try {
     const query = router.currentRoute.value.query;
-
-    // Detect if coming from BeneficiaryDetail.vue
     isFromBeneficiaryDetail.value = query.fromBeneficiaryDetail === "true";
+    isFromDashboard.value = query.fromDashboard === "true";
+    const transactionData = localStorage.getItem("transaction");
 
-    // Step 1: Fetch Beneficiary List if not already loaded
+    // Group 1
+    if (isFromDashboard.value) {
+      console.log("from dashboard", isFromDashboard.value);
+    } else if (!isFromDashboard.value && !isFromBeneficiaryDetail.value) {
+      console.log("from new trans");
+      const firstTimeFromNewTransaction = sessionStorage.getItem(
+        "firstTimeFromNewTransaction"
+      );
+      if (!firstTimeFromNewTransaction) {
+        sessionStorage.setItem("firstTimeFromNewTransaction", "true");
+        const payCurrency = transactionStore.sendingCurrency;
+        const getCurrency = transactionStore.receivingCurrency;
+        await transactionStore.getLockedRate(payCurrency, getCurrency);
+      }
+    } else if (isFromBeneficiaryDetail.value) {
+      const firstTimeFromBeneficiaryDetail = sessionStorage.getItem(
+        "firstTimeFromBeneficiaryDetail"
+      );
+      if (!firstTimeFromBeneficiaryDetail) {
+        sessionStorage.setItem("firstTimeFromBeneficiaryDetail", "true");
+        const payCurrency = transactionStore.sendingCurrency || "SGD";
+        const getCurrency = query.currency;
+        await transactionStore.getLockedRate(payCurrency, getCurrency);
+      }
+    }
+
+    if (!transactionData) {
+      const payCurrency = transactionStore.sendingCurrency || "SGD";
+      const getCurrency = transactionStore.receivingCurrency || "MYR";
+      await transactionStore.getLockedRate(payCurrency, getCurrency);
+    }
+    // End of Group 1
+
+    // Group 2 (Executes only if Group 1 completes successfully)
     if (!beneficiaries.value.length) {
       const response = await beneficiaryStore.getBeneficiaryList();
       beneficiaries.value = response.beneficiaries || [];
       beneficiaries.value.sort((a, b) => b.isFav - a.isFav);
     }
 
-    // Step 2: Fetch Beneficiary Details if beneId is present
     if (query.beneId) {
       await fetchBeneficiaryDetail(query.beneId);
     }
-
-    // Step 3: Preload Locked Rate if entering from BeneficiaryDetail
-    if (isFromBeneficiaryDetail.value) {
-      const payCurrency = "SGD";
-      const getCurrency = query.currency;
-      await transactionStore.getLockedRate(payCurrency, getCurrency);
-
-      // Land directly on Step Two
-      stepStore.setCurrentStep(2);
-      console.log(
-        "Landing on Step Two because isFromBeneficiaryDetail is true."
-      );
-    } else {
-    }
   } catch (error) {
-    console.error("Error during initialization:", error);
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 });
 
@@ -325,39 +324,29 @@ const fetchBeneficiaryDetail = async (beneId) => {
       );
     }
   } catch (error) {
-    console.error("Error fetching beneficiary details:", error);
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 };
 
 onMounted(() => {
-  const query = router.currentRoute.value.query;
-
-  stepStore.setSteps(["Beneficiary", "Amount", "Final"]);
-
+  stepStore.setSteps(["Amount", "Beneficiary", "Final"]);
   nextTick(() => {
-    if (query.beneId) {
-      stepStore.setCurrentStep(2);
-    } else {
-      // No query.beneId, force Step 1
-      stepStore.setCurrentStep(1);
-      console.log("Staying on Step 1 as no query.beneId exists.");
-    }
+    stepStore.setCurrentStep(1);
   });
 });
-
-// onMounted(() => {
-//   const lockedRate = transactionStore.lockedRate; // Access locked rate from the store
-//   console.log("Locked Rate:", lockedRate);
-// });
 
 const handleCancel = () => {
   window.location.href = "/#/dashboard";
 };
 
 onUnmounted(() => {
+  transactionStore.$reset();
   localStorage.removeItem("transaction");
   localStorage.removeItem("beneficiary");
   localStorage.removeItem("stepStore");
+  sessionStorage.removeItem("firstTimeFromDashboard");
+  sessionStorage.removeItem("firstTimeFromBeneficiaryDetail");
+  sessionStorage.removeItem("firstTimeFromNewTransaction");
   console.log("Local storage cleared on component unmount.");
 });
 </script>

@@ -303,7 +303,6 @@ import {
 } from "@/utils/transactionUtils.js";
 import Loading from "@/views/Loading.vue";
 import EmptyList from "@/views/EmptyList.vue";
-import { encryptQueryParams } from "@/services/encryptionService";
 
 const router = useRouter();
 const transactionStore = useTransactionStore();
@@ -329,7 +328,7 @@ const previousRates = ref({});
 let rateInterval = null;
 
 const updateSendingAmount = async (amount) => {
-  const formattedAmount = parseFloat(amount).toFixed(2);
+  const formattedAmount = parseFloat(amount);
 
   if (form.sendingAmount === formattedAmount) return;
 
@@ -394,6 +393,9 @@ const updateReceivingCurrency = async (currency) => {
 };
 
 const handleSubmit = async () => {
+  form.sendingAmount = parseFloat(form.sendingAmount);
+  form.receivingAmount = parseFloat(form.receivingAmount);
+
   validateSendingAmount(
     form.sendingAmount,
     form.sendingCurrency,
@@ -407,18 +409,12 @@ const handleSubmit = async () => {
   }
 
   const schema = formValidation(form);
-
   const isValid = validateForm(form, schema);
   console.log("Validation Errors:", errors);
 
   if (!isValid) {
     if (form.sendingAmount === 0 || form.receivingAmount === 0) {
       alertStore.alert("error", "Please fill in the required fields.");
-    } else if (errors.sendingAmount || errors.receivingAmount) {
-      alertStore.alert(
-        "error",
-        "Please provide valid amounts for both sending and receiving"
-      );
     } else {
       alertStore.alert(
         "error",
@@ -429,7 +425,6 @@ const handleSubmit = async () => {
   }
 
   try {
-    // Call getLockedAmount API
     const lockedAmountResponse = await transactionStore.getLockedAmount(
       form.sendingAmount,
       "pay"
@@ -442,27 +437,18 @@ const handleSubmit = async () => {
 
     console.log("Locked amount successfully retrieved:", lockedAmountResponse);
 
-    // Update receiving amount based on the locked amount response
-    form.receivingAmount = parseFloat(lockedAmountResponse.getAmount).toFixed(
-      2
-    );
+    form.receivingAmount = parseFloat(lockedAmountResponse.getAmount);
 
-    // Prepare query data for navigation
-    const queryData = {
+    transactionStore.setTransactionData({
       sendingAmount: form.sendingAmount,
       sendingCurrency: form.sendingCurrency,
       receivingAmount: form.receivingAmount,
       receivingCurrency: form.receivingCurrency,
-      fromDashboard: "true",
-    };
+    });
 
-    // Encrypt data
-    const encryptedData = encryptQueryParams(queryData);
-
-    // Navigate to StepTwo with encrypted query parameters
     router.push({
       path: "/transaction/addtransaction",
-      query: { data: encryptedData },
+      query: { fromDashboard: "true" },
     });
   } catch (error) {
     alertStore.alert(

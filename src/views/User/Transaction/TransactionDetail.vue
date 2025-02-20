@@ -72,7 +72,11 @@
               <div class="item">
                 <span>Sending amount</span>
                 <span>
-                  {{ formatNumber(transactionDetail.payAmount) }}
+                  {{
+                    formatNumber(
+                      transactionDetail.payAmount - transactionDetail.fee
+                    )
+                  }}
                   {{ transactionDetail.payCurrency }}</span
                 >
               </div>

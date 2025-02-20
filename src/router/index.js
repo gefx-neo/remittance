@@ -85,49 +85,6 @@ const authGuard = async (to, from, next) => {
   }
 };
 
-// const authGuard = (to, from, next) => {
-//   const authStore = useAuthStore();
-
-//   authStore.checkSession();
-
-//   // Function to start session check
-//   const startSessionCheck = () => {
-//     let intervalId = null;
-
-//     const checkAndHandleSession = async () => {
-//       try {
-//         const isValid = await authStore.checkSession();
-//         if (!isValid) {
-//           clearInterval(intervalId); // Stop the interval
-//           authStore.logout(); // Log out the user
-//         }
-//       } catch (error) {
-//         clearInterval(intervalId); // Stop the interval in case of an error
-//         authStore.logout(); // Log out the user
-//       }
-//     };
-
-//     intervalId = setInterval(checkAndHandleSession, 1000); // Check every second
-
-//     // Clear the interval when the user navigates away or logs out
-//     return () => clearInterval(intervalId);
-//   };
-
-//   if (!authStore.user) {
-//     next({ name: "login" });
-//   } else if (authStore.userStatus !== "3" && to.name === "addtransaction") {
-//     const alertStore = useAlertStore();
-//     alertStore.alert("pending", "Please verify your account");
-
-//     next({ name: "profiledetail" });
-//   } else {
-//     next();
-//     if (authStore.user) {
-//       startSessionCheck();
-//     }
-//   }
-// };
-
 // Admin Authentication Guard
 const adminAuthGuard = (to, from, next) => {
   const adminAuthStore = useAdminAuthStore();
