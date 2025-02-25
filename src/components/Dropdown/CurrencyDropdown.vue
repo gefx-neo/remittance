@@ -1,5 +1,5 @@
 <template>
-  <div class="dropdown-menu" :class="{ open: isDropdownOpen }">
+  <div class="dropdown-menu" :class="[customClass, { open: isDropdownOpen }]">
     <div class="header">
       <div class="btn-close" @click="handleClose">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
@@ -45,6 +45,7 @@ const props = defineProps({
   isDropdownOpen: Boolean,
   selectedCurrency: String,
   currencies: Array,
+  customClass: String,
 });
 
 const emit = defineEmits(["updateCurrency", "closeDropdown"]);
@@ -89,7 +90,7 @@ onUnmounted(() => {
   visibility: hidden;
   position: absolute;
   top: 100%;
-  left: 0;
+  right: 0;
   z-index: 1054;
   margin: 0;
   width: 330px;
@@ -106,6 +107,11 @@ onUnmounted(() => {
 
 .dropdown-menu.open {
   visibility: visible;
+}
+
+.dropdown-menu.dashboard {
+  left: 0;
+  right: unset;
 }
 
 .dropdown-menu .header {
@@ -265,6 +271,13 @@ onUnmounted(() => {
 @media (min-width: 767px) {
   .backdrop.open {
     display: none !important;
+  }
+}
+
+@media (max-width: 1279px) {
+  .dropdown-menu.dashboard.right {
+    left: unset;
+    right: 0;
   }
 }
 </style>

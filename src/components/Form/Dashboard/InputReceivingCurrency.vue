@@ -19,6 +19,7 @@
           :currencies="receivingCurrencies"
           @updateCurrency="updateCurrency"
           @closeDropdown="isDropdownOpen = false"
+          customClass="dashboard right"
         />
       </div>
     </div>

@@ -135,11 +135,9 @@ const handleReminder = async () => {
 
       alertStore.alert("success", "We have received your reminder.");
       window.location.reload();
-
-      console.log("success", response);
     }
   } catch (error) {
-    console.log("Failed to remind:", profileStore.error);
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 };
 

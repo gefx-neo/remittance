@@ -225,6 +225,13 @@
           :modelValue="form.sendingAmount"
         />
         <InputSendingCurrency label="Sending currency" id="currency" />
+        <div class="exchange-item">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+            <path
+              d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"
+            />
+          </svg>
+        </div>
 
         <InputReceivingCurrency
           label="Receiving currency"
@@ -241,8 +248,8 @@
         </div>
       </div>
     </div>
-    <div class="onboarding">
-      <div class="item-section">
+    <div class="onboarding" v-if="profileDetails.userStatus === 0">
+      <!-- <div class="item-section">
         <div class="item">
           <div class="heading">1. Password Change</div>
           <div class="body">
@@ -254,23 +261,47 @@
             Change password
           </button>
         </div>
-      </div>
-      <div class="item-section" v-if="profileDetails.userStatus === 0">
+      </div> -->
+      <div class="item-section">
         <div class="item">
-          <div class="heading">2. Account Verification</div>
+          <div class="heading">Account Verification</div>
           <div class="body">
             Please complete your account verification to unlock full access and
             proceed with your transactions.
           </div>
           <div class="footer">
-            <button class="btn-blue standard-button" @click="navigateToProfile">
+            <button
+              class="btn-blue standard-button"
+              @click="navigateToAccountVerification"
+            >
               Verify account
             </button>
           </div>
         </div>
       </div>
-
       <div></div>
+    </div>
+
+    <div
+      class="onboarding-pending"
+      v-if="profileDetails.userStatus === 2 || profileDetails.userStatus === 4"
+    >
+      <div class="account-locked">
+        <h1>Access restricted</h1>
+        <div v-if="profileDetails.userStatus === 2">
+          <span
+            >Kindly hold on while your account is awaiting management
+            approval.</span
+          >
+          <p>For further assistance, please contact customer support.</p>
+        </div>
+        <div v-if="profileDetails.userStatus === 4">
+          <span>Your account verification has been rejected.</span>
+
+          <p>For further assistance, please contact customer support.</p>
+        </div>
+        <p></p>
+      </div>
     </div>
   </div>
 </template>
@@ -435,8 +466,6 @@ const handleSubmit = async () => {
       return;
     }
 
-    console.log("Locked amount successfully retrieved:", lockedAmountResponse);
-
     form.receivingAmount = parseFloat(lockedAmountResponse.getAmount);
 
     transactionStore.setTransactionData({
@@ -461,7 +490,6 @@ const handleSubmit = async () => {
 onMounted(async () => {
   await profileStore.getProfileDetail();
   Object.assign(profileDetails, profileStore.profileDetails); // Assign store data to reactive object
-  console.log(profileDetails);
   if (profileDetails.userStatus !== 3) {
     return;
   }
@@ -491,7 +519,7 @@ onMounted(async () => {
       rateInterval = setInterval(fetchRates, 1000); // Start periodic rate updates
     }
   } catch (error) {
-    console.error("Error in API calls:", error);
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 });
 
@@ -572,16 +600,17 @@ const navigateToTransactionDetail = async (memoId) => {
 };
 
 const navigateToProfile = () => {
-  router.push({ name: "accountverification" }); // Replace "profile" with the route name or path
+  router.push({ name: "profile" });
 };
 
-const navigateToSetting = () => {
-  router.push({ name: "setting" }); // Replace "settings" with the route name or path
+const navigateToAccountVerification = () => {
+  router.push({ name: "accountverification" });
 };
 </script>
 
 <style scoped>
 @import "@/assets/dashboard.css";
+
 /* @keyframes fadeUpOut {
   0% {
     opacity: 1;

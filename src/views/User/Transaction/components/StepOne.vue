@@ -144,25 +144,6 @@ onMounted(async () => {
   });
 });
 
-watch(
-  () => [localForm.sendingAmount, localForm.receivingAmount],
-  ([newSendingAmount, newReceivingAmount]) => {
-    validateSendingAmount(
-      newSendingAmount,
-      localForm.sendingCurrency,
-      currencySchema,
-      "sending"
-    );
-    validateReceivingAmount(
-      newReceivingAmount,
-      localForm.receivingCurrency,
-      currencySchema,
-      "receiving"
-    );
-  },
-  { immediate: true }
-);
-
 const handleNext = () => {
   const schema = formValidation(localForm);
 
@@ -210,6 +191,19 @@ const updateSendingAmount = async (amount) => {
     }
   } catch (error) {
     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
+  } finally {
+    validateSendingAmount(
+      localForm.sendingAmount,
+      localForm.sendingCurrency,
+      currencySchema,
+      "sending"
+    );
+    validateReceivingAmount(
+      localForm.receivingAmount,
+      localForm.receivingCurrency,
+      currencySchema,
+      "receiving"
+    );
   }
 };
 
@@ -237,6 +231,19 @@ const updateReceivingAmount = async (amount) => {
     }
   } catch (error) {
     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
+  } finally {
+    validateSendingAmount(
+      localForm.sendingAmount,
+      localForm.sendingCurrency,
+      currencySchema,
+      "sending"
+    );
+    validateReceivingAmount(
+      localForm.receivingAmount,
+      localForm.receivingCurrency,
+      currencySchema,
+      "receiving"
+    );
   }
 };
 

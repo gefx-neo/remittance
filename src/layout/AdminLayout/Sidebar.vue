@@ -188,7 +188,6 @@ router.afterEach(() => {
     transition: transform 0.5s ease;
     top: 0;
     max-height: 100vh;
-    max-height: 100dvh;
     overflow-y: auto;
     z-index: 1060;
     transition: visibility 0.3s, transform 0.3s;

@@ -459,7 +459,7 @@ const goBack = () => {
   max-width: var(--size-72);
   min-height: var(--size-72);
   max-height: var(--size-72);
-  font-size: 24px;
+  font-size: var(--size-24);
   font-weight: var(--semi-bold);
   color: var(--slate-blue);
   margin-bottom: var(--size-8);
