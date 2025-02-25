@@ -489,37 +489,35 @@ const handleSubmit = async () => {
 
 onMounted(async () => {
   await profileStore.getProfileDetail();
-  Object.assign(profileDetails, profileStore.profileDetails); // Assign store data to reactive object
-  if (profileDetails.userStatus !== 3) {
-    return;
-  }
+  Object.assign(profileDetails, profileStore.profileDetails);
+
+  if (profileDetails.userStatus !== 3) return;
 
   try {
-    // Call all APIs concurrently
-    const [lockedRateResponse, transactionListResponse, rateResponse] =
-      await Promise.all([
-        transactionStore.getLockedRate(
-          form.sendingCurrency,
-          form.receivingCurrency
-        ),
-        transactionStore.getTransactionList(),
-        transactionStore.getRate(),
-      ]);
+    // Call APIs sequentially to prevent token overwriting
+    const lockedRateResponse = await transactionStore.getLockedRate(
+      form.sendingCurrency,
+      form.receivingCurrency
+    );
+
+    const transactionListResponse = await transactionStore.getTransactionList();
+
+    const rateResponse = await transactionStore.getRate();
 
     // Process transaction list response
     if (transactionListResponse?.trxns) {
       transactions.value = transactionListResponse.trxns
         .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .slice(0, 5); // Limit to 5 transactions
+        .slice(0, 5);
     }
 
     // Process rates response
     if (rateResponse?.status === 1 && rateResponse?.rates) {
-      fetchRates(); // Calls the optimized function to update rates
-      rateInterval = setInterval(fetchRates, 1000); // Start periodic rate updates
+      fetchRates();
+      rateInterval = setInterval(fetchRates, 1000);
     }
   } catch (error) {
-    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
+    alertStore.alert("error", "An error occurred while fetching data.");
   }
 });
 

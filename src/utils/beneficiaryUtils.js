@@ -1,4 +1,4 @@
-// src/utils/beneficiaryUtils.js
+import { useEnvironment } from "@/composables/useEnvironment";
 
 import {
   beneficiaryCountries,
@@ -22,11 +22,11 @@ export const getAccountType = (value) => {
 };
 
 export const getCurrencyImagePath = (currencyCode) => {
-  const basePath = import.meta.env.VITE_APP_IMAGE_PATH;
+  const { imagePath } = useEnvironment();
 
   return currencyCode
-    ? `${basePath}currency/${currencyCode.toLowerCase()}.svg`
-    : `${basePath}currency/default.svg`;
+    ? `${imagePath}/currency/${currencyCode.toLowerCase()}.svg`
+    : `${imagePath}/currency/default.svg`;
 };
 
 export const getNationality = (id) => {

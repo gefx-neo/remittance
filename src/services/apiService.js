@@ -1,16 +1,19 @@
 import axios from "axios";
 import { useAuthStore } from "@/stores/authStore"; // import authStore to handle logout
 import cookieService from "../services/cookieService";
+import { useEnvironment } from "@/composables/useEnvironment";
 
 export const DEFAULT_ERROR_MESSAGE =
   "Please try again or contact our support team.";
 
+const { apiBaseUrl, corsOrigin } = useEnvironment(); // Get environment variables
+
 // Set the default base URL for all axios requests
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: apiBaseUrl, // Use the dynamically selected API URL
   headers: {
     "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": import.meta.env.VITE_CORS_ORIGIN,
+    "Access-Control-Allow-Origin": corsOrigin, // Use the correct CORS origin
   },
 });
 
