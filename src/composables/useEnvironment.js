@@ -1,5 +1,5 @@
 export const useEnvironment = () => {
-  const hostname = window.location.hostname;
+  const hostname = window.location.hostname.toLowerCase();
 
   let ENV_TYPE;
 
@@ -21,6 +21,7 @@ export const useEnvironment = () => {
   }
 
   return {
+    ENV_TYPE,
     apiBaseUrl: import.meta.env[`VITE_API_BASE_URL_${ENV_TYPE}`],
     appTitle: import.meta.env[`VITE_APP_TITLE_${ENV_TYPE}`],
     imagePath: import.meta.env[`VITE_APP_IMAGE_PATH_${ENV_TYPE}`],
