@@ -154,7 +154,7 @@ import {
   useTransactionStore,
   useStore,
 } from "@/stores/index.js";
-import Modal from "@/components/Modal.vue";
+import Modal from "@/components/Modal/Modal.vue";
 import { useRoute } from "vue-router";
 import { getAccountType, getNationality } from "@/utils/beneficiaryUtils.js";
 const props = defineProps({

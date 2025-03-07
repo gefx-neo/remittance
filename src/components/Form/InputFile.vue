@@ -24,7 +24,7 @@
       <span v-if="files.length">
         {{ files.map((file) => file.name).join(", ") }}
       </span>
-      <span v-else>No file chosen </span>
+      <span v-else>JPG, PNG, PDF, DOC, DOCX, XLS, XLSX (Max: 5MB)</span>
     </div>
     <span v-if="error" class="error">{{ error }}</span>
   </div>
@@ -106,6 +106,7 @@ watch(
   padding: var(--size-dropdown-item);
   margin-right: var(--size-8);
   font-weight: var(--semi-bold);
+  white-space: nowrap;
   cursor: pointer;
 }
 </style>

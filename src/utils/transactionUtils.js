@@ -14,9 +14,9 @@ export const formatNumber = (value) => {
 export const getTransactionStatus = (statusCode) => {
   switch (statusCode) {
     case 0:
-      return "Failed";
+      return "Rejected";
     case 1:
-      return "Success";
+      return "Completed";
     case 2:
       return "Unpaid";
     case 3:

@@ -7,12 +7,14 @@ import ErrorLayout from "../layout/ErrorLayout/ErrorLayout.vue";
 import Login from "../views/Guest/Login.vue"; // Static import
 import AdminLogin from "../views/Guest/AdminLogin.vue"; // Admin Login
 import {
+  useStore,
   useAuthStore,
   useProfileStore,
   useAlertStore,
 } from "../stores/index.js";
 import { useAdminAuthStore } from "../stores/admin/adminAuthStore.js";
 import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
+import { ref, watch } from "vue";
 
 const guestGuard = (to, from, next) => {
   const authStore = useAuthStore();
@@ -55,34 +57,31 @@ const authGuard = async (to, from, next) => {
 
   if (!authStore.user) {
     next({ name: "login" });
-  } else {
-    try {
-      // Fetch profile details using the profile store's API
-      const profileDetail = await profileStore.getProfileDetail();
-
-      // Assuming the profileDetail contains a `status` or similar field
-      if (
-        profileDetail &&
-        profileDetail.userStatus !== 3 &&
-        to.name === "addtransaction"
-      ) {
-        const alertStore = useAlertStore();
-        alertStore.alert("pending", "Please verify your account");
-
-        next({ name: "profiledetail" });
-      } else {
-        next(); // Proceed with the transaction
-      }
-    } catch (error) {
-      const alertStore = useAlertStore();
-      alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
-      next({ name: "profiledetail" });
-    }
-
-    if (authStore.user) {
-      startSessionCheck();
-    }
   }
+
+  try {
+    // Fetch profile details using the profile store's API
+    const profileDetail = await profileStore.getProfileDetail();
+
+    // Assuming the profileDetail contains a `status` or similar field
+    if (
+      profileDetail &&
+      profileDetail.userStatus !== 3 &&
+      to.name === "addtransaction"
+    ) {
+      const alertStore = useAlertStore();
+      alertStore.alert("pending", "Please verify your account");
+
+      next({ name: "profiledetail" });
+    } else {
+      next(); // Proceed with the transaction
+    }
+  } catch (error) {
+    const alertStore = useAlertStore();
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
+    next({ name: "profiledetail" });
+  }
+  startSessionCheck(authStore);
 };
 
 // Admin Authentication Guard
@@ -312,7 +311,7 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHashHistory(import.meta.env.VITE_API_BASE_URL),
+  history: createWebHashHistory(),
   routes,
 });
 
@@ -320,8 +319,32 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
   authStore.checkSession();
-
   next();
+});
+
+const pendingRoute = ref(null);
+
+const queueNavigation = (to) => {
+  pendingRoute.value = to;
+
+  // Watch `isLoading` and navigate when false
+  const store = useStore();
+  const stopWatcher = watch(
+    () => store.isLoading,
+    (newVal) => {
+      if (!newVal && pendingRoute.value) {
+        stopWatcher();
+        const queuedRoute = pendingRoute.value;
+        pendingRoute.value = null;
+        router.push(queuedRoute);
+      }
+    }
+  );
+};
+
+router.beforeEach((to, from, next) => {
+  const store = useStore();
+  store.isLoading ? queueNavigation(to) : next();
 });
 
 export default router;

@@ -11,8 +11,9 @@
             <!-- Trigger Change Password on button click -->
             <ButtonAPI
               :disabled="store.isLoading"
-              class="btn-blue standard-button"
+              class="btn-blue"
               @click="handleChangePassword"
+              :customLoader="true"
             >
               Change password
             </ButtonAPI>
@@ -29,7 +30,10 @@
       <Modal
         :isModalOpen="isPasswordModalOpen"
         @close="closePasswordModal"
+        @submit="handleSetNewPassword"
+        @cancel="closePasswordModal"
         title="Set new password"
+        :showAction="true"
       >
         <template #body>
           <fieldset :disabled="store.isLoading">
@@ -43,7 +47,7 @@
                   :showLoader="false"
                   class="btn-timer"
                 >
-                  Send again
+                  Send again.
                   {{ store.resendTime > 0 ? `(${store.resendTime}s)` : "" }}
                 </ButtonAPI>
               </div>
@@ -94,27 +98,19 @@
                 </div>
               </div>
             </div>
+            <div v-show="forgotPasswordStore.error" class="error">
+              {{ forgotPasswordStore.error }}
+            </div>
           </fieldset>
-        </template>
-        <template #footer>
-          <ButtonAPI
-            :disabled="store.isLoading"
-            @click="handleSetNewPassword"
-            class="btn-blue standard-button"
-          >
-            Submit
-          </ButtonAPI>
-          <div v-show="forgotPasswordStore.error" class="error">
-            {{ forgotPasswordStore.error }}
-          </div>
         </template>
       </Modal>
 
       <!-- Success Modal -->
       <Modal
         :isModalOpen="isSuccessModalOpen"
-        title="Changed successfully"
+        title="Password Updated"
         :success="true"
+        :footerMessage="'Your password has been changed.'"
         @close="closeSuccessModal"
       >
       </Modal>
@@ -127,7 +123,7 @@ import { onBeforeRouteLeave } from "vue-router";
 import { ref, reactive, onMounted, watch } from "vue";
 import { useStore } from "@/stores/useStore";
 import { useForgotPasswordStore } from "@/stores/forgotPasswordStore";
-import Modal from "@/components/Modal.vue";
+import Modal from "@/components/Modal/Modal.vue";
 import { ButtonAPI } from "@/components/Form";
 import { getLocalStorageWithExpiry } from "@/services/localStorageService.js";
 import { validationService } from "@/services/validationUserService.js";
@@ -290,7 +286,7 @@ onBeforeRouteLeave((to, from, next) => {
   align-items: center;
   flex-direction: column;
   gap: var(--size-24);
-  min-height: calc(100vh - 140px);
+  min-height: calc(100vh - 140.79px);
 }
 
 .setting {
@@ -324,10 +320,9 @@ onBeforeRouteLeave((to, from, next) => {
   display: flex;
   justify-content: center;
   flex-direction: column;
-  width: calc(100% + 16px);
+  width: calc(100% + var(--size-16));
   min-height: var(--size-60);
   padding: var(--size-8);
-  cursor: pointer;
   border-radius: var(--border-md);
 }
 
@@ -347,30 +342,16 @@ onBeforeRouteLeave((to, from, next) => {
   font-weight: var(--semi-bold);
 }
 
-.setting .item .label button {
-  min-width: unset;
-  max-width: unset;
-  min-height: unset;
-  max-height: unset;
-  padding: var(--size-12) var(--size-32);
-}
-
 .setting .item .detail {
   display: flex;
   justify-content: space-between;
   width: 100%;
 }
 
-.body {
-  display: flex;
-  flex-direction: column;
-  padding: var(--size-12) 0;
-}
-
 .body .remark {
   background: var(--lighter-grey);
   padding: var(--size-12);
-  border-radius: var(--border-sm);
+  border-radius: var(--border-md);
   margin-bottom: var(--size-12);
 }
 
@@ -380,6 +361,8 @@ onBeforeRouteLeave((to, from, next) => {
   color: var(--black);
   font-weight: var(--semi-bold);
   text-decoration: underline;
+  padding: 0;
+  display: unset;
 }
 
 .body .remark .btn-timer:disabled {

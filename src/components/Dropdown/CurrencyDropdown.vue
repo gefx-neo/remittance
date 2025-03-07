@@ -90,7 +90,7 @@ onUnmounted(() => {
   visibility: hidden;
   position: absolute;
   top: 100%;
-  right: 0;
+  left: 0;
   z-index: 1054;
   margin: 0;
   width: 330px;
@@ -109,9 +109,9 @@ onUnmounted(() => {
   visibility: visible;
 }
 
-.dropdown-menu.dashboard {
-  left: 0;
-  right: unset;
+.dropdown-menu.transaction {
+  right: 0;
+  left: unset;
 }
 
 .dropdown-menu .header {
@@ -274,10 +274,16 @@ onUnmounted(() => {
   }
 }
 
-@media (max-width: 1279px) {
+@media (min-width: 767px) and (max-width: 1279px) {
   .dropdown-menu.dashboard.right {
     left: unset;
     right: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .dropdown-menu.transaction {
+    left: 0;
   }
 }
 </style>

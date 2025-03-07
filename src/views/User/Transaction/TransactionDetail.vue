@@ -1,6 +1,6 @@
 <template>
   <div class="content-area">
-    <div class="transaction" v-if="transactionDetail && beneficiaryDetail">
+    <div class="transaction">
       <button class="btn-round" @click="goBack">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
           <path
@@ -8,7 +8,7 @@
           />
         </svg>
       </button>
-      <div class="invoice">
+      <div class="invoice" v-if="transactionDetail && beneficiaryDetail">
         <div class="user-section">
           <div>
             <span class="icon-round">
@@ -24,6 +24,7 @@
             @click="handleReminder"
             class="btn-blue"
             :disabled="store.isLoading"
+            :customLoader="true"
           >
             Send reminder
           </ButtonAPI>
@@ -144,27 +145,16 @@
           </div>
         </div>
       </div>
-      <!-- <Modal
-        :isModalOpen="store.isModalOpen"
-        :title="'Delete beneficiary'"
-        :showAction="true"
-        @close="store.closeModal"
-        @submit="handleSubmit"
-        @cancel="store.closeModal"
-      >
-        <template #body>
-          <p>Are you sure you want to delete this beneficiary?</p>
-        </template>
-      </Modal> -->
+      <div v-else>
+        <SkeletonLoader type="transactionDetail" />
+      </div>
     </div>
-    <div v-else><Loading /></div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-
 import {
   useAlertStore,
   useBeneficiaryStore,
@@ -185,7 +175,7 @@ import {
 } from "@/utils/beneficiaryUtils";
 import { ButtonAPI } from "@/components/Form";
 import Tooltip from "@/components/Tooltip.vue";
-import Loading from "@/views/Loading.vue";
+import SkeletonLoader from "@/views/SkeletonLoader.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -267,7 +257,7 @@ const goBack = () => {
   display: flex;
   flex-direction: column;
   gap: var(--size-24);
-  min-height: calc(100vh - 140px);
+  min-height: calc(100vh - 140.79px);
 }
 
 .transaction {
@@ -325,10 +315,6 @@ const goBack = () => {
   align-items: center;
   gap: var(--size-12);
   color: var(--grey);
-}
-
-.transaction .user-section .btn-blue {
-  padding: var(--size-dropdown-item);
 }
 
 .transaction .item-section {
@@ -424,7 +410,6 @@ const goBack = () => {
   .pending {
   font-weight: var(--semi-bold);
   font-size: var(--text-lg);
-  cursor: pointer;
   color: var(--midnight-violet);
 }
 
@@ -436,7 +421,6 @@ const goBack = () => {
   .success {
   font-weight: var(--semi-bold);
   font-size: var(--text-lg);
-  cursor: pointer;
   color: var(--pastel-green);
 }
 
@@ -454,7 +438,6 @@ const goBack = () => {
   .unpaid {
   font-weight: var(--semi-bold);
   font-size: var(--text-lg);
-  cursor: pointer;
   color: var(--dark-crimson-red);
 }
 

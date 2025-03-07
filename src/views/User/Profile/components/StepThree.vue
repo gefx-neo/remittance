@@ -83,14 +83,14 @@
         @update:modelValue="(files) => handleFileUpload('docCard', files)"
       />
 
-      <InputFile
+      <!-- <InputFile
         label="Signed KYC form"
         id="docKYC"
         v-model="individualForm.docKYC"
         :multiple="false"
         :error="errors.docKYC"
         @update:modelValue="(files) => handleFileUpload('docKYC', files)"
-      />
+      /> -->
     </fieldset>
 
     <div class="footer">

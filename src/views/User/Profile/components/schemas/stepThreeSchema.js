@@ -44,9 +44,9 @@ export const individualValidation = (individualForm) => ({
     label: "Business / Name card",
     rules: [validationService.isFileRequired],
   },
-  docKYC: {
-    value: individualForm?.docKYC || "",
-    label: "Signed KYC form",
-    rules: [validationService.isFileRequired],
-  },
+  // docKYC: {
+  //   value: individualForm?.docKYC || "",
+  //   label: "Signed KYC form",
+  //   rules: [validationService.isFileRequired],
+  // },
 });

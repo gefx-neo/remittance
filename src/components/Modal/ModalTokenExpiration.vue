@@ -6,6 +6,13 @@
         <slot name="header">
           <h2>Session Timeout</h2>
         </slot>
+        <button @click="handleConfirm" class="btn-round">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
+            <path
+              d="M376.6 84.5c11.3-13.6 9.5-33.8-4.1-45.1s-33.8-9.5-45.1 4.1L192 206 56.6 43.5C45.3 29.9 25.1 28.1 11.5 39.4S-3.9 70.9 7.4 84.5L150.3 256 7.4 427.5c-11.3 13.6-9.5 33.8 4.1 45.1s33.8-9.5 45.1-4.1L192 306 327.4 468.5c11.3 13.6 31.5 15.4 45.1 4.1s15.4-31.5 4.1-45.1L233.7 256 376.6 84.5z"
+            />
+          </svg>
+        </button>
       </div>
       <div class="body">
         <div>
@@ -18,13 +25,6 @@
       </div>
       <div class="footer">
         <div class="action">
-          <button
-            type="button"
-            @click="handleLogout"
-            class="btn-back standard-button"
-          >
-            Logout
-          </button>
           <ButtonAPI
             type="button"
             class="btn-blue standard-button"
@@ -32,6 +32,13 @@
           >
             Stay logged in
           </ButtonAPI>
+          <button
+            type="button"
+            @click="handleLogout"
+            class="btn-back standard-button"
+          >
+            Logout
+          </button>
         </div>
       </div>
     </div>
@@ -74,8 +81,8 @@ const startCountdown = () => {
       isOpen.value = false;
     }
     // 3 * 60 * 60 * 1000 + 59 * 60 * 1000 + 50 * 1000
-
-    // Open modal when timer reaches 3h 59m 50s
+    // 5 * 60 * 1000
+    // Open modal when timer reaches 5m
     if (remainingTime.value <= 5 * 60 * 1000) {
       isOpen.value = true;
     }
@@ -179,10 +186,10 @@ const handleLogout = () => {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
   width: 400px;
   max-width: 400px;
-  height: 300px;
-  max-height: 300px;
   background: var(--white);
   border-radius: var(--border-lg);
   transition: opacity 0.3s ease-in-out;
@@ -196,26 +203,30 @@ const handleLogout = () => {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: var(--size-16);
+}
+
+.modal .header h2 {
   min-height: var(--size-32);
   max-height: var(--size-32);
-  margin: var(--size-12) 0;
-  padding: var(--size-16);
 }
 
 .modal .header .btn-round {
   position: absolute;
-  top: var(--size-12);
-  right: var(--size-8);
+  top: var(--size-16);
+  right: var(--size-16);
 }
 
 .modal .body {
-  min-height: calc(100% - 116px);
-  max-height: calc(100% - 116px);
   padding: 0 var(--size-16);
+  margin: 0 var(--size-8);
+  flex-grow: 1;
+  overflow-y: auto;
+  max-height: 70vh;
 }
 
 .modal .body .timer {
-  height: 109px;
+  height: 100px;
   min-height: 100%;
   display: flex;
   justify-content: center;
@@ -227,30 +238,53 @@ const handleLogout = () => {
   font-size: var(--text-xl);
 }
 
+.modal .body::-webkit-scrollbar {
+  width: var(--size-8);
+  cursor: pointer;
+}
+
+.modal .body::-webkit-scrollbar-thumb {
+  background-color: var(--cool-blue);
+  border-radius: var(--border-lg);
+  cursor: pointer;
+}
+
+.modal .body::-webkit-scrollbar-thumb:hover {
+  background-color: var(--slate-blue);
+}
+
+.modal .body::-webkit-scrollbar-track {
+  background-color: var(--white);
+}
+
 .modal .footer {
   display: flex;
   justify-content: center;
   font-weight: var(--semi-bold);
-  padding: 0 var(--size-16);
+  padding: var(--size-16);
+}
+
+.modal .footer .message {
+  font-weight: var(--semi-bold);
 }
 
 .modal .action {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: var(--size-12);
   width: 100%;
-}
-
-.modal .action button {
-  min-width: 48.5%;
-  max-width: 48.5%;
 }
 
 @media (max-width: 767px) {
   .modal {
     width: calc(100% - 32px);
     min-width: unset;
-    min-height: calc(100% - 32px);
+    min-height: unset;
     max-height: calc(100% - 32px);
+  }
+
+  .modal .body {
+    max-height: unset;
   }
 }
 </style>

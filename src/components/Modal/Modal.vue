@@ -6,7 +6,11 @@
     v-if="isModalOpen"
     @click="handleClose"
   >
-    <div class="modal" :class="{ open: isModalOpen }" @click.stop>
+    <div
+      class="modal"
+      :class="{ open: isModalOpen, success: success }"
+      @click.stop
+    >
       <div class="header">
         <slot name="header">
           <h2>{{ title }}</h2></slot
@@ -21,13 +25,6 @@
       </div>
 
       <div class="body">
-        <div v-if="redirectToLogin || checkYourEmail" class="icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
-            <path
-              d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5 12.5 32.8 12.5 45.3 0z"
-            />
-          </svg>
-        </div>
         <div v-if="success" class="icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
             <path
@@ -39,20 +36,10 @@
       </div>
 
       <div class="footer">
-        <div class="message" v-if="checkYourEmail">
-          Please check your e-mail for temporary passcode
+        <div class="message">
+          {{ footerMessage }}
         </div>
-        <a href="/" v-if="redirectToLogin" class="message">
-          Redirect to login page
-        </a>
         <div v-if="showAction" class="action">
-          <button
-            type="button"
-            @click="emitCancel"
-            class="btn-back standard-button"
-          >
-            Cancel
-          </button>
           <ButtonAPI
             type="button"
             class="btn-blue standard-button"
@@ -60,6 +47,13 @@
           >
             Confirm
           </ButtonAPI>
+          <button
+            type="button"
+            @click="emitCancel"
+            class="btn-back standard-button"
+          >
+            Cancel
+          </button>
         </div>
         <slot name="footer"></slot>
       </div>
@@ -69,7 +63,7 @@
 
 <script setup>
 import { onUnmounted, watch } from "vue";
-import { useStore } from "@/stores/useStore";
+import { useStore, useAuthStore } from "@/stores/index";
 import { ButtonAPI } from "@/components/Form";
 import { useRouter } from "vue-router";
 
@@ -82,28 +76,21 @@ const props = defineProps({
     type: String,
     default: "",
   },
-  redirectToLogin: {
-    // For Reset password
-    type: Boolean,
-    default: false,
-  },
-  checkYourEmail: {
-    // For Register
-    type: Boolean,
-    default: false,
-  },
   showAction: { type: Boolean, default: false },
-
   success: {
-    // For User success action
     type: Boolean,
     default: false,
+  },
+  footerMessage: {
+    type: String,
+    default: "",
   },
 });
 
 const emit = defineEmits(["close", "submit", "cancel"]);
 
 const store = useStore();
+const authStore = useAuthStore();
 const router = useRouter();
 
 // Watch for isModalOpen changes and disable body scrolling when open
@@ -120,12 +107,16 @@ watch(
 
 // Handle click outside the modal
 const handleClose = () => {
-  if (props.redirectToLogin || props.checkYourEmail) {
-    // router.push("/");
-    window.location.href = "/"; // This will refresh the page and reset the state
+  if (props.success) {
+    if (!authStore.user) {
+      window.location.href = "/";
+    } else {
+      emit("close");
+      store.closeModal();
+    }
   } else {
-    emit("close"); // This is only for modals declared in their local page like Change password(Success)
-    store.closeModal(); // This is for default modals
+    emit("close");
+    store.closeModal();
   }
 };
 
@@ -177,12 +168,12 @@ router.afterEach(() => {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  padding: 8px;
+  display: flex;
+  flex-direction: column;
   width: 400px;
   max-width: 400px;
   background: var(--white);
   border-radius: var(--border-lg);
-  padding: var(--size-16);
   transition: opacity 0.3s ease-in-out;
 }
 
@@ -194,9 +185,12 @@ router.afterEach(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: var(--size-16);
+}
+
+.modal .header h2 {
   min-height: var(--size-32);
   max-height: var(--size-32);
-  margin-bottom: var(--size-12);
 }
 
 .modal .header .btn-round {
@@ -206,8 +200,12 @@ router.afterEach(() => {
 }
 
 .modal .body {
-  min-height: var(--size-48);
-  margin-bottom: var(--size-24);
+  padding: 0 var(--size-16);
+  margin: 0 var(--size-8);
+  flex-grow: 1;
+  overflow-y: auto;
+  min-height: 100px;
+  max-height: 70vh;
 }
 
 .modal .body .icon {
@@ -231,10 +229,30 @@ router.afterEach(() => {
   fill: var(--white);
 }
 
+.modal .body::-webkit-scrollbar {
+  width: var(--size-8);
+  cursor: pointer;
+}
+
+.modal .body::-webkit-scrollbar-thumb {
+  background-color: var(--cool-blue);
+  border-radius: var(--border-lg);
+  cursor: pointer;
+}
+
+.modal .body::-webkit-scrollbar-thumb:hover {
+  background-color: var(--slate-blue);
+}
+
+.modal .body::-webkit-scrollbar-track {
+  background-color: var(--white);
+}
+
 .modal .footer {
   display: flex;
   justify-content: center;
   font-weight: var(--semi-bold);
+  padding: var(--size-16);
 }
 
 .modal .footer .message {
@@ -243,19 +261,25 @@ router.afterEach(() => {
 
 .modal .action {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: var(--size-12);
   width: 100%;
-}
-
-.modal .action button {
-  min-width: 48.5%;
-  max-width: 48.5%;
 }
 
 @media (max-width: 767px) {
   .modal {
     width: calc(100% - 32px);
     min-width: unset;
+    min-height: calc(100% - 32px);
+    max-height: calc(100% - 32px);
+  }
+
+  .modal.success {
+    min-height: unset;
+  }
+
+  .modal .body {
+    max-height: unset;
   }
 }
 </style>

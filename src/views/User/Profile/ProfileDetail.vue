@@ -10,7 +10,7 @@
           <span>
             <Tooltip
               text="Pending processing"
-              v-if="profileDetails.userStatus === 2"
+              v-if="$isPendingUser(profileDetails.userStatus)"
               class="pending"
             >
               <font-awesome-icon :icon="['fas', 'clock']" />
@@ -24,7 +24,7 @@
             </Tooltip>
             <Tooltip
               text="Verified"
-              v-if="profileDetails.userStatus === 3"
+              v-if="$isVerifiedUser(profileDetails.userStatus)"
               class="verified"
             >
               <font-awesome-icon :icon="['fas', 'certificate']" />
@@ -32,7 +32,7 @@
             </Tooltip>
             <Tooltip
               text="Rejected"
-              v-if="profileDetails.userStatus === 4"
+              v-if="$isRejectedUser(profileDetails.userStatus)"
               class="rejected"
             >
               <font-awesome-icon :icon="['fas', 'ban']" />
@@ -41,7 +41,7 @@
         </div>
         <button
           @click="navigateToAccountVerification"
-          v-if="profileDetails.userStatus == 0"
+          v-if="$isUnverifiedUser(profileDetails.userStatus)"
           class="btn-blue"
         >
           Verify account
@@ -52,6 +52,7 @@
           @click="handleReminder"
           class="btn-blue"
           :disabled="store.isLoading"
+          :customLoader="true"
         >
           Send reminder
         </ButtonAPI>
@@ -83,13 +84,13 @@
         </div>
       </div>
     </div>
-    <div v-else><Loading /></div>
+    <div v-else><SkeletonLoader type="profileDetail" /></div>
   </div>
 </template>
 
 <script setup>
 import { useRouter } from "vue-router";
-import { ref, computed, onMounted, reactive } from "vue";
+import { computed, onMounted, reactive } from "vue";
 import {
   useAlertStore,
   useAuthStore,
@@ -99,7 +100,7 @@ import {
 import cookieService from "@/services/cookieService";
 import { ButtonAPI } from "@/components/Form";
 import Tooltip from "@/components/Tooltip.vue";
-import Loading from "@/views/Loading.vue";
+import SkeletonLoader from "@/views/SkeletonLoader.vue";
 
 const router = useRouter();
 
@@ -134,7 +135,10 @@ const handleReminder = async () => {
       cookieService.setCookie("reminderSent", "true", 365);
 
       alertStore.alert("success", "We have received your reminder.");
-      window.location.reload();
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 500); // Delay reload by 1.5 seconds
     }
   } catch (error) {
     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
@@ -167,7 +171,7 @@ const navigateToAccountVerification = () => {
   display: flex;
   flex-direction: column;
   gap: var(--size-24);
-  min-height: calc(100vh - 140px);
+  min-height: calc(100vh - 140.79px);
 }
 
 .profile {
@@ -253,11 +257,6 @@ const navigateToAccountVerification = () => {
 
 .profile .user-section .user-group span:nth-child(3) .tooltip.rejected svg {
   color: var(--dark-crimson-red);
-}
-
-.profile .user-section button {
-  border-radius: var(--border-md);
-  padding: var(--size-dropdown-item);
 }
 
 .profile {

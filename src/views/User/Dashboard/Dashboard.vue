@@ -1,5 +1,5 @@
 <template>
-  <div class="content-area" v-if="profileDetails.userStatus === 3">
+  <div class="content-area" v-if="$isVerifiedUser(profileDetails.userStatus)">
     <div class="exchange-rate">
       <div class="form-section">
         <InputAmount
@@ -30,17 +30,6 @@
           :modelCurrency="form.receivingCurrency"
           @update:modelCurrency="updateReceivingCurrency"
         />
-        <!-- <InputAmount
-          id="receivingAmount"
-          label="Receiving amount"
-          :modelValue="form.receivingAmount"
-          :modelCurrency="form.receivingCurrency"
-          :isSending="false"
-          @update:modelValue="updateReceivingAmount"
-          @update:modelCurrency="updateReceivingCurrency"
-          :isDashboard="true"
-          :error="errors.receivingAmount"
-        />  -->
       </div>
 
       <div class="button-section">
@@ -66,8 +55,9 @@
           <h3>Transaction History</h3>
           <router-link to="/transaction">View all</router-link>
         </div>
+
         <div v-if="store.isLoading">
-          <Loading />
+          <SkeletonLoader type="dashboardTransaction" :count="5" />
         </div>
         <div v-else-if="transactions.length === 0">
           <EmptyList />
@@ -97,7 +87,8 @@
                         getTransactionStatus(transaction.status) ===
                           'Pending' && transaction.isUrgent === 1,
                       completed:
-                        getTransactionStatus(transaction.status) === 'Success',
+                        getTransactionStatus(transaction.status) ===
+                        'Completed',
                       failed:
                         getTransactionStatus(transaction.status) === 'Rejected',
                     }"
@@ -142,13 +133,14 @@
           <h3>Current Rates</h3>
           <!-- <router-link to="/history">View all</router-link > -->
         </div>
-        <div v-if="store.isLoading"><Loading /></div>
+
+        <div v-if="store.isLoading">
+          <SkeletonLoader type="dashboardCurrentRates" :count="5" />
+        </div>
+        <div v-else-if="rates.length === 0">
+          <EmptyList />
+        </div>
         <div v-else>
-          <!-- <div class="header">
-            <div>From</div>
-            <div></div>
-            <div>To</div>
-          </div> -->
           <div class="item-section">
             <div v-for="(rate, index) in rates" :key="index" class="item">
               <div class="country">
@@ -216,7 +208,10 @@
       </div>
     </div>
   </div>
-  <div class="content-area" v-if="profileDetails.userStatus !== 3">
+  <div
+    class="content-area"
+    v-if="$isNotVerifiedUser(profileDetails.userStatus)"
+  >
     <div class="exchange-rate blur">
       <div class="form-section">
         <InputAmount
@@ -248,7 +243,7 @@
         </div>
       </div>
     </div>
-    <div class="onboarding" v-if="profileDetails.userStatus === 0">
+    <div class="onboarding" v-if="$isUnverifiedUser(profileDetails.userStatus)">
       <!-- <div class="item-section">
         <div class="item">
           <div class="heading">1. Password Change</div>
@@ -284,23 +279,22 @@
 
     <div
       class="onboarding-pending"
-      v-if="profileDetails.userStatus === 2 || profileDetails.userStatus === 4"
+      v-if="$isNotVerifiedUser(profileDetails.userStatus)"
     >
       <div class="account-locked">
         <h1>Access restricted</h1>
-        <div v-if="profileDetails.userStatus === 2">
+        <div v-if="$isPendingUser(profileDetails.userStatus)">
           <span
             >Kindly hold on while your account is awaiting management
             approval.</span
           >
           <p>For further assistance, please contact customer support.</p>
         </div>
-        <div v-if="profileDetails.userStatus === 4">
+        <div v-if="$isRejectedUser(profileDetails.userStatus)">
           <span>Your account verification has been rejected.</span>
 
           <p>For further assistance, please contact customer support.</p>
         </div>
-        <p></p>
       </div>
     </div>
   </div>
@@ -332,7 +326,7 @@ import {
   getTransactionStatus,
   formatDateTime,
 } from "@/utils/transactionUtils.js";
-import Loading from "@/views/Loading.vue";
+import SkeletonLoader from "@/views/SkeletonLoader.vue";
 import EmptyList from "@/views/EmptyList.vue";
 import { useEnvironment } from "@/composables/useEnvironment";
 

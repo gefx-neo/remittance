@@ -9,14 +9,18 @@
     @click="handleClick"
   >
     <slot></slot>
+
     <div
-      v-if="(store.isLoading && showLoader) || store.isMoneyLoading"
       class="loader"
+      :class="{ 'custom-loader': customLoader }"
+      v-if="(store.isLoading && showLoader) || store.isMoneyLoading"
     >
-      <div></div>
-      <div></div>
-      <div></div>
-      <div></div>
+      <svg viewBox="25 25 50 50" v-if="customLoader">
+        <circle r="20" cy="50" cx="50"></circle>
+      </svg>
+      <svg viewBox="25 25 50 50" v-else>
+        <circle r="20" cy="50" cx="50"></circle>
+      </svg>
     </div>
   </button>
 </template>
@@ -36,6 +40,10 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  customLoader: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const store = useStore();
@@ -52,6 +60,9 @@ const handleClick = (event) => {
 <style scoped>
 .btn-api {
   position: relative;
+  display: flex;
+  align-items: center;
+  padding: var(--size-dropdown-item);
 }
 
 .btn-api.is-loading {
@@ -59,43 +70,71 @@ const handleClick = (event) => {
 }
 
 .btn-api:disabled {
-  background: var(--light-grey) !important;
+  background: var(--lighter-grey) !important;
   color: var(--grey) !important;
 }
 
 .loader {
-  display: inline-block;
   position: absolute;
-  right: var(--size-8);
-  width: var(--size-24); /* Adjust size as needed */
-  height: var(--size-24); /* Adjust size as needed */
+  right: var(--size-16);
+  width: var(--size-24);
+  height: var(--size-24);
 }
-.loader div {
-  box-sizing: border-box;
-  display: block;
+
+.custom-loader {
+  position: relative;
+  width: var(--size-16);
+  height: var(--size-16);
+  margin-left: 12px;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-loader svg {
   position: absolute;
-  width: 100%;
-  height: 100%;
-  border: 2px solid var(--grey);
-  border-radius: var(--border-circle);
-  animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-  border-color: var(--grey) transparent transparent transparent;
+  right: 0;
+  width: var(--size-20);
+  height: var(--size-20);
 }
-.loader div:nth-child(1) {
-  animation-delay: -0.45s;
+
+svg {
+  width: var(--size-24);
+  height: var(--size-24);
+  transform-origin: center;
+  animation: rotate4 2s linear infinite;
 }
-.loader div:nth-child(2) {
-  animation-delay: -0.3s;
+
+circle {
+  fill: none;
+  stroke: var(--grey);
+  stroke-width: 4;
+  stroke-dasharray: 1, 200;
+  stroke-dashoffset: 0;
+  stroke-linecap: round;
+  animation: dash4 1.5s ease-in-out infinite;
 }
-.loader div:nth-child(3) {
-  animation-delay: -0.15s;
-}
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
+
+@keyframes rotate4 {
   100% {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes dash4 {
+  0% {
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+  }
+
+  50% {
+    stroke-dasharray: 90, 200;
+    stroke-dashoffset: -35px;
+  }
+
+  100% {
+    stroke-dashoffset: -125px;
   }
 }
 </style>

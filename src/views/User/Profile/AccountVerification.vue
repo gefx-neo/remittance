@@ -355,7 +355,7 @@ const handleSubmit = async () => {
       alertStore.alert("success", "You have submitted successfully.");
       window.location.href = "/#/profile";
     } else {
-      alertStore.alert("error", verifyResponse.message);
+      alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
     }
   } catch (error) {
     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);

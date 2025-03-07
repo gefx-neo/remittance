@@ -664,24 +664,25 @@ router.afterEach(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: var(--size-16);
+}
+
+.modal .header h2 {
   min-height: var(--size-32);
   max-height: var(--size-32);
-  margin: var(--size-12) 0;
-  padding: var(--size-16);
 }
 
 .modal .header .btn-round {
   position: absolute;
-  top: var(--size-12);
-  right: var(--size-8);
+  top: var(--size-16);
+  right: var(--size-16);
 }
 
 .modal .body {
-  min-height: var(--size-48);
-  max-height: calc(100% - 68px);
+  max-height: calc(100% - 80px);
   padding: 0 var(--size-16);
-  margin-right: var(--size-8);
-  overflow-y: scroll;
+  margin: 0 var(--size-8);
+  overflow-y: auto;
 }
 
 .modal .body::-webkit-scrollbar {

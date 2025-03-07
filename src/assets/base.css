@@ -28,10 +28,10 @@
   --yellow-star: #ffd700;
 
   --text-xs: 10px;
-  --text-sm: 13px;
-  --text-md: 15px;
-  --text-lg: 18px;
-  --text-xl: 21px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 19px;
+  --text-xl: 22px;
   --text-xxl: 28px;
 
   --semi-bold: 600;
@@ -51,11 +51,18 @@
   --size-60: 60px;
   --size-64: 64px;
   --size-72: 72px;
+  --size-80: 80px;
+  --size-96: 96px;
+  --size-144: 144px;
+  --size-176: 176px;
+  --size-192: 192px;
+  --size-240: 240px;
+  --size-320: 320px;
   --size-dropdown-item: var(--size-12) var(--size-16);
 
   --border-sm: 5px;
   --border-md: 10px;
-  --border-lg: 15px;
+  --border-lg: 20px;
   --border-circle: 9999px;
 }
 

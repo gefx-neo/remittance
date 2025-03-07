@@ -1,18 +1,16 @@
 import "./assets/main.css";
-
 import { createApp } from "vue";
 import { createPinia } from "pinia";
-import piniaPluginPersistedState from "pinia-plugin-persistedstate"; // Import plugin
+import piniaPluginPersistedState from "pinia-plugin-persistedstate";
 import App from "./App.vue";
 import router from "./router";
-import { FontAwesomeIcon } from "@/fontawesome/fontawesome"; // Use named import
+import { FontAwesomeIcon } from "@/fontawesome/fontawesome";
+import globalUtils from "@/plugins/globalUtils";
 import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
-
 const app = createApp(App);
 
 // Create Pinia instance
 const pinia = createPinia();
-
 // Use the persistence plugin
 pinia.use(piniaPluginPersistedState);
 
@@ -20,8 +18,6 @@ pinia.use(piniaPluginPersistedState);
 app.use(pinia);
 app.use(router);
 app.component("font-awesome-icon", FontAwesomeIcon);
+app.use(globalUtils);
 
 app.mount("#app");
-
-// console.log(import.meta.env.VITE_ENV); // development, staging, or production
-// console.log(import.meta.env.VITE_API_BASE_URL); // URL based on the environment

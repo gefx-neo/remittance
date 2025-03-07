@@ -194,7 +194,7 @@ onBeforeRouteLeave((to, from, next) => {
   flex-direction: column;
   align-items: center;
   gap: var(--size-24);
-  min-height: calc(100vh - 140px);
+  min-height: calc(100vh - 140.79px);
 }
 
 .heading {
@@ -308,6 +308,10 @@ form a {
   flex-direction: column;
   align-items: center;
   gap: var(--size-12);
+}
+
+.footer div:nth-child(2) {
+  text-align: center;
 }
 
 .footer a {

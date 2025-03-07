@@ -1,14 +1,15 @@
 <template>
   <div class="content-area">
+    <button class="btn-round" @click="goBack">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+        <path
+          d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0L214.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"
+        />
+      </svg>
+    </button>
+
     <div class="beneficiary" v-if="beneficiaryDetail">
       <div class="profile-section">
-        <button class="btn-round" @click="goBack">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
-            <path
-              d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0L214.6 118.6c-12.5-12.5-12.5-32.8 0-45.3l-160 160z"
-            />
-          </svg>
-        </button>
         <div class="user-group">
           <span class="icon-round">
             {{ getInitials(beneficiaryDetail.beneName) }}
@@ -68,7 +69,7 @@
               <span>{{ beneficiaryDetail.bankName }}</span>
             </div>
             <div class="item">
-              <span>Account number</span>
+              <span>Bank account number</span>
               <span>{{ beneficiaryDetail.bankAccountNo }}</span>
             </div>
             <div class="item">
@@ -202,7 +203,13 @@
         </div>
 
         <div v-if="activeTab === 'transactions'" class="transaction">
-          <div class="item-group">
+          <div v-if="store.isLoading">
+            <SkeletonLoader type="dashboardTransaction" :count="3" />
+          </div>
+          <div v-else-if="transactions.length === 0">
+            <EmptyList />
+          </div>
+          <div class="item-group" v-else>
             <div
               v-for="(transaction, index) in transactions"
               :key="index"
@@ -288,7 +295,7 @@
         </template>
       </Modal>
     </div>
-    <div v-else><Loading /></div>
+    <SkeletonLoader type="beneficiaryDetail" v-else />
   </div>
 </template>
 
@@ -302,7 +309,7 @@ import {
   useAlertStore,
 } from "@/stores/index.js";
 import FavouriteButton from "./components/FavouriteButton.vue";
-import Modal from "@/components/Modal.vue";
+import Modal from "@/components/Modal/Modal.vue";
 import {
   getInitials,
   getAccountType,
@@ -318,6 +325,8 @@ import {
   formatDateTime,
 } from "@/utils/transactionUtils.js";
 import Loading from "@/views/Loading.vue";
+import SkeletonLoader from "@/views/SkeletonLoader.vue";
+import EmptyList from "@/views/EmptyList.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -430,7 +439,7 @@ const goBack = () => {
   display: flex;
   flex-direction: column;
   gap: var(--size-24);
-  min-height: calc(100vh - 140px);
+  min-height: calc(100vh - 140.79px);
 }
 
 .beneficiary {
@@ -478,6 +487,8 @@ const goBack = () => {
 }
 
 .beneficiary .profile-section .user-group span {
+  display: flex;
+  align-items: center;
   color: var(--slate-blue);
   font-size: var(--text-lg);
   font-weight: var(--semi-bold);
@@ -573,7 +584,7 @@ const goBack = () => {
 .beneficiary .transaction .item-group .item {
   display: flex;
   align-items: center;
-  width: calc(100% + 16px);
+  width: calc(100% + var(--size-16));
   padding: var(--size-8);
   cursor: pointer;
   border-radius: var(--border-md);

@@ -31,7 +31,7 @@
             :showLoader="false"
             class="btn-timer"
           >
-            Send again
+            Send again.
             {{ store.resendTime > 0 ? `(${store.resendTime}s)` : "" }}
           </ButtonAPI>
         </div>
@@ -112,8 +112,9 @@
 
     <Modal
       :isModalOpen="store.isModalOpen"
-      title="Reset successfully"
-      :redirectToLogin="true"
+      title="Password Updated"
+      :success="true"
+      footerMessage="Your password has been changed."
     />
   </div>
 </template>
@@ -123,7 +124,7 @@ import { onBeforeRouteLeave } from "vue-router";
 import { ref, watch, reactive } from "vue";
 import { useForgotPasswordStore } from "@/stores/forgotPasswordStore";
 import { useStore } from "@/stores/useStore";
-import Modal from "@/components/Modal.vue";
+import Modal from "@/components/Modal/Modal.vue";
 import { ButtonAPI } from "@/components/Form";
 import { validationService } from "@/services/validationUserService.js";
 import Tooltip from "@/components/Tooltip.vue";
@@ -265,7 +266,7 @@ onBeforeRouteLeave((to, from, next) => {
   flex-direction: column;
   align-items: center;
   gap: var(--size-24);
-  min-height: calc(100vh - 140px);
+  min-height: calc(100vh - 140.79px);
 }
 
 .heading {
@@ -292,7 +293,7 @@ form {
 form .remark {
   background: var(--lighter-grey);
   padding: var(--size-12);
-  border-radius: var(--border-sm);
+  border-radius: var(--border-md);
   margin-bottom: var(--size-12);
 }
 
@@ -301,6 +302,8 @@ form .remark .btn-timer {
   color: var(--black);
   font-weight: var(--semi-bold);
   text-decoration: underline;
+  padding: 0;
+  display: unset;
 }
 
 form .remark .btn-timer:disabled {

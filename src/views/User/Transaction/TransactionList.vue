@@ -1,5 +1,5 @@
 <template>
-  <div class="content-area" v-if="profileDetails.userStatus === 3">
+  <div class="content-area" v-if="$isVerifiedUser(profileDetails.userStatus)">
     <div class="transaction">
       <div class="title">
         <h3>Transaction History</h3>
@@ -33,7 +33,10 @@
           </button>
         </div>
       </div>
-      <div v-if="store.isLoading"><Loading /></div>
+
+      <div v-if="store.isLoading">
+        <SkeletonLoader type="transactionList" :count="10" />
+      </div>
       <EmptyList v-else-if="transactions.length === 0" />
       <div class="item-section" v-else>
         <div
@@ -57,7 +60,7 @@
                       getTransactionStatus(transaction.status) === 'Pending' &&
                       transaction.isUrgent === 1,
                     completed:
-                      getTransactionStatus(transaction.status) === 'Success',
+                      getTransactionStatus(transaction.status) === 'Completed',
                     failed:
                       getTransactionStatus(transaction.status) === 'Rejected',
                   }"
@@ -91,23 +94,26 @@
       <!-- <button class="btn-load">Load more</button> -->
     </div>
   </div>
-  <div class="content-area" v-if="profileDetails.userStatus !== 3">
+  <div
+    class="content-area"
+    v-if="$isNotVerifiedUser(profileDetails.userStatus)"
+  >
     <div class="account-locked">
       <h1>Access restricted</h1>
-      <div v-if="profileDetails.userStatus === 0">
+      <div v-if="$isUnverifiedUser(profileDetails.userStatus)">
         <span
           >Please complete your account verification to unlock this feature.
         </span>
         <p>For further assistance, please contact customer support.</p>
       </div>
-      <div v-if="profileDetails.userStatus === 2">
+      <div v-if="$isPendingUser(profileDetails.userStatus)">
         <span
           >Kindly hold on while your account is awaiting management
           approval.</span
         >
         <p>For further assistance, please contact customer support.</p>
       </div>
-      <div v-if="profileDetails.userStatus === 4">
+      <div v-if="$isRejectedUser(profileDetails.userStatus)">
         <span>Your account verification has been rejected.</span>
 
         <p>For further assistance, please contact customer support.</p>
@@ -126,7 +132,7 @@ import {
   getTransactionStatus,
   formatDateTime,
 } from "@/utils/transactionUtils";
-import Loading from "@/views/Loading.vue";
+import SkeletonLoader from "@/views/SkeletonLoader.vue";
 import EmptyList from "@/views/EmptyList.vue";
 
 const router = useRouter();
@@ -193,7 +199,7 @@ const navigateToAddTransaction = () => {
   align-items: center;
   flex-direction: column;
   gap: var(--size-24);
-  min-height: calc(100vh - 140px);
+  min-height: calc(100vh - 140.79px);
 }
 
 .transaction {
@@ -273,7 +279,7 @@ const navigateToAddTransaction = () => {
 .transaction .item {
   display: flex;
   align-items: center;
-  width: calc(100% + 16px);
+  width: calc(100% + var(--size-16));
   padding: var(--size-8);
   cursor: pointer;
   border-radius: var(--border-md);

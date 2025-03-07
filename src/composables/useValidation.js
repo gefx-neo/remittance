@@ -23,7 +23,7 @@ export function useValidation() {
     return !Object.values(errors).some((error) => error); // Return true if no errors
   };
 
-  const validateSendingAmount = (amount, currency, schema) => {
+  const validateSendingAmount = (amount, currency, schema, action) => {
     errors.sendingAmount = validationService.validateAmount(
       amount,
       currency,
@@ -32,7 +32,7 @@ export function useValidation() {
     );
   };
 
-  const validateReceivingAmount = (amount, currency, schema) => {
+  const validateReceivingAmount = (amount, currency, schema, action) => {
     errors.receivingAmount = validationService.validateAmount(
       amount,
       currency,

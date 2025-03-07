@@ -54,7 +54,7 @@ const clearAlert = (id) => alertStore.clearAlert(id);
   left: 50%;
   transform: translate(-50%, -50%);
   display: flex;
-  justify-content: space-between;
+  justify-content: start;
   align-items: center;
   text-align: center;
   gap: var(--size-12);
@@ -63,7 +63,6 @@ const clearAlert = (id) => alertStore.clearAlert(id);
   color: var(--white);
   border-radius: var(--border-md);
   font-weight: var(--semi-bold);
-  white-space: nowrap;
   line-height: 1.2;
   z-index: 9999;
   cursor: pointer;
@@ -122,7 +121,7 @@ const clearAlert = (id) => alertStore.clearAlert(id);
   display: flex;
   align-items: center;
   min-height: var(--size-32);
-  max-height: var(--size-32);
+  text-align: start;
 }
 
 .loader {
@@ -168,5 +167,13 @@ const clearAlert = (id) => alertStore.clearAlert(id);
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+@media (max-width: 767px) {
+  .alert-item {
+    min-width: fit-content;
+    max-width: calc(100% - var(--size-32));
+    width: max-content;
+  }
 }
 </style>

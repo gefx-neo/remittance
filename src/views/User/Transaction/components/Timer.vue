@@ -66,7 +66,7 @@ onUnmounted(() => {
   border-radius: var(--border-md);
   font-weight: var(--semi-bold);
   white-space: nowrap;
-  z-index: 1055;
+  z-index: 1053;
   cursor: pointer;
 }
 

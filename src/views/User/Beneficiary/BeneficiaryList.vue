@@ -34,10 +34,12 @@
           </button>
         </div>
       </div>
-      <div v-if="store.isLoading"><Loading /></div>
-      <div
-        v-else-if="Array.isArray(beneficiaries) && beneficiaries.length === 0"
-      >
+
+      <div v-if="store.isLoading">
+        <SkeletonLoader type="beneficiaryList" :count="10" />
+        <SkeletonLoader type="beneficiaryList" :count="10" />
+      </div>
+      <div v-else-if="beneficiaries.length === 0">
         <EmptyList />
       </div>
       <div v-else>
@@ -253,7 +255,7 @@ import {
   getAccountType,
   getCurrencyImagePath,
 } from "@/utils/beneficiaryUtils.js";
-import Loading from "@/views/Loading.vue";
+import SkeletonLoader from "@/views/SkeletonLoader.vue";
 import EmptyList from "@/views/EmptyList.vue";
 
 const router = useRouter();
@@ -330,7 +332,7 @@ const navigateToAddBeneficiary = () => {
   display: flex;
   flex-direction: column;
   gap: var(--size-24);
-  min-height: calc(100vh - 140px);
+  min-height: calc(100vh - 140.79px);
 }
 
 .beneficiary {

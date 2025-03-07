@@ -36,6 +36,7 @@
             :currencies="currencies"
             @updateCurrency="updateCurrency"
             @closeDropdown="isDropdownOpen = false"
+            customClass="transaction"
           />
         </div>
       </div>
