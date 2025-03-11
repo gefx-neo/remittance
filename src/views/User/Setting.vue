@@ -286,7 +286,7 @@ onBeforeRouteLeave((to, from, next) => {
   align-items: center;
   flex-direction: column;
   gap: var(--size-24);
-  min-height: calc(100vh - 140.79px);
+  min-height: calc(100vh - 140px);
 }
 
 .setting {

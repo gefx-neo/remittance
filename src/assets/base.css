@@ -66,6 +66,15 @@
   --border-circle: 9999px;
 }
 
+@media (max-width: 1023px) {
+  :root {
+    --text-sm: 13px;
+    --text-md: 15px;
+    --text-lg: 18px;
+    --text-xl: 21px;
+  }
+}
+
 /* @media (prefers-color-scheme: dark) {
   :root {
   }

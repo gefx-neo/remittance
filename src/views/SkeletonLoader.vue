@@ -64,7 +64,7 @@
     <template v-if="type === 'beneficiaryList'">
       <div class="beneficiaryList">
         <div class="payment-category">
-          <h4 class="skeleton text-xl"></h4>
+          <h4 class="skeleton text-xl h-sm">&nbsp;</h4>
           <div class="item-section">
             <div class="item" v-for="index in count" :key="index">
               <div class="detail">
@@ -287,6 +287,21 @@ defineProps({
   height: 19px;
 }
 
+@media (max-width: 1023px) {
+  .h-sm {
+    height: 13px;
+    border-radius: var(--size-4);
+  }
+
+  .h-md {
+    height: 15px;
+  }
+
+  .h-lg {
+    height: 18px;
+  }
+}
+
 svg {
   width: var(--size-48);
   height: var(--size-48);
@@ -360,7 +375,7 @@ circle {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: var(--size-4);
+  gap: var(--size-8);
 }
 
 .dashboardTransaction .item .detail .first-column .first-row {
@@ -380,8 +395,8 @@ circle {
 .dashboardTransaction .item .detail .second-column {
   display: flex;
   flex-direction: column;
-  gap: var(--size-4);
   text-align: end;
+  gap: var(--size-8);
 }
 
 .dashboardTransaction .item .detail .second-column .first-row {
@@ -464,7 +479,7 @@ circle {
 .transactionList .item .detail .first-column {
   display: flex;
   flex-direction: column;
-  gap: var(--size-4);
+  gap: var(--size-8);
 }
 
 .transactionList .item .detail .first-column .first-row {
@@ -495,7 +510,7 @@ circle {
   flex-direction: column;
   justify-content: center;
   text-align: end;
-  gap: var(--size-4);
+  gap: var(--size-8);
 }
 
 .transactionList .item .detail .second-column .first-row {
@@ -509,12 +524,13 @@ circle {
 /* Transaction list */
 
 /* Beneficiary list */
-.beneficiaryList .payment-category {
+.beneficiaryList {
   padding: var(--size-8) 0;
 }
 
 .beneficiaryList .payment-category h4 {
-  margin-bottom: var(--size-8);
+  margin-top: 3px;
+  margin-bottom: 11px;
 }
 
 .beneficiaryList .item-section {

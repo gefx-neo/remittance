@@ -332,7 +332,7 @@ const navigateToAddBeneficiary = () => {
   display: flex;
   flex-direction: column;
   gap: var(--size-24);
-  min-height: calc(100vh - 140.79px);
+  min-height: calc(100vh - 140px);
 }
 
 .beneficiary {

@@ -54,8 +54,9 @@ import StepOne from "./components/StepOne.vue";
 import StepTwo from "./components/StepTwo.vue";
 import StepThree from "./components/StepThree.vue";
 import { useValidation } from "@/composables/useValidation";
-import { useRoute, useRouter, onBeforeRouteLeave } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import Timer from "./components/Timer.vue";
+import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 
 const route = useRoute();
 const router = useRouter();
@@ -74,6 +75,9 @@ const isFromBeneficiaryDetail = ref(
 );
 // const isFromTransactionList = ref(false);
 const isFromDashboard = ref(route.query.fromDashboard === "true");
+const isFromTransactionDetail = ref(
+  route.query.fromTransactionDetail === "true"
+);
 const handleSubmit = async () => {
   form.value.username = authStore.username;
 
@@ -239,12 +243,17 @@ onMounted(async () => {
     const query = router.currentRoute.value.query;
     isFromBeneficiaryDetail.value = query.fromBeneficiaryDetail === "true";
     isFromDashboard.value = query.fromDashboard === "true";
+    isFromTransactionDetail.value = query.fromTransactionDetail === "true";
     const transactionData = localStorage.getItem("transaction");
 
     // Group 1
     if (isFromDashboard.value) {
       console.log("from dashboard", isFromDashboard.value);
-    } else if (!isFromDashboard.value && !isFromBeneficiaryDetail.value) {
+    } else if (
+      !isFromDashboard.value &&
+      !isFromBeneficiaryDetail.value &&
+      !isFromTransactionDetail.value
+    ) {
       console.log("from new trans");
       const firstTimeFromNewTransaction = sessionStorage.getItem(
         "firstTimeFromNewTransaction"
@@ -264,6 +273,28 @@ onMounted(async () => {
         const payCurrency = transactionStore.sendingCurrency || "SGD";
         const getCurrency = query.currency;
         await transactionStore.getLockedRate(payCurrency, getCurrency);
+      }
+    } else if (isFromTransactionDetail.value) {
+      console.log("hi call locked amonut for trans detial");
+      const payCurrency = transactionStore.sendingCurrency;
+      const getCurrency = transactionStore.receivingCurrency;
+      await transactionStore.getLockedRate(payCurrency, getCurrency);
+      try {
+        const response = await transactionStore.getLockedAmount(
+          transactionStore.sendingAmount,
+          "pay"
+        );
+        if (response && response.status === 1) {
+          transactionStore.receivingAmount = parseFloat(response.getAmount);
+          transactionStore.setTransactionData({
+            sendingAmount: transactionStore.sendingAmount,
+            sendingCurrency: transactionStore.sendingCurrency,
+            receivingAmount: transactionStore.receivingAmount,
+            receivingCurrency: transactionStore.receivingCurrency,
+          });
+        }
+      } catch (error) {
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
       }
     }
 
@@ -356,7 +387,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: calc(100vh - 140.79px);
+  min-height: calc(100vh - 140px);
 }
 
 .transaction {

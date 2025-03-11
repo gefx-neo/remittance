@@ -28,6 +28,15 @@
           >
             Send reminder
           </ButtonAPI>
+          <ButtonAPI
+            v-if="transactionDetail.status === 1"
+            @click="redirectToTransaction"
+            class="btn-red"
+            :disabled="store.isLoading"
+            :customLoader="true"
+          >
+            Send again
+          </ButtonAPI>
         </div>
         <div class="item-section">
           <div class="detail info">
@@ -176,6 +185,7 @@ import {
 import { ButtonAPI } from "@/components/Form";
 import Tooltip from "@/components/Tooltip.vue";
 import SkeletonLoader from "@/views/SkeletonLoader.vue";
+import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 
 const route = useRoute();
 const router = useRouter();
@@ -220,6 +230,59 @@ const handleReminder = async () => {
     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 };
+const redirectToTransaction = () => {
+  const { currency } = beneficiaryDetail.value;
+  const beneId = transactionDetail.value.beneficiaryId;
+
+  // Update selectedBeneficiary in the store using available details
+  beneficiaryStore.setSelectedBeneficiary({
+    id: beneId,
+    currency: currency,
+  });
+  transactionStore.setTransactionData({
+    sendingAmount:
+      transactionDetail.value.payAmount - transactionDetail.value.fee,
+    receivingAmount: transactionDetail.value.getAmount,
+    sendingCurrency: transactionDetail.value.payCurrency,
+    receivingCurrency: transactionDetail.value.getCurrency,
+  });
+  // Redirect to Add Transaction page
+  router.push({
+    path: "/transaction/addtransaction",
+    query: {
+      fromTransactionDetail: "true",
+      beneId,
+      currency,
+    },
+  });
+};
+
+// const redirectToTransaction = () => {
+//   const beneId = transactionDetail.value.beneficiaryId;
+//   const currency = beneficiaryDetail.value.currency;
+
+//   beneficiaryStore.setSelectedBeneficiary({
+//     id: beneId,
+//     currency: currency,
+//   });
+//   // Set transaction data
+//   // transactionStore.setTransactionData({
+//   //   sendingAmount: transactionDetail.value.payAmount,
+//   //   receivingAmount: transactionDetail.value.getAmount,
+//   //   sendingCurrency: transactionDetail.value.payCurrency,
+//   //   receivingCurrency: transactionDetail.value.getCurrency,
+//   // });
+
+//   // Redirect to Add Transaction page
+//   router.push({
+//     path: "/transaction/addtransaction",
+//     query: {
+//       fromTransactionDetail: "true",
+//       beneId,
+//       currency,
+//     },
+//   });
+// };
 
 onMounted(async () => {
   try {
@@ -257,7 +320,7 @@ const goBack = () => {
   display: flex;
   flex-direction: column;
   gap: var(--size-24);
-  min-height: calc(100vh - 140.79px);
+  min-height: calc(100vh - 140px);
 }
 
 .transaction {

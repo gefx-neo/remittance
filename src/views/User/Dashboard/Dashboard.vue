@@ -301,7 +301,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { ref, reactive, onMounted, nextTick } from "vue";
 import { ButtonAPI } from "@/components/Form";
 import InputAmount from "@/components/Form/Dashboard/InputAmount.vue";
 import InputSendingCurrency from "@/components/Form/Dashboard/InputSendingCurrency.vue";
@@ -329,6 +329,7 @@ import {
 import SkeletonLoader from "@/views/SkeletonLoader.vue";
 import EmptyList from "@/views/EmptyList.vue";
 import { useEnvironment } from "@/composables/useEnvironment";
+import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 
 const router = useRouter();
 const transactionStore = useTransactionStore();
@@ -482,10 +483,10 @@ const handleSubmit = async () => {
     );
   }
 };
-
 onMounted(async () => {
   await profileStore.getProfileDetail();
   Object.assign(profileDetails, profileStore.profileDetails); // Assign store data to reactive object
+
   if (profileDetails.userStatus !== 3) {
     return;
   }
@@ -509,33 +510,18 @@ onMounted(async () => {
         .slice(0, 5); // Limit to 5 transactions
     }
 
-    // Process rates response
+    // Process exchange rates (keeping functionality identical)
     if (rateResponse?.status === 1 && rateResponse?.rates) {
-      fetchRates(); // Calls the optimized function to update rates
-      rateInterval = setInterval(fetchRates, 1000); // Start periodic rate updates
-    }
-  } catch (error) {
-    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
-  }
-});
-
-// Track toggle state for each currency
-const rateToggles = ref({}); // Object to store toggle state
-
-const fetchRates = async () => {
-  try {
-    const response = await transactionStore.getRate();
-    if (response?.status === 1 && response?.rates) {
       const allowedCurrencies =
         ENV_TYPE === "PRODUCTION"
           ? ["USD", "MYR", "IDR", "JPY", "THB"]
           : ["USD", "MYR", "IDR", "YEN", "THB"];
-      // Store updated rates before modifying them
+
       previousRates.value = Object.fromEntries(
-        response.rates.map((rate) => [rate.currency, parseFloat(rate.rate)])
+        rateResponse.rates.map((rate) => [rate.currency, parseFloat(rate.rate)])
       );
 
-      rates.value = response.rates
+      rates.value = rateResponse.rates
         .filter((rate) => allowedCurrencies.includes(rate.currency))
         .map((rate) => {
           const currency = rate.currency;
@@ -546,26 +532,50 @@ const fetchRates = async () => {
             rate: isToggled
               ? (1 / previousRates.value[currency]).toFixed(4) // Inverted rate
               : previousRates.value[currency].toFixed(4),
-            fee: parseFloat(rate.fee).toFixed(4),
-            isIncreased:
-              previousRates.value[currency] &&
-              parseFloat(rate.rate) > previousRates.value[currency],
-            isDecreased:
-              previousRates.value[currency] &&
-              parseFloat(rate.rate) < previousRates.value[currency],
-            animateClass: "fade-in",
           };
         })
         .sort(
           (a, b) =>
             allowedCurrencies.indexOf(a.currency) -
             allowedCurrencies.indexOf(b.currency)
-        ); // Sort by predefined order
+        );
     }
   } catch (error) {
-    console.error("Error fetching rates:", error);
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
+    console.error("Error fetching data:", error);
   }
-};
+});
+
+// onMounted(async () => {
+//   await profileStore.getProfileDetail();
+//   Object.assign(profileDetails, profileStore.profileDetails); // Assign store data to reactive object
+//   if (profileDetails.userStatus !== 3) {
+//     return;
+//   }
+
+//   try {
+//     // Call all APIs concurrently
+//     const [lockedRateResponse, transactionListResponse, rateResponse] =
+//       await Promise.all([
+//         transactionStore.getLockedRate(
+//           form.sendingCurrency,
+//           form.receivingCurrency
+//         ),
+//         transactionStore.getTransactionList(),
+//       ]);
+
+//     transactions.value = transactionListResponse.trxns
+//       .sort((a, b) => new Date(b.date) - new Date(a.date))
+//       .slice(0, 5); // Limit to 5 transactions
+
+//     fetchRates();
+//   } catch (error) {
+//     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
+//   }
+// });
+
+// Track toggle state for each currency
+const rateToggles = ref({}); // Object to store toggle state
 
 const toggleRate = async (currency) => {
   rateToggles.value[currency] = !rateToggles.value[currency]; // Toggle the state
@@ -579,10 +589,6 @@ const toggleRate = async (currency) => {
       : previousRates.value[currency].toFixed(4);
   }
 };
-
-onBeforeUnmount(() => {
-  clearInterval(rateInterval);
-});
 
 const navigateToTransactionDetail = async (memoId) => {
   const transaction = transactions.value.find((txn) => txn.memoId === memoId);

@@ -101,6 +101,7 @@ import cookieService from "@/services/cookieService";
 import { ButtonAPI } from "@/components/Form";
 import Tooltip from "@/components/Tooltip.vue";
 import SkeletonLoader from "@/views/SkeletonLoader.vue";
+import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 
 const router = useRouter();
 
@@ -171,7 +172,7 @@ const navigateToAccountVerification = () => {
   display: flex;
   flex-direction: column;
   gap: var(--size-24);
-  min-height: calc(100vh - 140.79px);
+  min-height: calc(100vh - 140px);
 }
 
 .profile {

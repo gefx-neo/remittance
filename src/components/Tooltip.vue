@@ -2,7 +2,14 @@
   <div class="tooltip" @mouseover="showTooltip" @mouseleave="hideTooltip">
     <slot></slot>
     <div
-      :class="['item', { visible: isVisible, 'long-tooltip': isLongTooltip }]"
+      :class="[
+        'item',
+        {
+          visible: isVisible,
+          'long-tooltip': isLongTooltip,
+          right: position === 'right',
+        },
+      ]"
       v-html="text"
     ></div>
   </div>
@@ -68,6 +75,12 @@ const hideTooltip = () => {
 .tooltip .item.visible {
   opacity: 1;
   visibility: visible;
+}
+
+.tooltip .item.right {
+  right: 0;
+  left: unset;
+  transform: unset;
 }
 
 @media (max-width: 767px) {

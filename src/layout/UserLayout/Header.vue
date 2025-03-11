@@ -6,7 +6,7 @@
         @click="store.openSidebar"
         class="icon"
       />
-      <a href="/">
+      <a href="/#/dashboard">
         <img src="@/assets/logo.jpg" class="logo" />
       </a>
     </div>

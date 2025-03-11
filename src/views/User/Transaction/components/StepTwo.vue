@@ -58,7 +58,7 @@
                 :class="{
                   selected:
                     selectedBeneficiary &&
-                    selectedBeneficiary.id === beneficiary.id,
+                    selectedBeneficiary.id == beneficiary.id,
                 }"
                 @click="selectBeneficiary(beneficiary)"
               >
@@ -102,7 +102,7 @@
                 :class="{
                   selected:
                     selectedBeneficiary &&
-                    selectedBeneficiary.id === beneficiary.id,
+                    selectedBeneficiary.id == beneficiary.id,
                 }"
                 @click="selectBeneficiary(beneficiary)"
               >
@@ -146,7 +146,7 @@
                 :class="{
                   selected:
                     selectedBeneficiary &&
-                    selectedBeneficiary.id === beneficiary.id,
+                    selectedBeneficiary.id == beneficiary.id,
                 }"
                 @click="selectBeneficiary(beneficiary)"
               >
@@ -190,7 +190,7 @@
                 :class="{
                   selected:
                     selectedBeneficiary &&
-                    selectedBeneficiary.id === beneficiary.id,
+                    selectedBeneficiary.id == beneficiary.id,
                 }"
                 @click="selectBeneficiary(beneficiary)"
               >
@@ -234,7 +234,7 @@
                 :class="{
                   selected:
                     selectedBeneficiary &&
-                    selectedBeneficiary.id === beneficiary.id,
+                    selectedBeneficiary.id == beneficiary.id,
                 }"
                 @click="selectBeneficiary(beneficiary)"
               >
@@ -281,7 +281,7 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref, onMounted } from "vue";
+import { computed, reactive, ref, onMounted, nextTick } from "vue";
 import { useValidation } from "@/composables/useValidation";
 import { formValidation } from "./schemas/stepOneSchema";
 import {
@@ -410,11 +410,13 @@ const syncBeneficiaryFromQuery = () => {
   }
 };
 
-onMounted(() => {
-  const { beneId } = router.currentRoute.value.query;
+onMounted(async () => {
+  await nextTick(); // ✅ Ensure Vue updates the DOM before running logic
 
+  const { beneId } = router.currentRoute.value.query;
+  console.log("beneId from tdteail", beneId);
   if (beneId) {
-    syncBeneficiaryFromQuery();
+    await syncBeneficiaryFromQuery(); // ✅ Ensure sync function fully executes
   }
 });
 

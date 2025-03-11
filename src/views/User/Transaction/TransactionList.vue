@@ -87,6 +87,37 @@
                 {{ transaction.getCurrency }}
               </div>
             </div>
+            <div
+              class="third-column"
+              :class="{
+                pending:
+                  getTransactionStatus(transaction.status) === 'Pending' &&
+                  transaction.isUrgent === 0,
+              }"
+            >
+              <Tooltip text="Send reminder" position="right">
+                <font-awesome-icon
+                  :icon="['fa', 'bell']"
+                  @click.stop="handleReminder(transaction.memoId)"
+                />
+              </Tooltip>
+            </div>
+            <div
+              class="third-column"
+              :class="{
+                priority:
+                  getTransactionStatus(transaction.status) === 'Pending' &&
+                  transaction.isUrgent === 1,
+              }"
+            >
+              <Tooltip text="In priority processing" position="right">
+                <font-awesome-icon
+                  :icon="['fas', 'bell']"
+                  @click.stop
+                  @click=""
+                />
+              </Tooltip>
+            </div>
           </div>
         </div>
       </div>
@@ -125,7 +156,13 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from "vue";
-import { useStore, useProfileStore, useTransactionStore } from "@/stores/index";
+import {
+  useStore,
+  useProfileStore,
+  useTransactionStore,
+  useAuthStore,
+  useAlertStore,
+} from "@/stores/index";
 import { useRouter } from "vue-router";
 import {
   formatNumber,
@@ -134,11 +171,15 @@ import {
 } from "@/utils/transactionUtils";
 import SkeletonLoader from "@/views/SkeletonLoader.vue";
 import EmptyList from "@/views/EmptyList.vue";
+import Tooltip from "@/components/Tooltip.vue";
+import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 
 const router = useRouter();
 const store = useStore();
 const profileStore = useProfileStore();
 const transactionStore = useTransactionStore();
+const authStore = useAuthStore();
+const alertStore = useAlertStore();
 
 const transactions = ref([]);
 const searchQuery = ref("");
@@ -174,6 +215,29 @@ const filteredTransactions = computed(() => {
   });
 });
 
+const handleReminder = async (memoId) => {
+  try {
+    const form = {
+      username: authStore.username,
+      memoId: memoId,
+    };
+
+    const response = await transactionStore.sendReminder(form);
+
+    if (response.status === 1) {
+      alertStore.alert("success", "We have received your reminder.");
+
+      const response = await transactionStore.getTransactionList();
+      transactions.value = response.trxns || [];
+      transactions.value.sort((a, b) => new Date(b.date) - new Date(a.date));
+    } else {
+      alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
+    }
+  } catch (error) {
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
+  }
+};
+
 const navigateToTransactionDetail = async (memoId) => {
   const transaction = transactions.value.find((txn) => txn.memoId === memoId);
 
@@ -199,7 +263,7 @@ const navigateToAddTransaction = () => {
   align-items: center;
   flex-direction: column;
   gap: var(--size-24);
-  min-height: calc(100vh - 140.79px);
+  min-height: calc(100vh - 140px);
 }
 
 .transaction {
@@ -292,8 +356,13 @@ const navigateToAddTransaction = () => {
 
 .transaction .item .detail {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
   width: 100%;
+  gap: var(--size-12);
+}
+
+.transaction .item .detail .first-column {
+  flex-grow: 1;
 }
 
 .transaction .item .detail .first-column .first-row {
@@ -354,7 +423,6 @@ const navigateToAddTransaction = () => {
 .transaction .item .detail .second-column {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   text-align: end;
 }
 
@@ -365,6 +433,41 @@ const navigateToAddTransaction = () => {
 
 .transaction .item .detail .second-column .second-row {
   font-size: var(--text-sm);
+}
+
+.transaction .item .detail .third-column {
+  display: none;
+}
+
+.transaction .item:hover .detail .third-column {
+  display: none;
+}
+
+.transaction .item .detail .third-column.pending svg {
+  color: var(--midnight-violet);
+}
+
+.transaction .item:hover .detail .third-column.pending {
+  display: block;
+}
+
+.transaction .item .detail .third-column.priority svg {
+  color: var(--dark-yellow);
+}
+
+.transaction .item:hover .detail .third-column.priority {
+  display: block;
+}
+
+.transaction .item:hover .detail .third-column .tooltip {
+  display: block;
+}
+
+.transaction .item .detail .third-column svg {
+  min-height: var(--size-32);
+  max-height: var(--size-32);
+  min-width: var(--size-32);
+  max-width: var(--size-32);
 }
 
 @media (max-width: 767px) {
@@ -392,7 +495,12 @@ const navigateToAddTransaction = () => {
     max-width: var(--size-48);
   }
 
+  .transaction .item .detail {
+    justify-content: space-between;
+  }
+
   .transaction .item .detail .first-column {
+    justify-content: space-between;
     max-width: 70%;
     white-space: nowrap;
   }
@@ -405,6 +513,12 @@ const navigateToAddTransaction = () => {
 
   .transaction .item .detail .first-column .second-row span:nth-child(3) {
     display: none;
+  }
+}
+
+@media (max-width: 1279px) {
+  .transaction .item:hover .detail .third-column {
+    display: none !important;
   }
 }
 

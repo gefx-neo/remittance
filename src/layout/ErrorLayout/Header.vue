@@ -1,7 +1,10 @@
 <template>
   <div class="header-area">
     <div class="logo">
-      <a href="/">
+      <a href="/#/dashboard" v-if="authStore.user">
+        <img src="@/assets/logo.jpg" />
+      </a>
+      <a href="/" v-else>
         <img src="@/assets/logo.jpg" />
       </a>
     </div>
@@ -10,9 +13,10 @@
 
 <script setup>
 import { useRouter, RouterLink } from "vue-router";
-import { useStore } from "@/stores/useStore";
+import { useStore, useAuthStore } from "@/stores/index";
 
 const store = useStore();
+const authStore = useAuthStore();
 const router = useRouter();
 
 // Handle dropdown state on route change

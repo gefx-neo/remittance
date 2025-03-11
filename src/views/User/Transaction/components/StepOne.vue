@@ -33,6 +33,7 @@
           :options="paymentTypes"
           :error="errors.paymentType"
           :tooltip="true"
+          :isLongTooltip="true"
           tooltipText="1. No preference: The best payment type for the transaction will be recommended <br/> 2. Local Payment: Domestic payment with lower fees. <br/> 3. Swift SHA (Shared): Sender and beneficiary split bank charges. <br/> 4. Swift BEN (Beneficiary): Beneficiary pays all bank charges. <br/> 5. Swift OUR (US): Sender pays all bank charges, beneficiary gets full amount.
 "
         />
@@ -92,6 +93,7 @@ import {
   useTransactionStore,
 } from "@/stores/index.js";
 import { useRoute, useRouter } from "vue-router";
+import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 
 const props = defineProps({
   modelValue: {
