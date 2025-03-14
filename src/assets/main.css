@@ -110,7 +110,7 @@
   background: var(--dark-grey);
 }
 
-.btn-roundfocus {
+.btn-round:focus {
   background: var(--darker-grey);
 }
 
@@ -245,4 +245,31 @@
 .btn-back:focus:active {
   border: 1px solid var(--darker-grey);
   color: var(--darker-grey);
+}
+
+.btn-moneyreceived {
+  background-image: linear-gradient(to right, #67cc89, #00c8b0);
+  color: #ffffff;
+  font-weight: var(--semi-bold);
+  border-radius: var(--border-md);
+}
+
+.btn-moneyreceived:hover {
+  background-image: linear-gradient(to right, #7edf9d, #33dac0);
+}
+
+.btn-moneyreceived:focus {
+  background-image: linear-gradient(to right, #9aefb5, #66e5d0);
+}
+
+.btn-moneyreceived:focus:not(:focus-visible) {
+  background-image: linear-gradient(to right, #67cc89, #00c8b0);
+}
+
+.btn-moneyreceived:focus:hover {
+  background-image: linear-gradient(to right, #7edf9d, #33dac0);
+}
+
+.btn-moneyreceived:focus:active {
+  background-image: linear-gradient(to right, #9aefb5, #66e5d0);
 }

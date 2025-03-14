@@ -7,9 +7,7 @@
     >
       <div class="title">Transaction Summary</div>
       <div class="icon">
-        <font-awesome-icon
-          :icon="['fa', isAccordionOpen ? 'chevron-up' : 'chevron-down']"
-        />
+        <font-awesome-icon :icon="['fa', 'chevron-down']" />
       </div>
     </div>
     <div class="accordion-content" :class="{ open: isAccordionOpen }">
@@ -27,7 +25,7 @@
         <div class="item">
           <div class="label">Exchange rate</div>
           <div class="value">
-            1 {{ sendingCurrency }} = {{ formatNumber(rate) }}
+            1 {{ sendingCurrency }} = {{ rate }}
             {{ receivingCurrency }}
           </div>
         </div>
@@ -106,6 +104,11 @@ const toggleAccordion = () => {
 
 .header .title {
   font-weight: var(--semi-bold);
+}
+
+.header.open svg {
+  transform: rotate(180deg);
+  transition: transform 0.3s cubic-bezier(0, 0.94, 0.62, 1);
 }
 
 .header svg {

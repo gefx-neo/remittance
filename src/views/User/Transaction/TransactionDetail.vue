@@ -29,14 +29,37 @@
             Send reminder
           </ButtonAPI>
           <ButtonAPI
-            v-if="transactionDetail.status === 1"
-            @click="redirectToTransaction"
-            class="btn-red"
+            v-if="transactionDetail.status === 1 && !acknowledge"
+            @click="store.openModal"
+            class="btn-moneyreceived"
             :disabled="store.isLoading"
             :customLoader="true"
           >
-            Send again
+            Money received
           </ButtonAPI>
+          <div
+            v-if="transactionDetail.status === 1 && acknowledge"
+            class="money-received"
+          >
+            Money received
+          </div>
+          <Modal
+            v-if="transactionDetail.status === 1"
+            :isModalOpen="store.isModalOpen"
+            :title="'Customer acknowledgement'"
+            :showAction="true"
+            @close="store.closeModal"
+            @submit="handleAcknowledgement"
+            @cancel="store.closeModal"
+          >
+            <template #body>
+              <p>
+                By confirming this action, you acknowledge that the full amount
+                has been received and confirm that no further action is
+                required.
+              </p>
+            </template>
+          </Modal>
         </div>
         <div class="item-section">
           <div class="detail info">
@@ -162,7 +185,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   useAlertStore,
@@ -186,6 +209,7 @@ import { ButtonAPI } from "@/components/Form";
 import Tooltip from "@/components/Tooltip.vue";
 import SkeletonLoader from "@/views/SkeletonLoader.vue";
 import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
+import Modal from "@/components/Modal/Modal.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -199,6 +223,7 @@ const authStore = useAuthStore();
 const alertStore = useAlertStore();
 const transactionDetail = ref(null);
 const beneficiaryDetail = ref(null);
+const acknowledge = ref(false);
 
 const handleReminder = async () => {
   try {
@@ -230,59 +255,24 @@ const handleReminder = async () => {
     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 };
-const redirectToTransaction = () => {
-  const { currency } = beneficiaryDetail.value;
-  const beneId = transactionDetail.value.beneficiaryId;
 
-  // Update selectedBeneficiary in the store using available details
-  beneficiaryStore.setSelectedBeneficiary({
-    id: beneId,
-    currency: currency,
-  });
-  transactionStore.setTransactionData({
-    sendingAmount:
-      transactionDetail.value.payAmount - transactionDetail.value.fee,
-    receivingAmount: transactionDetail.value.getAmount,
-    sendingCurrency: transactionDetail.value.payCurrency,
-    receivingCurrency: transactionDetail.value.getCurrency,
-  });
-  // Redirect to Add Transaction page
-  router.push({
-    path: "/transaction/addtransaction",
-    query: {
-      fromTransactionDetail: "true",
-      beneId,
-      currency,
-    },
-  });
+const handleAcknowledgement = async () => {
+  try {
+    const form = {
+      username: authStore.username,
+      memoId: memoId,
+    };
+
+    const response = await transactionStore.sendAcknowledgement(form);
+
+    if (response.status === 1) {
+    }
+  } catch (error) {
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
+  } finally {
+    store.closeModal();
+  }
 };
-
-// const redirectToTransaction = () => {
-//   const beneId = transactionDetail.value.beneficiaryId;
-//   const currency = beneficiaryDetail.value.currency;
-
-//   beneficiaryStore.setSelectedBeneficiary({
-//     id: beneId,
-//     currency: currency,
-//   });
-//   // Set transaction data
-//   // transactionStore.setTransactionData({
-//   //   sendingAmount: transactionDetail.value.payAmount,
-//   //   receivingAmount: transactionDetail.value.getAmount,
-//   //   sendingCurrency: transactionDetail.value.payCurrency,
-//   //   receivingCurrency: transactionDetail.value.getCurrency,
-//   // });
-
-//   // Redirect to Add Transaction page
-//   router.push({
-//     path: "/transaction/addtransaction",
-//     query: {
-//       fromTransactionDetail: "true",
-//       beneId,
-//       currency,
-//     },
-//   });
-// };
 
 onMounted(async () => {
   try {
@@ -290,6 +280,8 @@ onMounted(async () => {
     const response = await transactionStore.getTransactionDetail(memoId);
     if (response?.trx) {
       transactionDetail.value = response.trx;
+
+      acknowledge.value = response.acknowledge;
 
       // Fetch beneficiary details using beneficiaryId
       const beneficiaryId = transactionDetail.value.beneficiaryId;
@@ -378,6 +370,11 @@ const goBack = () => {
   align-items: center;
   gap: var(--size-12);
   color: var(--grey);
+}
+
+.transaction .user-section .money-received {
+  color: var(--black);
+  font-weight: var(--semi-bold);
 }
 
 .transaction .item-section {

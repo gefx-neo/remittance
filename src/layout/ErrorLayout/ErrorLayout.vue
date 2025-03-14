@@ -1,13 +1,17 @@
 <template>
   <div class="page-layout">
     <Header />
-    <RouterView />
+    <div class="main-container">
+      <RouterView />
+      <Footer />
+    </div>
   </div>
 </template>
 
 <script setup>
 import { RouterView } from "vue-router";
 import Header from "./Header.vue";
+import Footer from "./Footer.vue";
 </script>
 
 <style scoped>
@@ -21,6 +25,10 @@ import Header from "./Header.vue";
   width: 100%;
 }
 
+.main-container {
+  padding: 0 var(--size-24);
+}
+
 /* DESKTOP */
 @media (min-width: 1023px) {
   .page-layout {
@@ -29,4 +37,20 @@ import Header from "./Header.vue";
   }
 }
 /* DESKTOP */
+
+/* TABLET */
+@media (max-width: 1023px) {
+  .main-container {
+    padding-bottom: var(--size-24);
+  }
+}
+/* TABLET */
+
+/* MOBILE  */
+@media (max-width: 767px) {
+  .main-container {
+    padding-bottom: var(--size-16);
+  }
+}
+/* MOBILE */
 </style>

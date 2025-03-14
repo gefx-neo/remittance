@@ -212,6 +212,43 @@ export const useTransactionStore = defineStore("transaction", {
         store.isLoading = false;
       }
     },
+    async sendAcknowledgement(payload) {
+      const store = useStore();
+      const authStore = useAuthStore();
+      const alertStore = useAlertStore();
+      store.isLoading = true;
+
+      try {
+        // Construct the query string
+        const queryParams = new URLSearchParams({
+          username: payload.username || authStore.username,
+          memoId: payload.memoId,
+        }).toString();
+
+        // Full URL with query parameters
+        const url = `/transaction/acknowledge?${queryParams}`;
+
+        // Send the POST request with any additional data in the body
+        const response = await apiService.postRequest(url, payload.data || {}, {
+          format: "json", // Adjust format if needed
+        });
+
+        if (response.status === 1) {
+          if (response.token) {
+            authStore.refreshSession(response.token, authStore.username);
+          }
+        } else {
+          alertStore.alert("error", response.message);
+        }
+
+        return response;
+      } catch (error) {
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
+        throw error;
+      } finally {
+        store.isLoading = false;
+      }
+    },
     async getRate() {
       const authStore = useAuthStore();
       const alertStore = useAlertStore();

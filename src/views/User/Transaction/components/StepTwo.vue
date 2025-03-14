@@ -594,7 +594,6 @@ const navigateToAddBeneficiary = () => {
   border: 1px solid var(--light-grey);
   border-radius: var(--border-md);
   cursor: pointer;
-  transition: background-color 0.3s ease;
 }
 
 .beneficiary .item-section .item .favourite-group {

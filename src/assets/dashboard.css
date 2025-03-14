@@ -330,6 +330,17 @@
 .currency .item .exchange-item:focus:active {
   background: #bfbfbf;
 }
+
+.currency .item .exchange-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: var(--size-32);
+  max-width: var(--size-32);
+  min-height: var(--size-32);
+  max-height: var(--size-32);
+}
+
 .currency .item .exchange-item svg {
   min-width: var(--size-12);
   max-width: var(--size-12);
@@ -340,6 +351,7 @@
 
 .currency .item .rate {
   font-size: var(--text-sm);
+  font-weight: var(--semi-bold);
 }
 
 .onboarding {

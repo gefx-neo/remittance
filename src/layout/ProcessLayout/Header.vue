@@ -221,7 +221,7 @@ svg {
 
 .user .arrow-down.open {
   transform: rotate(180deg);
-  transition: transform 0.35s cubic-bezier(0, 0.94, 0.62, 1);
+  transition: transform 0.3s cubic-bezier(0, 0.94, 0.62, 1);
 }
 
 .dropdown-menu {

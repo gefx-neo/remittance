@@ -75,9 +75,7 @@ const isFromBeneficiaryDetail = ref(
 );
 // const isFromTransactionList = ref(false);
 const isFromDashboard = ref(route.query.fromDashboard === "true");
-const isFromTransactionDetail = ref(
-  route.query.fromTransactionDetail === "true"
-);
+const isfromTransactionList = ref(route.query.fromTransactionList === "true");
 const handleSubmit = async () => {
   form.value.username = authStore.username;
 
@@ -243,7 +241,7 @@ onMounted(async () => {
     const query = router.currentRoute.value.query;
     isFromBeneficiaryDetail.value = query.fromBeneficiaryDetail === "true";
     isFromDashboard.value = query.fromDashboard === "true";
-    isFromTransactionDetail.value = query.fromTransactionDetail === "true";
+    isfromTransactionList.value = query.fromTransactionList === "true";
     const transactionData = localStorage.getItem("transaction");
 
     // Group 1
@@ -252,7 +250,7 @@ onMounted(async () => {
     } else if (
       !isFromDashboard.value &&
       !isFromBeneficiaryDetail.value &&
-      !isFromTransactionDetail.value
+      !isfromTransactionList.value
     ) {
       console.log("from new trans");
       const firstTimeFromNewTransaction = sessionStorage.getItem(
@@ -274,7 +272,7 @@ onMounted(async () => {
         const getCurrency = query.currency;
         await transactionStore.getLockedRate(payCurrency, getCurrency);
       }
-    } else if (isFromTransactionDetail.value) {
+    } else if (isfromTransactionList.value) {
       console.log("hi call locked amonut for trans detial");
       const payCurrency = transactionStore.sendingCurrency;
       const getCurrency = transactionStore.receivingCurrency;

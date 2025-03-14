@@ -170,8 +170,8 @@ router.afterEach(() => {
   transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
-  width: 400px;
-  max-width: 400px;
+  width: 500px;
+  max-width: 500px;
   background: var(--white);
   border-radius: var(--border-lg);
   transition: opacity 0.3s ease-in-out;
@@ -280,6 +280,16 @@ router.afterEach(() => {
 
   .modal .body {
     max-height: unset;
+  }
+
+  .modal .header h2 {
+    display: flex;
+    align-items: center;
+    font-size: var(--text-lg);
+  }
+
+  .modal .header .btn-round {
+    display: none;
   }
 }
 </style>

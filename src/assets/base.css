@@ -146,8 +146,8 @@ svg,
 tbody tr {
   font-family: "Work Sans", sans-serif;
   transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
-    border 0.15s ease-in-out fill 0.15s ease-in-out;
-  transition: box-shadow 0.3s ease-in-out;
+    border 0.15s ease-in-out, fill 0.15s ease-in-out,
+    box-shadow 0.3s ease-in-out, background 0.15s ease-in-out;
 }
 
 .backdrop {

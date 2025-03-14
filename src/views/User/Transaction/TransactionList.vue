@@ -118,6 +118,21 @@
                 />
               </Tooltip>
             </div>
+            <div
+              class="third-column"
+              :class="{
+                completed:
+                  getTransactionStatus(transaction.status) === 'Completed',
+              }"
+            >
+              <Tooltip text="Send again" position="right">
+                <font-awesome-icon
+                  :icon="['fas', 'paper-plane']"
+                  @click.stop
+                  @click="redirectToTransaction(transaction)"
+                />
+              </Tooltip>
+            </div>
           </div>
         </div>
       </div>
@@ -160,6 +175,7 @@ import {
   useStore,
   useProfileStore,
   useTransactionStore,
+  useBeneficiaryStore,
   useAuthStore,
   useAlertStore,
 } from "@/stores/index";
@@ -178,6 +194,7 @@ const router = useRouter();
 const store = useStore();
 const profileStore = useProfileStore();
 const transactionStore = useTransactionStore();
+const beneficiaryStore = useBeneficiaryStore();
 const authStore = useAuthStore();
 const alertStore = useAlertStore();
 
@@ -236,6 +253,32 @@ const handleReminder = async (memoId) => {
   } catch (error) {
     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
+};
+const redirectToTransaction = (transaction) => {
+  const beneId = transaction.beneficiaryId;
+  const currency = transaction.getCurrency;
+
+  beneficiaryStore.setSelectedBeneficiary({
+    id: beneId,
+    currency: currency,
+  });
+
+  transactionStore.setTransactionData({
+    sendingAmount: transaction.payAmount - transaction.fee,
+    receivingAmount: transaction.getAmount,
+    sendingCurrency: transaction.payCurrency,
+    receivingCurrency: transaction.getCurrency,
+  });
+
+  // Redirect to Add Transaction page with transaction details
+  router.push({
+    path: "/transaction/addtransaction",
+    query: {
+      fromTransactionList: "true",
+      beneId,
+      currency,
+    },
+  });
 };
 
 const navigateToTransactionDetail = async (memoId) => {
@@ -461,6 +504,14 @@ const navigateToAddTransaction = () => {
 
 .transaction .item:hover .detail .third-column .tooltip {
   display: block;
+}
+
+.transaction .item:hover .detail .third-column.completed {
+  display: block;
+}
+
+.transaction .item .detail .third-column.completed svg {
+  color: var(--crimson-red);
 }
 
 .transaction .item .detail .third-column svg {

@@ -192,14 +192,7 @@
                 </div>
               </div>
 
-              <div
-                class="rate"
-                :class="[
-                  rate.isIncreased ? 'increased' : '',
-                  rate.isDecreased ? 'decreased' : '',
-                  rate.animateClass,
-                ]"
-              >
+              <div class="rate">
                 {{ rate.rate }}
               </div>
             </div>
@@ -235,7 +228,7 @@
       </div>
 
       <div class="button-section">
-        <div class="rate-group">1 SGD = 0.30 MYR</div>
+        <div class="rate-group">1 SGD = 3.33 MYR</div>
         <div class="button-group">
           <button type="button" class="btn-red standard-button">
             Calculate
@@ -326,6 +319,7 @@ import {
   getTransactionStatus,
   formatDateTime,
 } from "@/utils/transactionUtils.js";
+import { getCurrencySymbol, formatCurrency } from "@/utils/currencyUtils";
 import SkeletonLoader from "@/views/SkeletonLoader.vue";
 import EmptyList from "@/views/EmptyList.vue";
 import { useEnvironment } from "@/composables/useEnvironment";
@@ -483,6 +477,7 @@ const handleSubmit = async () => {
     );
   }
 };
+
 onMounted(async () => {
   await profileStore.getProfileDetail();
   Object.assign(profileDetails, profileStore.profileDetails); // Assign store data to reactive object
@@ -492,7 +487,6 @@ onMounted(async () => {
   }
 
   try {
-    // Call all APIs concurrently
     const [lockedRateResponse, transactionListResponse, rateResponse] =
       await Promise.all([
         transactionStore.getLockedRate(
@@ -503,14 +497,12 @@ onMounted(async () => {
         transactionStore.getRate(),
       ]);
 
-    // Process transaction list response
     if (transactionListResponse?.trxns) {
       transactions.value = transactionListResponse.trxns
         .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .slice(0, 5); // Limit to 5 transactions
+        .slice(0, 5);
     }
 
-    // Process exchange rates (keeping functionality identical)
     if (rateResponse?.status === 1 && rateResponse?.rates) {
       const allowedCurrencies =
         ENV_TYPE === "PRODUCTION"
@@ -529,9 +521,11 @@ onMounted(async () => {
 
           return {
             currency,
-            rate: isToggled
-              ? (1 / previousRates.value[currency]).toFixed(4) // Inverted rate
-              : previousRates.value[currency].toFixed(4),
+            rate: formatCurrency(
+              previousRates.value[currency],
+              currency,
+              isToggled
+            ), // Just the rate
           };
         })
         .sort(
@@ -546,47 +540,19 @@ onMounted(async () => {
   }
 });
 
-// onMounted(async () => {
-//   await profileStore.getProfileDetail();
-//   Object.assign(profileDetails, profileStore.profileDetails); // Assign store data to reactive object
-//   if (profileDetails.userStatus !== 3) {
-//     return;
-//   }
-
-//   try {
-//     // Call all APIs concurrently
-//     const [lockedRateResponse, transactionListResponse, rateResponse] =
-//       await Promise.all([
-//         transactionStore.getLockedRate(
-//           form.sendingCurrency,
-//           form.receivingCurrency
-//         ),
-//         transactionStore.getTransactionList(),
-//       ]);
-
-//     transactions.value = transactionListResponse.trxns
-//       .sort((a, b) => new Date(b.date) - new Date(a.date))
-//       .slice(0, 5); // Limit to 5 transactions
-
-//     fetchRates();
-//   } catch (error) {
-//     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
-//   }
-// });
-
 // Track toggle state for each currency
 const rateToggles = ref({}); // Object to store toggle state
 
 const toggleRate = async (currency) => {
-  rateToggles.value[currency] = !rateToggles.value[currency]; // Toggle the state
+  rateToggles.value[currency] = !rateToggles.value[currency];
 
   await nextTick(); // Wait for Vue to apply updates
 
   const rateObj = rates.value.find((rate) => rate.currency === currency);
   if (rateObj) {
     rateObj.rate = rateToggles.value[currency]
-      ? (1 / previousRates.value[currency]).toFixed(4) // Inverted rate
-      : previousRates.value[currency].toFixed(4);
+      ? formatCurrency(1 / previousRates.value[currency], currency, true) // Reciprocal uses unique currency symbol
+      : formatCurrency(previousRates.value[currency], currency, false); // Normal uses "S$"
   }
 };
 
