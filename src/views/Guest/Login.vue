@@ -93,15 +93,17 @@
 <script setup>
 import { onBeforeRouteLeave } from "vue-router";
 import { ref, reactive } from "vue";
-import { useAuthStore } from "@/stores/authStore";
 import { useStore } from "@/stores/useStore";
 import { validationService } from "@/services/validationUserService.js";
 import ModalTerms from "./components/ModalTerms.vue";
 import ModalPolicy from "./components/ModalPolicy.vue";
 import { ButtonAPI } from "@/components/Form";
+import { useAlertStore, useAuthStore } from "@/stores/index.js";
+import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 
 const authStore = useAuthStore();
 const store = useStore();
+const alertStore = useAlertStore();
 
 const step = ref(1);
 const showPassword = ref(false);
@@ -132,7 +134,6 @@ const handleStep1 = async () => {
 
   // Prevent submit if error exists
   if (Object.keys(errors).length > 0) {
-    console.log("Validation errors:", errors);
     return;
   }
 
@@ -142,10 +143,10 @@ const handleStep1 = async () => {
     if (response.status === 1) {
       step.value = 2;
     } else {
-      console.log("Failed to get reqKey:", authStore.error);
+      alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
     }
   } catch (error) {
-    console.log("Failed to get reqKey:", authStore.error);
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 };
 
@@ -156,14 +157,13 @@ const handleStep2 = async () => {
   Object.assign(errors, validationErrors);
 
   if (Object.keys(errors).length > 0) {
-    console.log("Validation errors:", errors);
     return;
   }
 
   try {
     await authStore.login(form);
   } catch (error) {
-    console.log("Login failed:", error);
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 };
 

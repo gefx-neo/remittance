@@ -272,11 +272,15 @@
 
     <div
       class="onboarding-pending"
-      v-if="$isNotVerifiedUser(profileDetails.userStatus)"
+      v-if="
+        $isPendingUser(profileDetails.userStatus) ||
+        $isRejectedUser(profileDetails.userStatus)
+      "
     >
       <div class="account-locked">
-        <h1>Access restricted</h1>
         <div v-if="$isPendingUser(profileDetails.userStatus)">
+          <h1>Access restricted</h1>
+
           <span
             >Kindly hold on while your account is awaiting management
             approval.</span
@@ -284,6 +288,8 @@
           <p>For further assistance, please contact customer support.</p>
         </div>
         <div v-if="$isRejectedUser(profileDetails.userStatus)">
+          <h1>Access restricted</h1>
+
           <span>Your account verification has been rejected.</span>
 
           <p>For further assistance, please contact customer support.</p>
@@ -381,7 +387,7 @@ const updateSendingCurrency = async (currency) => {
       }
     }
   } catch (error) {
-    console.error("Failed to update sending currency:", error);
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 };
 
@@ -410,7 +416,7 @@ const updateReceivingCurrency = async (currency) => {
       }
     }
   } catch (error) {
-    console.error("Failed to update receiving currency:", error);
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 };
 
@@ -432,7 +438,6 @@ const handleSubmit = async () => {
 
   const schema = formValidation(form);
   const isValid = validateForm(form, schema);
-  console.log("Validation Errors:", errors);
 
   if (!isValid) {
     if (form.sendingAmount === 0 || form.receivingAmount === 0) {
@@ -536,7 +541,7 @@ onMounted(async () => {
     }
   } catch (error) {
     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
-    console.error("Error fetching data:", error);
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 });
 
@@ -565,7 +570,7 @@ const navigateToTransactionDetail = async (memoId) => {
       params: { memoId: transaction.memoId },
     });
   } else {
-    console.error("Transaction not found with memoId:", memoId);
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 };
 

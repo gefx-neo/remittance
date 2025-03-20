@@ -66,11 +66,6 @@ const selectedCountryName = computed(() => {
 // Update country ID as an integer and emit it to the parent
 
 const updateCountry = (countryId) => {
-  console.log(
-    "InputBeneficiaryCountry: Received country ID from BeneficiaryCountryDropdown:",
-    countryId
-  ); // Log received ID
-
   selectedCountry.value = countryId; // No parsing, directly set the value
   emit("update:modelValue", countryId); // Emit the ID as is
   isDropdownOpen.value = false; // Close the dropdown after selection

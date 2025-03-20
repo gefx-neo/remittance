@@ -326,6 +326,7 @@ import {
 } from "@/utils/transactionUtils.js";
 import SkeletonLoader from "@/views/SkeletonLoader.vue";
 import EmptyList from "@/views/EmptyList.vue";
+import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 
 const route = useRoute();
 const router = useRouter();
@@ -365,10 +366,10 @@ const handleSubmit = async () => {
 
       window.location.href = "/#/beneficiary";
     } else {
-      alertStore.alert("error", "Failed to delete beneficiary");
+      alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
     }
   } catch (error) {
-    alertStore.alert("error", "Failed to delete beneficiary");
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 };
 
@@ -390,7 +391,7 @@ onMounted(async () => {
       transactions.value.sort((a, b) => new Date(b.date) - new Date(a.date));
     }
   } catch (error) {
-    console.error("Error fetching data:", error);
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 });
 
@@ -424,7 +425,7 @@ const navigateToTransactionDetail = async (memoId) => {
       params: { memoId: transaction.memoId },
     });
   } else {
-    console.error("Transaction not found with memoId:", memoId);
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 };
 

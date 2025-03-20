@@ -159,7 +159,6 @@ const isPriorityProcessing = computed(() => {
 onMounted(async () => {
   await profileStore.getProfileDetail();
   Object.assign(profileDetails, profileStore.profileDetails); // Assign store data to reactive object
-  console.log(profileDetails);
 });
 
 const navigateToAccountVerification = () => {
@@ -258,6 +257,10 @@ const navigateToAccountVerification = () => {
 
 .profile .user-section .user-group span:nth-child(3) .tooltip.rejected svg {
   color: var(--dark-crimson-red);
+}
+
+.profile .user-section button {
+  padding: var(--size-dropdown-item);
 }
 
 .profile {

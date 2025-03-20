@@ -205,7 +205,6 @@ const profileDetails = reactive({});
 onMounted(async () => {
   await profileStore.getProfileDetail();
   Object.assign(profileDetails, profileStore.profileDetails); // Assign store data to reactive object
-  console.log(profileDetails);
   if (profileDetails.userStatus !== 3) {
     return;
   }
@@ -290,7 +289,7 @@ const navigateToTransactionDetail = async (memoId) => {
       params: { memoId: transaction.memoId },
     });
   } else {
-    console.error("Transaction not found with memoId:", memoId);
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 };
 

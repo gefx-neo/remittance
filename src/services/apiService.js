@@ -49,7 +49,6 @@ axiosInstance.interceptors.response.use(
       };
 
       if (error.response.status === 401) {
-        console.log("401 Unauthorized detected, logging out...");
         const authStore = useAuthStore();
         authStore.logout();
       }

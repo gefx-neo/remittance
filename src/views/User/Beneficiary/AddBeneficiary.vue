@@ -49,6 +49,7 @@ import StepTwo from "./components/StepTwo.vue";
 import StepThree from "./components/StepThree.vue";
 import { useValidation } from "@/composables/useValidation";
 import { useRouter } from "vue-router";
+import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 
 const router = useRouter();
 const beneficiaryStore = useBeneficiaryStore();
@@ -95,23 +96,12 @@ const handleSubmit = async () => {
 
       // Log the time before the upload starts
       const fileStartTime = new Date();
-      console.log(
-        `Uploading ${newFileName} started at: ${fileStartTime.toLocaleTimeString()}`
-      );
 
       // Upload the file
       await beneficiaryStore.uploadFiles(formData);
 
       // Log the time after the upload finishes
       const fileEndTime = new Date();
-      console.log(
-        `Finished uploading ${newFileName} at: ${fileEndTime.toLocaleTimeString()}`
-      );
-      console.log(
-        `Time taken to upload ${newFileName}: ${
-          (fileEndTime - fileStartTime) / 1000
-        } seconds`
-      );
     };
 
     // Helper function to gather all file upload promises and return file names
@@ -158,11 +148,6 @@ const handleSubmit = async () => {
     // Await all upload promises (if any)
     await Promise.all(allUploadPromises);
 
-    console.log(
-      "Form value after file uploads:",
-      JSON.stringify(form.value, null, 2)
-    );
-
     // After successful uploads, add the beneficiary
     const beneficiaryForm = {
       username: form.value.username,
@@ -185,10 +170,10 @@ const handleSubmit = async () => {
       // Default fallback redirection
       window.location.href = "/#/beneficiary";
     } else {
-      console.error("Error adding beneficiary:", response.message);
+      alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
     }
   } catch (error) {
-    console.error("Error during file upload or beneficiary addition:", error);
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 };
 

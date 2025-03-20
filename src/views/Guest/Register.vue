@@ -106,14 +106,17 @@ import { onBeforeRouteLeave } from "vue-router";
 import { ref, reactive } from "vue";
 import { useRegisterStore } from "@/stores/registerStore";
 import { useStore } from "@/stores/useStore";
+import { useAlertStore } from "@/stores/useAlertStore";
 import { validationService } from "@/services/validationUserService.js";
 import Modal from "@/components/Modal/Modal.vue";
 import ModalTerms from "./components/ModalTerms.vue";
 import ModalPolicy from "./components/ModalPolicy.vue";
 import { ButtonAPI } from "@/components/Form";
+import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 
 const registerStore = useRegisterStore();
 const store = useStore();
+const alertStore = useAlertStore();
 
 const form = reactive({
   surname: "",
@@ -143,7 +146,6 @@ const handleRegister = async () => {
 
   // Prevent submit if error exists
   if (Object.keys(errors).length > 0) {
-    console.error("Validation errors:", errors);
     return;
   }
 
@@ -153,10 +155,10 @@ const handleRegister = async () => {
     if (response.status === 1) {
       store.openModal();
     } else {
-      console.error("Registration failed:", registerStore.error);
+      alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
     }
   } catch (error) {
-    console.error("Registration failed:", registerStore.error);
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 };
 

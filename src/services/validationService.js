@@ -75,7 +75,6 @@ export const validationService = {
       const { value, label, rules } = trimmedSchema[field];
 
       if (!rules || !Array.isArray(rules)) {
-        console.warn(`No rules defined for field: ${field}`);
         return;
       }
 

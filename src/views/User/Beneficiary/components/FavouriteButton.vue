@@ -21,6 +21,7 @@
 import { ref } from "vue";
 import { useBeneficiaryStore } from "@/stores/beneficiaryStore";
 import { useAlertStore, useAuthStore } from "@/stores/index.js";
+import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 
 const props = defineProps({
   beneficiaryId: {
@@ -63,7 +64,7 @@ const handleToggle = async () => {
       window.location.reload();
     }
   } catch (error) {
-    console.error("Unexpected error during favourite status update:", error);
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 };
 </script>

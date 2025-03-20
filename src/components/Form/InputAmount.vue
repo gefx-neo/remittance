@@ -141,7 +141,7 @@ const onInput = (event) => {
   }
 
   // Debug: Show the value being entered
-  console.log("User Input (raw):", inputValue);
+  // console.log("User Input (raw):", inputValue);
 
   // Update the input field value
   formattedValue.value = inputValue;
@@ -156,7 +156,7 @@ const onInput = (event) => {
       const rawValue = parseFloat(formattedValue.value.replace(/,/g, "")) || 0;
 
       // Debug: Show the parsed numeric value being emitted
-      console.log("Emitted Value (numeric):", rawValue);
+      // console.log("Emitted Value (numeric):", rawValue);
 
       emit("update:modelValue", rawValue); // Emit numeric value
       formattedValue.value = formatNumber(rawValue); // Update display value
@@ -170,7 +170,7 @@ const onBlur = () => {
   const rawValue = parseFloat(formattedValue.value.replace(/,/g, "")) || 0;
 
   // Debug: Show the value being emitted on blur
-  console.log("Blur Event Emitted Value (numeric):", rawValue);
+  // console.log("Blur Event Emitted Value (numeric):", rawValue);
 
   formattedValue.value = formatNumber(rawValue); // Update with formatted value
   emit("update:modelValue", rawValue); // Emit numeric value
@@ -208,15 +208,12 @@ watch(
 
 watch(
   () => props.modelCurrency,
-  (newCurrency) => {
-    console.log("Updated modelCurrency in InputAmount:", newCurrency);
-  },
+  (newCurrency) => {},
   { immediate: true }
 );
 
 watchEffect(() => {
   selectedCurrency.value = props.modelCurrency || "";
-  console.log("Selected currency updated:", selectedCurrency.value);
 });
 
 onMounted(() => {

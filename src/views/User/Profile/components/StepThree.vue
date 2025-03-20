@@ -18,7 +18,7 @@
         label="Photo ID (Passport and valid Working Pass for non-Singaporean)"
         id="docPhotoID"
         v-model="corporateForm.docPhotoID"
-        :multiple="false"
+        :multiple="true"
         :error="errors.docPhotoID"
         @update:modelValue="(files) => handleFileUpload('docPhotoID', files)"
       />
@@ -36,7 +36,7 @@
         label="Photocopy of Identity Card (or Passport for non-Singaporean) with photograph of Director(s)"
         id="docDirectorIC"
         v-model="corporateForm.docDirectorIC"
-        :multiple="false"
+        :multiple="true"
         :error="errors.docDirectorIC"
         @update:modelValue="(files) => handleFileUpload('docDirectorIC', files)"
       />
@@ -60,7 +60,7 @@
         label="Photocopy of IC (or valid Working Pass for non-Singaporean)"
         id="docIC"
         v-model="individualForm.docIC"
-        :multiple="false"
+        :multiple="true"
         :error="errors.docIC"
         @update:modelValue="(files) => handleFileUpload('docIC', files)"
       />

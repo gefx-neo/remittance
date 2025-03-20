@@ -414,7 +414,6 @@ onMounted(async () => {
   await nextTick(); // ✅ Ensure Vue updates the DOM before running logic
 
   const { beneId } = router.currentRoute.value.query;
-  console.log("beneId from tdteail", beneId);
   if (beneId) {
     await syncBeneficiaryFromQuery(); // ✅ Ensure sync function fully executes
   }

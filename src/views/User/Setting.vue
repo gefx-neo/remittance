@@ -123,6 +123,7 @@ import { onBeforeRouteLeave } from "vue-router";
 import { ref, reactive, onMounted, watch } from "vue";
 import { useStore } from "@/stores/useStore";
 import { useForgotPasswordStore } from "@/stores/forgotPasswordStore";
+import { useAlertStore } from "@/stores/useAlertStore";
 import Modal from "@/components/Modal/Modal.vue";
 import { ButtonAPI } from "@/components/Form";
 import { getLocalStorageWithExpiry } from "@/services/localStorageService.js";
@@ -130,6 +131,7 @@ import { validationService } from "@/services/validationUserService.js";
 
 const store = useStore();
 const forgotPasswordStore = useForgotPasswordStore();
+const alertStore = useAlertStore();
 
 const confirmNewPassword = ref("");
 const showPassword = ref(false);
@@ -171,10 +173,10 @@ const handleChangePassword = async () => {
     if (response.status === 1) {
       openPasswordModal();
     } else {
-      console.error("Change password failed:", forgotPasswordStore.error);
+      alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
     }
   } catch (error) {
-    console.error("Change password failed:", error);
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 };
 
@@ -187,7 +189,6 @@ const handleSetNewPassword = async () => {
   // Check if confirmNewPassword is empty
   if (confirmNewPassword.value === "") {
     errors.confirmNewPassword = "Please confirm your new password.";
-    console.error("Confirm new password is required");
   }
 
   // Check for password mismatch
@@ -196,11 +197,9 @@ const handleSetNewPassword = async () => {
     confirmNewPassword.value !== ""
   ) {
     errors.confirmNewPassword = "Passwords do not match.";
-    console.error("Passwords do not match");
   }
 
   if (Object.keys(errors).length > 0) {
-    console.error("Validation errors:", errors);
     return;
   }
 
@@ -211,10 +210,10 @@ const handleSetNewPassword = async () => {
       closePasswordModal();
       openSuccessModal();
     } else {
-      console.error("Set new password failed:", forgotPasswordStore.error);
+      alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
     }
   } catch (error) {
-    console.error("Password reset failed:", error);
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 };
 
@@ -227,10 +226,10 @@ const handleSendAgain = async () => {
     if (response.status === 1) {
       store.startResendTimer();
     } else {
-      console.error("Send again failed:", forgotPasswordStore.error);
+      alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
     }
   } catch (error) {
-    console.error("Send again failed:", error);
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 };
 
@@ -244,14 +243,11 @@ watch(
   (isOpen) => {
     if (isOpen) {
       // Modal is opened, fetch encryption keys
-      console.log("Fetching encryption keys...");
       forgotPasswordStore
         .getReqKey(username.value)
-        .then(() => {
-          console.log("Encryption keys fetched successfully.");
-        })
+        .then(() => {})
         .catch((error) => {
-          console.error("Fetching encryption keys failed:", error);
+          alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         });
     } else {
       // Modal is closed, reset the form and errors

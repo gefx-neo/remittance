@@ -25,8 +25,6 @@ export const useBeneficiaryStore = defineStore("beneficiary", {
           if (response.token) {
             authStore.refreshSession(response.token, authStore.username);
           }
-
-          console.log("beneficiary response token", response.token);
         } else {
           alertStore.alert("error", response.message);
         }
@@ -53,8 +51,6 @@ export const useBeneficiaryStore = defineStore("beneficiary", {
           if (response.token) {
             authStore.refreshSession(response.token, authStore.username);
           }
-
-          console.log("beneficiary response token", response.token);
         } else {
           alertStore.alert("error", response.message);
         }
@@ -106,8 +102,6 @@ export const useBeneficiaryStore = defineStore("beneficiary", {
           if (response.token) {
             authStore.refreshSession(response.token, payload.username);
           }
-
-          console.log("beneficiary response token", response.token);
         } else {
           alertStore.alert("error", response.message);
         }
@@ -132,8 +126,6 @@ export const useBeneficiaryStore = defineStore("beneficiary", {
         );
 
         if (response.status === 1) {
-          console.log("Beneficiary status updated successfully", response);
-
           if (response.token) {
             authStore.refreshSession(response.token, payload.username);
           }
@@ -163,8 +155,6 @@ export const useBeneficiaryStore = defineStore("beneficiary", {
           if (response.token) {
             authStore.refreshSession(response.token, authStore.username);
           }
-
-          console.log("beneficiary response token", response.token);
         } else {
           alertStore.alert("error", response.message);
         }

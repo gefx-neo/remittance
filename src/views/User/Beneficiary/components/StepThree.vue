@@ -111,7 +111,6 @@ const handleSubmit = () => {
   const schema = formValidation(localForm);
 
   const isValid = validateForm(localForm, schema);
-  console.log("Validation Errors:", errors);
 
   if (isValid) {
     emit("submit");

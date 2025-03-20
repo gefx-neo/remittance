@@ -106,23 +106,12 @@ const handleSubmit = async () => {
 
     // Log the time before the upload starts
     const fileStartTime = new Date();
-    console.log(
-      `Uploading ${newFileName} started at: ${fileStartTime.toLocaleTimeString()}`
-    );
 
     // Upload the file
     await transactionStore.uploadFiles(formData);
 
     // Log the time after the upload finishes
     const fileEndTime = new Date();
-    console.log(
-      `Finished uploading ${newFileName} at: ${fileEndTime.toLocaleTimeString()}`
-    );
-    console.log(
-      `Time taken to upload ${newFileName}: ${
-        (fileEndTime - fileStartTime) / 1000
-      } seconds`
-    );
   };
 
   // Helper function to gather all file upload promises and return file names
@@ -167,11 +156,6 @@ const handleSubmit = async () => {
   try {
     await Promise.all(allUploadPromises);
 
-    console.log(
-      "Form value after file uploads:",
-      JSON.stringify(form.value, null, 2)
-    );
-
     const {
       selectedBeneficiary,
       sendingAmount,
@@ -208,10 +192,10 @@ const handleSubmit = async () => {
       alertStore.alert("success", "You have added a new transaction");
       window.location.href = "/#/transaction";
     } else {
-      console.error("Error adding transaction:", response.message);
+      alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
     }
   } catch (error) {
-    console.error("Error during file upload or transaction addition:", error);
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 };
 
@@ -230,7 +214,6 @@ watch(
   () => router.currentRoute.value.query.beneId,
   async (newBeneId, oldBeneId) => {
     if (newBeneId && newBeneId !== oldBeneId) {
-      console.log("Detected beneId change:", newBeneId);
       await fetchBeneficiaryDetail(newBeneId);
     }
   }
@@ -246,13 +229,11 @@ onMounted(async () => {
 
     // Group 1
     if (isFromDashboard.value) {
-      console.log("from dashboard", isFromDashboard.value);
     } else if (
       !isFromDashboard.value &&
       !isFromBeneficiaryDetail.value &&
       !isfromTransactionList.value
     ) {
-      console.log("from new trans");
       const firstTimeFromNewTransaction = sessionStorage.getItem(
         "firstTimeFromNewTransaction"
       );
@@ -273,7 +254,6 @@ onMounted(async () => {
         await transactionStore.getLockedRate(payCurrency, getCurrency);
       }
     } else if (isfromTransactionList.value) {
-      console.log("hi call locked amonut for trans detial");
       const payCurrency = transactionStore.sendingCurrency;
       const getCurrency = transactionStore.receivingCurrency;
       await transactionStore.getLockedRate(payCurrency, getCurrency);
@@ -346,11 +326,6 @@ const fetchBeneficiaryDetail = async (beneId) => {
 
       // Set to store
       beneficiaryStore.setSelectedBeneficiary(form.value.selectedBeneficiary);
-
-      console.log(
-        "Updated selectedBeneficiary:",
-        form.value.selectedBeneficiary
-      );
     }
   } catch (error) {
     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
@@ -376,7 +351,6 @@ onUnmounted(() => {
   sessionStorage.removeItem("firstTimeFromDashboard");
   sessionStorage.removeItem("firstTimeFromBeneficiaryDetail");
   sessionStorage.removeItem("firstTimeFromNewTransaction");
-  console.log("Local storage cleared on component unmount.");
 });
 </script>
 

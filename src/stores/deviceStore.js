@@ -31,13 +31,10 @@ export const useDeviceStore = defineStore("device", {
 
       if (result.device.model) {
         deviceName = `${result.device.vendor} ${result.device.model}`;
-        console.log("Device detected:", deviceName);
       } else if (result.os.name && result.os.version) {
         deviceName = `${result.os.name} ${result.os.version}`;
-        console.log("OS detected:", deviceName);
       } else if (result.browser.name && result.browser.version) {
         deviceName = `${result.browser.name} ${result.browser.version}`;
-        console.log("Browser detected:", deviceName);
       }
 
       this.deviceName = deviceName;

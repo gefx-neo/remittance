@@ -64,7 +64,6 @@ export const useProfileStore = defineStore("profile", {
       store.isLoading = true;
 
       try {
-        console.log(form);
         const response = await apiService.postRequest(
           "/profile/verifyAccount",
           form,
@@ -75,8 +74,6 @@ export const useProfileStore = defineStore("profile", {
           if (response.token) {
             authStore.refreshSession(response.token, payload.username);
           }
-
-          console.log("beneficiary response token", response.token);
         } else {
           alertStore.alert("error", response.message);
         }

@@ -37,6 +37,5 @@ export function decryptData(encryptedText, key, iv) {
   });
 
   const plaintext = decrypted.toString(CryptoJS.enc.Utf8);
-  console.log("Decrypted Data:", plaintext);
   return plaintext;
 }
