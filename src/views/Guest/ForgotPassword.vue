@@ -124,7 +124,7 @@ import { onBeforeRouteLeave } from "vue-router";
 import { ref, watch, reactive } from "vue";
 import { useForgotPasswordStore } from "@/stores/forgotPasswordStore";
 import { useStore } from "@/stores/useStore";
-import { useAlertStore } from "@/stores/useAlertStore";
+import { useAlertStore } from "@/stores/alertStore";
 import Modal from "@/components/Modal/Modal.vue";
 import { ButtonAPI } from "@/components/Form";
 import { validationService } from "@/services/validationUserService.js";
