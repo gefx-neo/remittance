@@ -123,7 +123,7 @@ import { onBeforeRouteLeave } from "vue-router";
 import { ref, reactive, onMounted, watch } from "vue";
 import { useStore } from "@/stores/useStore";
 import { useForgotPasswordStore } from "@/stores/forgotPasswordStore";
-import { useAlertStore } from "@/stores/useAlertStore";
+import { useAlertStore } from "@/stores/alertStore";
 import Modal from "@/components/Modal/Modal.vue";
 import { ButtonAPI } from "@/components/Form";
 import { getLocalStorageWithExpiry } from "@/services/localStorageService.js";
