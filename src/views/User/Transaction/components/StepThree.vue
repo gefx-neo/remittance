@@ -16,7 +16,8 @@
               "
               :error="errors.beneficiaryUploadSupportingFile"
               :tooltip="true"
-              tooltipText="Upload supporting documents for your application"
+              :isLongTooltip="true"
+              tooltipText="Upload a valid invoice in the accepted formats."
             />
             <Input
               label="Remarks (optional)"
@@ -197,9 +198,9 @@ const handleSubmit = () => {
 // Generic file upload handler
 const handleFileUpload = (field, files) => {
   if (Array.isArray(files)) {
-    localForm.value[field] = files;
+    localForm[field] = files;
   } else {
-    localForm.value[field] = [files];
+    localForm[field] = [files];
   }
 };
 

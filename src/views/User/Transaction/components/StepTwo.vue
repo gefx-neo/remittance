@@ -41,7 +41,7 @@
         >
           <EmptyList />
         </div>
-        <div v-else>
+        <div class="category-section" v-else>
           <div
             class="payment-category"
             v-if="filteredNoPreferenceBeneficiaries.length > 0"
@@ -570,12 +570,18 @@ const navigateToAddBeneficiary = () => {
   display: none;
 }
 
+.beneficiary .category-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-12);
+}
+
 .beneficiary .payment-category {
-  margin-bottom: var(--size-24);
+  margin-bottom: var(--size-12);
 }
 
 .beneficiary .payment-category h4 {
-  margin-bottom: var(--size-8);
+  margin-bottom: var(--size-12);
 }
 
 .beneficiary .item-section {

@@ -265,6 +265,7 @@ onBeforeRouteLeave((to, from, next) => {
   align-items: center;
   gap: var(--size-24);
   min-height: calc(100vh - 140px);
+  padding-top: var(--size-80);
 }
 
 .heading {
@@ -373,15 +374,9 @@ form .remark .btn-timer:disabled {
   gap: var(--size-12);
 }
 
-@media (max-width: 1023px) {
-  .content-area {
-    padding: var(--size-24);
-  }
-}
-
 @media (max-width: 767px) {
   .content-area {
-    padding: var(--size-16);
+    padding-top: var(--size-72);
   }
 }
 

@@ -1,4 +1,5 @@
 <template>
+  <MaintenanceBanner />
   <div class="content-area">
     <div class="heading">
       <h1>Welcome back</h1>
@@ -97,6 +98,7 @@ import { useStore } from "@/stores/useStore";
 import { validationService } from "@/services/validationUserService.js";
 import ModalTerms from "./components/ModalTerms.vue";
 import ModalPolicy from "./components/ModalPolicy.vue";
+import MaintenanceBanner from "./components/MaintenanceBanner.vue";
 import { ButtonAPI } from "@/components/Form";
 import { useAlertStore, useAuthStore } from "@/stores/index.js";
 import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
@@ -195,6 +197,7 @@ onBeforeRouteLeave((to, from, next) => {
   align-items: center;
   gap: var(--size-24);
   min-height: calc(100vh - 140px);
+  padding-top: var(--size-80);
 }
 
 .heading {
@@ -289,15 +292,9 @@ form a {
   gap: var(--size-12);
 }
 
-@media (max-width: 1023px) {
-  .content-area {
-    padding: var(--size-24);
-  }
-}
-
 @media (max-width: 767px) {
   .content-area {
-    padding: var(--size-16);
+    padding-top: var(--size-72);
   }
 }
 

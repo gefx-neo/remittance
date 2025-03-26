@@ -62,7 +62,7 @@
     </template>
 
     <template v-if="type === 'beneficiaryList'">
-      <div class="beneficiaryList">
+      <div class="beneficiaryList category-section">
         <div class="payment-category">
           <h4 class="skeleton text-xl h-sm">&nbsp;</h4>
           <div class="item-section">
@@ -80,9 +80,9 @@
     </template>
 
     <template v-if="type === 'beneficiaryListTransaction'">
-      <div class="beneficiaryListTransaction">
+      <div class="beneficiaryListTransaction category-section">
         <div class="payment-category">
-          <h4 class="skeleton text-xl"></h4>
+          <h4 class="skeleton text-xl h-sm">&nbsp;</h4>
           <div class="item-section">
             <div class="item" v-for="index in count" :key="index">
               <div class="detail">
@@ -524,13 +524,15 @@ circle {
 /* Transaction list */
 
 /* Beneficiary list */
-.beneficiaryList {
-  padding: var(--size-8) 0;
+.beneficiaryList.category-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-24);
 }
 
 .beneficiaryList .payment-category h4 {
   margin-top: 3px;
-  margin-bottom: 11px;
+  margin-bottom: 15px;
 }
 
 .beneficiaryList .item-section {
@@ -650,12 +652,19 @@ circle {
 /* Beneficiary list */
 
 /* Beneficiary list transaction */
+.beneficiaryListTransaction .category-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-12);
+}
+
 .beneficiaryListTransaction .payment-category {
-  padding: var(--size-8) 0;
+  margin-bottom: var(--size-12);
 }
 
 .beneficiaryListTransaction .payment-category h4 {
-  margin-bottom: var(--size-8);
+  margin-top: 3px;
+  margin-bottom: 15px;
 }
 
 .beneficiaryListTransaction .item-section {
