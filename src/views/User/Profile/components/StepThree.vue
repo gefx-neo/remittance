@@ -115,7 +115,7 @@
 
 <script setup>
 import { ref, watch } from "vue";
-import { useStore } from "@/stores/useStore";
+import { useStore } from "@/stores/store";
 import { useValidation } from "@/composables/useValidation";
 import { InputFile, ButtonAPI } from "@/components/Form";
 import {

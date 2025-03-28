@@ -45,7 +45,7 @@
 
 <script setup>
 import { useRouter, RouterLink } from "vue-router";
-import { useStore } from "@/stores/useStore";
+import { useStore } from "@/stores/store";
 
 const store = useStore();
 const router = useRouter();

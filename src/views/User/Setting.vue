@@ -121,7 +121,7 @@
 <script setup>
 import { onBeforeRouteLeave } from "vue-router";
 import { ref, reactive, onMounted, watch } from "vue";
-import { useStore } from "@/stores/useStore";
+import { useStore } from "@/stores/store";
 import { useForgotPasswordStore } from "@/stores/forgotPasswordStore";
 import { useAlertStore } from "@/stores/alertStore";
 import Modal from "@/components/Modal/Modal.vue";

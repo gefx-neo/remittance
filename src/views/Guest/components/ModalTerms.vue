@@ -540,7 +540,7 @@
 
 <script setup>
 import { onUnmounted, watch } from "vue";
-import { useStore } from "@/stores/useStore";
+import { useStore } from "@/stores/store";
 import { useRouter } from "vue-router";
 
 const props = defineProps({

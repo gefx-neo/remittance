@@ -74,7 +74,7 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import { useRouter, RouterLink } from "vue-router";
 import { useAuthStore } from "../../stores/authStore.js";
-import { useStore } from "@/stores/useStore";
+import { useStore } from "@/stores/store.js";
 import StepBullets from "@/components/Form/StepBullets.vue";
 import { useStepStore } from "@/stores/stepStore.js";
 

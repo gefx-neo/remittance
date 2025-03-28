@@ -26,7 +26,7 @@
 </template>
 
 <script setup>
-import { useStore } from "@/stores/useStore";
+import { useStore } from "@/stores/store";
 
 const props = defineProps({
   disabled: {

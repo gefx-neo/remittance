@@ -94,7 +94,7 @@
 <script setup>
 import { onBeforeRouteLeave } from "vue-router";
 import { ref, reactive } from "vue";
-import { useStore } from "@/stores/useStore";
+import { useStore } from "@/stores/store";
 import { validationService } from "@/services/validationUserService.js";
 import ModalTerms from "./components/ModalTerms.vue";
 import ModalPolicy from "./components/ModalPolicy.vue";

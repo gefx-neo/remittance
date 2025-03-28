@@ -105,7 +105,7 @@
 import { onBeforeRouteLeave } from "vue-router";
 import { ref, reactive } from "vue";
 import { useRegisterStore } from "@/stores/registerStore";
-import { useStore } from "@/stores/useStore";
+import { useStore } from "@/stores/store";
 import { useAlertStore } from "@/stores/alertStore";
 import { validationService } from "@/services/validationUserService.js";
 import Modal from "@/components/Modal/Modal.vue";

@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { useDeviceStore } from "../deviceStore.js";
 import router from "../../router/index.js";
 import apiService from "@/services/apiService";
-import { useStore } from "@/stores/useStore";
+import { useStore } from "@/stores/store.js";
 import { encryptData } from "../../services/encryptionService.js";
 import {
   setLocalStorageWithExpiry,

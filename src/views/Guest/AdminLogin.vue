@@ -70,7 +70,7 @@
 import { onBeforeRouteLeave } from "vue-router";
 import { ref, reactive } from "vue";
 import { useAuthStore } from "@/stores/authStore";
-import { useStore } from "@/stores/useStore";
+import { useStore } from "@/stores/store";
 import { validationService } from "@/services/validationUserService.js";
 import { ButtonAPI } from "@/components/Form";
 

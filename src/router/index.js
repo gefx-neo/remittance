@@ -29,6 +29,7 @@ const guestGuard = (to, from, next) => {
 const authGuard = async (to, from, next) => {
   const authStore = useAuthStore();
   const profileStore = useProfileStore(); // Access Profile Store
+  const alertStore = useAlertStore();
 
   authStore.checkSession();
 
@@ -41,10 +42,12 @@ const authGuard = async (to, from, next) => {
         const isValid = await authStore.checkSession();
         if (!isValid) {
           clearInterval(intervalId); // Stop the interval
+          alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
           authStore.logout(); // Log out the user
         }
       } catch (error) {
         clearInterval(intervalId); // Stop the interval in case of an error
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         authStore.logout(); // Log out the user
       }
     };
@@ -60,10 +63,8 @@ const authGuard = async (to, from, next) => {
   }
 
   try {
-    // Fetch profile details using the profile store's API
     const profileDetail = await profileStore.getProfileDetail();
 
-    // Assuming the profileDetail contains a `status` or similar field
     if (
       profileDetail &&
       profileDetail.userStatus !== 3 &&
@@ -77,7 +78,6 @@ const authGuard = async (to, from, next) => {
       next(); // Proceed with the transaction
     }
   } catch (error) {
-    const alertStore = useAlertStore();
     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
     next({ name: "profiledetail" });
   }

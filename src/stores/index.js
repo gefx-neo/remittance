@@ -9,4 +9,4 @@ export { useProfileStore } from "./profileStore.js";
 export { useRegisterStore } from "./registerStore.js";
 export { useStepStore } from "./stepStore.js";
 export { useTransactionStore } from "./transactionStore.js";
-export { useStore } from "./useStore.js";
+export { useStore } from "./store.js";

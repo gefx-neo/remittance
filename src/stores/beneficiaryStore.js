@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import apiService from "@/services/apiService";
 import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
-import { useStore } from "@/stores/useStore";
+import { useStore } from "@/stores/store";
 import { useAuthStore, useAlertStore } from "@/stores/index";
 
 export const useBeneficiaryStore = defineStore("beneficiary", {
