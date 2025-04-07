@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory } from "vue-router";
+import { createRouter, createWebHistory } from "vue-router";
 import GuestLayout from "../layout/GuestLayout/GuestLayout.vue";
 import UserLayout from "../layout/UserLayout/UserLayout.vue";
 import ProcessLayout from "../layout/ProcessLayout/ProcessLayout.vue";
@@ -311,7 +311,7 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   routes,
 });
 

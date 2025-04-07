@@ -364,7 +364,7 @@ const handleSubmit = async () => {
         "You have deleted this beneficiary successfully"
       );
 
-      window.location.href = "/#/beneficiary";
+      window.location.href = "/beneficiary";
     } else {
       alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
     }

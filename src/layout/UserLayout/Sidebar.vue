@@ -1,7 +1,7 @@
 <template>
   <div class="sidebar-container" :class="{ open: store.isSidebarOpen }">
     <div class="logo">
-      <a href="/#/dashboard">
+      <a href="/dashboard">
         <img src="@/assets/logo.jpg" />
       </a>
     </div>

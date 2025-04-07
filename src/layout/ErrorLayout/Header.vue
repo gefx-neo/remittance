@@ -1,7 +1,7 @@
 <template>
   <div class="header-area">
     <div class="logo">
-      <a href="/#/dashboard" v-if="authStore.user">
+      <a href="/dashboard" v-if="authStore.user">
         <img src="@/assets/logo.jpg" />
       </a>
       <a href="/" v-else>

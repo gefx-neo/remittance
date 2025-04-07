@@ -1,5 +1,4 @@
 <template>
-  <MaintenanceBanner />
   <div class="content-area">
     <div class="heading">
       <h1>Welcome back</h1>
@@ -19,10 +18,21 @@
             errors.username
           }}</span>
         </div>
-
-        <ButtonAPI class="btn-red standard-button" :disabled="store.isLoading">
-          Next
-        </ButtonAPI>
+        <div class="button-group">
+          <ButtonAPI
+            class="btn-red standard-button"
+            :disabled="store.isLoading"
+          >
+            Next
+          </ButtonAPI>
+          <ButtonAPI
+            class="btn-singpass standard-button"
+            :disabled="store.isLoading"
+            @click="clicktest"
+          >
+            Log in with <img src="@/assets/singpass_logo_fullcolours-1.png" />
+          </ButtonAPI>
+        </div>
       </fieldset>
     </form>
 
@@ -115,6 +125,9 @@ const form = reactive({
   password: "",
 });
 
+const clicktest = () => {
+  alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
+};
 const isTermsModal = ref(false);
 const isPolicyModal = ref(false);
 const openTermsModal = () => {
