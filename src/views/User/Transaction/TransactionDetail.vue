@@ -165,9 +165,10 @@
                   v-else
                   :class="{
                     failed: transactionDetail.status === 0,
-                    success: transactionDetail.status === 1,
+                    completed: transactionDetail.status === 1,
                     unpaid: transactionDetail.status === 2,
                     pending: transactionDetail.status === 3,
+                    cancelled: transactionDetail.status === 4,
                   }"
                 >
                   {{ getTransactionStatus(transactionDetail.status) }}
@@ -478,7 +479,7 @@ const goBack = () => {
   .detail.summary
   .item-group
   .item:nth-child(8)
-  .success {
+  .completed {
   font-weight: var(--semi-bold);
   font-size: var(--text-lg);
   color: var(--pastel-green);
@@ -495,7 +496,13 @@ const goBack = () => {
   .detail.summary
   .item-group
   .item:nth-child(8)
-  .unpaid {
+  .unpaid,
+.transaction
+  .item-section
+  .detail.summary
+  .item-group
+  .item:nth-child(8)
+  .cancelled {
   font-weight: var(--semi-bold);
   font-size: var(--text-lg);
   color: var(--dark-crimson-red);

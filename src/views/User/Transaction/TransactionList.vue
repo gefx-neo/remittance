@@ -52,17 +52,13 @@
                 <span>{{ formatDateTime(transaction.date) }}</span>
                 <span
                   :class="{
-                    unpaid:
-                      getTransactionStatus(transaction.status) === 'Unpaid',
-                    pending:
-                      getTransactionStatus(transaction.status) === 'Pending',
+                    failed: transaction.status === 0,
+                    completed: transaction.status === 1,
+                    unpaid: transaction.status === 2,
+                    pending: transaction.status === 3,
                     priority:
-                      getTransactionStatus(transaction.status) === 'Pending' &&
-                      transaction.isUrgent === 1,
-                    completed:
-                      getTransactionStatus(transaction.status) === 'Completed',
-                    failed:
-                      getTransactionStatus(transaction.status) === 'Rejected',
+                      transaction.status === 3 && transaction.isUrgent === 1,
+                    cancelled: transaction.status === 4,
                   }"
                 >
                   {{ getTransactionStatus(transaction.status) }}
@@ -441,7 +437,13 @@ const navigateToAddTransaction = () => {
 }
 
 .transaction .item .detail .first-column .first-row span:nth-child(2).failed,
-.transaction .item .detail .first-column .first-row span:nth-child(2).unpaid {
+.transaction .item .detail .first-column .first-row span:nth-child(2).unpaid,
+.transaction
+  .item
+  .detail
+  .first-column
+  .first-row
+  span:nth-child(2).cancelled {
   color: var(--dark-crimson-red);
 }
 

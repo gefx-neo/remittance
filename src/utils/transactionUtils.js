@@ -21,6 +21,8 @@ export const getTransactionStatus = (statusCode) => {
       return "Unpaid";
     case 3:
       return "Pending";
+    case 4:
+      return "Cancelled";
     default:
       return "Unknown";
   }

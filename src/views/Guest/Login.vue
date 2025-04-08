@@ -9,7 +9,7 @@
       <div v-if="step === 2 && form.username">{{ form.username }}</div>
     </div>
 
-    <form v-if="step === 1" @submit.prevent="handleStep1">
+    <div class="form" v-if="step === 1" @keydown.enter.prevent="handleStep1">
       <fieldset :disabled="store.isLoading">
         <div class="form-group">
           <label for="login">E-mail address</label>
@@ -22,21 +22,21 @@
           <ButtonAPI
             class="btn-red standard-button"
             :disabled="store.isLoading"
+            @click="handleStep1"
           >
             Next
           </ButtonAPI>
           <ButtonAPI
             class="btn-singpass standard-button"
             :disabled="store.isLoading"
-            @click="clicktest"
+            @click="redirectToSingpass"
           >
             Log in with <img src="@/assets/singpass_logo_fullcolours-1.png" />
           </ButtonAPI>
         </div>
       </fieldset>
-    </form>
-
-    <form v-if="step === 2" @submit.prevent="handleStep2">
+    </div>
+    <div class="form" v-if="step === 2" @keydown.enter.prevent="handleStep2">
       <fieldset :disabled="store.isLoading">
         <div class="form-group">
           <label for="password">Password</label>
@@ -78,7 +78,7 @@
           {{ authStore.error }}
         </div>
       </fieldset>
-    </form>
+    </div>
 
     <div class="footer">
       <div><router-link to="/forgotpassword">Forgot password</router-link></div>
@@ -125,9 +125,9 @@ const form = reactive({
   password: "",
 });
 
-const clicktest = () => {
-  alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
-};
+// const redirectToSingpass = () => {
+//   alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
+// };
 const isTermsModal = ref(false);
 const isPolicyModal = ref(false);
 const openTermsModal = () => {
@@ -228,13 +228,13 @@ onBeforeRouteLeave((to, from, next) => {
   cursor: pointer;
 }
 
-form {
+.form {
   width: 100%;
   max-width: 400px;
   gap: var(--size-24);
 }
 
-form a {
+.form a {
   display: flex;
   justify-content: start;
   color: var(--grey);

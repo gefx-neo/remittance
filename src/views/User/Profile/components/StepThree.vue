@@ -1,5 +1,5 @@
 <template>
-  <div class="third-form">
+  <div class="third-form" @keydown.enter.prevent="handleSubmit">
     <!-- Corporate Form -->
     <fieldset
       :disabled="store.isLoading"

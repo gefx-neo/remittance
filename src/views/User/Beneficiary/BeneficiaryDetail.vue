@@ -226,40 +226,28 @@
                   <div class="second-row">
                     <span
                       :class="{
-                        unpaid:
-                          getTransactionStatus(transaction.status) === 'Unpaid',
-                        pending:
-                          getTransactionStatus(transaction.status) ===
-                          'Pending',
+                        failed: transaction.status === 0,
+                        completed: transaction.status === 1,
+                        unpaid: transaction.status === 2,
+                        pending: transaction.status === 3,
                         priority:
-                          getTransactionStatus(transaction.status) ===
-                            'Pending' && transaction.isUrgent === 1,
-                        completed:
-                          getTransactionStatus(transaction.status) ===
-                          'Success',
-                        failed:
-                          getTransactionStatus(transaction.status) ===
-                          'Rejected',
+                          transaction.status === 3 &&
+                          transaction.isUrgent === 1,
+                        cancelled: transaction.status === 4,
                       }"
                     >
                       {{ getTransactionStatus(transaction.status) }}
                     </span>
                     <span
                       :class="{
-                        unpaid:
-                          getTransactionStatus(transaction.status) === 'Unpaid',
-                        pending:
-                          getTransactionStatus(transaction.status) ===
-                          'Pending',
+                        failed: transaction.status === 0,
+                        completed: transaction.status === 1,
+                        unpaid: transaction.status === 2,
+                        pending: transaction.status === 3,
                         priority:
-                          getTransactionStatus(transaction.status) ===
-                            'Pending' && transaction.isUrgent === 1,
-                        completed:
-                          getTransactionStatus(transaction.status) ===
-                          'Success',
-                        failed:
-                          getTransactionStatus(transaction.status) ===
-                          'Rejected',
+                          transaction.status === 3 &&
+                          transaction.isUrgent === 1,
+                        cancelled: transaction.status === 4,
                       }"
                     >
                     </span>
@@ -743,7 +731,15 @@ const goBack = () => {
   .information
   .first-column
   .second-row
-  span:nth-child(1).unpaid {
+  span:nth-child(1).unpaid,
+.beneficiary
+  .transaction
+  .item-group
+  .item
+  .information
+  .first-column
+  .second-row
+  span:nth-child(1).cancelled {
   color: var(--darker-crimson-red);
 }
 
@@ -760,7 +756,14 @@ const goBack = () => {
   .item
   .information
   .first-column
-  span:nth-child(2).unpaid {
+  span:nth-child(2).unpaid,
+.beneficiary
+  .transaction
+  .item-group
+  .item
+  .information
+  .first-column
+  span:nth-child(2).cancelled {
   background: var(--dark-crimson-red);
 }
 

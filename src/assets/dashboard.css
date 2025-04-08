@@ -177,12 +177,14 @@
 }
 
 .history .item .detail .first-column .second-row span:nth-child(1).failed,
-.history .item .detail .first-column .second-row span:nth-child(1).unpaid {
+.history .item .detail .first-column .second-row span:nth-child(1).unpaid,
+.history .item .detail .first-column .second-row span:nth-child(1).cancelled {
   color: var(--darker-crimson-red);
 }
 
 .history .item .detail .first-column span:nth-child(2).failed,
-.history .item .detail .first-column span:nth-child(2).unpaid {
+.history .item .detail .first-column span:nth-child(2).unpaid,
+.history .item .detail .first-column span:nth-child(2).cancelled {
   background: var(--dark-crimson-red);
 }
 
