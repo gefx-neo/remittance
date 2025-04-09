@@ -69,7 +69,7 @@
             Login
           </ButtonAPI>
           <button
-            @click="goBack"
+            @click="handleBack"
             type="button"
             class="btn-back standard-button"
           >
@@ -188,7 +188,7 @@ const togglePassword = () => {
   showPassword.value = !showPassword.value;
 };
 
-const goBack = () => {
+const handleBack = () => {
   step.value = 1;
   form.password = "";
   authStore.error = null;

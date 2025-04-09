@@ -94,7 +94,7 @@
           <button
             type="button"
             class="btn-back standard-button"
-            @click="goBack"
+            @click="handleBack"
           >
             Back
           </button>
@@ -228,7 +228,7 @@ const handleSetNewPassword = async () => {
   }
 };
 
-const goBack = () => {
+const handleBack = () => {
   step.value = 1;
   store.resetResendTimer();
   forgotPasswordStore.$reset();

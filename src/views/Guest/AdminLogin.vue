@@ -51,7 +51,11 @@
         <ButtonAPI :disabled="store.isLoading" class="btn-red standard-button">
           Login
         </ButtonAPI>
-        <button type="button" class="btn-back standard-button" @click="goBack">
+        <button
+          type="button"
+          class="btn-back standard-button"
+          @click="handleBack"
+        >
           Back
         </button>
       </div>
@@ -134,7 +138,7 @@ const togglePassword = () => {
   showPassword.value = !showPassword.value;
 };
 
-const goBack = () => {
+const handleBack = () => {
   step.value = 1;
   form.password = "";
   authStore.error = null;
