@@ -127,9 +127,9 @@ const form = reactive({
   password: "",
 });
 
-const redirectToSingpass = () => {
-  window.location.href = "/login";
-};
+// const redirectToSingpass = () => {
+//   window.location.href = "/login";
+// };
 const isTermsModal = ref(false);
 const isPolicyModal = ref(false);
 const openTermsModal = () => {

@@ -190,7 +190,7 @@ const handleSubmit = async () => {
 
     if (response.status === 1) {
       alertStore.alert("success", "You have added a new transaction");
-      window.location.href = "/transaction";
+      window.location.href = "/#/transaction";
     } else {
       alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
     }
@@ -340,7 +340,7 @@ onMounted(() => {
 });
 
 const handleCancel = () => {
-  window.location.href = "/#/dashboard";
+  router.push({ path: "/dashboard" });
 };
 
 onUnmounted(() => {

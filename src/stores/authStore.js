@@ -145,7 +145,6 @@ export const useAuthStore = defineStore("auth", {
       } finally {
         store.isLoading = false;
         this.stopSessionMonitor();
-        // window.location.href = "/"; // Redirect to login page
         router.push({ name: "login" });
       }
     },

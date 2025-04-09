@@ -168,7 +168,7 @@ const handleSubmit = async () => {
       }
 
       // Default fallback redirection
-      window.location.href = "/beneficiary";
+      window.location.href = "/#/beneficiary";
     } else {
       alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
     }

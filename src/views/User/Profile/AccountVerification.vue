@@ -340,7 +340,7 @@ const handleSubmit = async () => {
 
     if (verifyResponse.status === 1) {
       alertStore.alert("success", "You have submitted successfully.");
-      window.location.href = "/profile";
+      window.location.href = "/#/profile";
     } else {
       alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
     }

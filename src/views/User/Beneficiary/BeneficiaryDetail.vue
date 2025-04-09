@@ -152,7 +152,7 @@
               <span>Company contact number</span>
               <span>{{ beneficiaryDetail.companyContactNo }}</span>
             </div>
-            <div class="item">
+            <div class="item" v-if="beneficiaryDetail.phoneNumber">
               <span>Phone number</span>
               <span>{{ beneficiaryDetail.contactMobile }}</span>
             </div>
@@ -352,7 +352,7 @@ const handleSubmit = async () => {
         "You have deleted this beneficiary successfully"
       );
 
-      window.location.href = "/beneficiary";
+      window.location.href = "/#/beneficiary";
     } else {
       alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
     }
