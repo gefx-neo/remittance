@@ -1,6 +1,10 @@
 <template>
   <!-- Modal overlay -->
-  <div class="modal-overlay" :class="{ open: isOpen }" v-if="authStore.user">
+  <div
+    class="modal-overlay"
+    :class="{ open: isOpen }"
+    v-if="authStore.username"
+  >
     <div class="modal" :class="{ open: isOpen }" @click.stop>
       <div class="header">
         <slot name="header">

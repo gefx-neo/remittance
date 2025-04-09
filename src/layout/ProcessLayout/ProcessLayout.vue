@@ -1,5 +1,5 @@
 <template>
-  <div class="page-layout" v-if="authStore.user">
+  <div class="page-layout" v-if="authStore.username">
     <Header />
     <div class="main-container">
       <RouterView />

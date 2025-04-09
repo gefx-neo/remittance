@@ -1,11 +1,11 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHashHistory } from "vue-router";
 import GuestLayout from "../layout/GuestLayout/GuestLayout.vue";
 import UserLayout from "../layout/UserLayout/UserLayout.vue";
 import ProcessLayout from "../layout/ProcessLayout/ProcessLayout.vue";
-import AdminLayout from "../layout/AdminLayout/AdminLayout.vue"; // Admin layout
+import AdminLayout from "../layout/AdminLayout/AdminLayout.vue";
 import ErrorLayout from "../layout/ErrorLayout/ErrorLayout.vue";
-import Login from "../views/Guest/Login.vue"; // Static import
-import AdminLogin from "../views/Guest/AdminLogin.vue"; // Admin Login
+import Login from "../views/Guest/Login.vue";
+import AdminLogin from "../views/Guest/AdminLogin.vue";
 import {
   useStore,
   useAuthStore,
@@ -16,100 +16,16 @@ import { useAdminAuthStore } from "../stores/admin/adminAuthStore.js";
 import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 import { ref, watch } from "vue";
 
-const guestGuard = (to, from, next) => {
-  const authStore = useAuthStore();
-
-  if (authStore.user) {
-    next({ name: "dashboard" });
-  } else {
-    next();
-  }
-};
-
-const authGuard = async (to, from, next) => {
-  const authStore = useAuthStore();
-  const profileStore = useProfileStore(); // Access Profile Store
-  const alertStore = useAlertStore();
-
-  authStore.checkSession();
-
-  // Function to start session check
-  const startSessionCheck = () => {
-    let intervalId = null;
-
-    const checkAndHandleSession = async () => {
-      try {
-        const isValid = await authStore.checkSession();
-        if (!isValid) {
-          clearInterval(intervalId); // Stop the interval
-          alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
-          authStore.logout(); // Log out the user
-        }
-      } catch (error) {
-        clearInterval(intervalId); // Stop the interval in case of an error
-        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
-        authStore.logout(); // Log out the user
-      }
-    };
-
-    intervalId = setInterval(checkAndHandleSession, 1000); // Check every second
-
-    // Clear the interval when the user navigates away or logs out
-    return () => clearInterval(intervalId);
-  };
-
-  if (!authStore.user) {
-    next({ name: "login" });
-  }
-
-  try {
-    const profileDetail = await profileStore.getProfileDetail();
-
-    if (
-      profileDetail &&
-      profileDetail.userStatus !== 3 &&
-      to.name === "addtransaction"
-    ) {
-      const alertStore = useAlertStore();
-      alertStore.alert("pending", "Please verify your account");
-
-      next({ name: "profiledetail" });
-    } else {
-      next(); // Proceed with the transaction
-    }
-  } catch (error) {
-    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
-    next({ name: "profiledetail" });
-  }
-  startSessionCheck(authStore);
-};
-
-// Admin Authentication Guard
-const adminAuthGuard = (to, from, next) => {
-  const adminAuthStore = useAdminAuthStore();
-
-  // Call refresh cookie function only if the admin is logged in
-  adminAuthStore.checkSession();
-
-  // If the route requires admin authentication and the admin is not logged in
-  if (!adminAuthStore.admin) {
-    next({ name: "admin-login" }); // Redirect to admin login if not authenticated
-  } else {
-    next();
-  }
-};
-
 const routes = [
-  // Guest Routes
   {
     path: "/",
     component: GuestLayout,
-    beforeEnter: guestGuard,
+    meta: { requiresGuest: true },
     children: [
       {
         path: "",
         name: "login",
-        component: Login, // Static import
+        component: Login,
       },
       {
         path: "register",
@@ -129,20 +45,18 @@ const routes = [
     ],
   },
 
-  // User Routes
   {
     path: "/",
     component: UserLayout,
-    beforeEnter: authGuard, // Protect all user routes by applying user guard
+    meta: { requiresAuth: true },
     children: [
       {
         path: "dashboard",
         name: "dashboard",
-        component: () => import("../views/User/Dashboard/Dashboard.vue"), // Dynamic import
+        component: () => import("../views/User/Dashboard/Dashboard.vue"),
       },
       {
         path: "beneficiary",
-        beforeEnter: authGuard,
         children: [
           {
             path: "",
@@ -161,7 +75,6 @@ const routes = [
       },
       {
         path: "transaction",
-        beforeEnter: authGuard,
         children: [
           {
             path: "",
@@ -180,31 +93,17 @@ const routes = [
       },
       {
         path: "localtransfer",
+        name: "localtransfer",
         component: () =>
           import("../views/User/LocalTransfer/LocalTransfer.vue"),
-        children: [
-          {
-            path: "",
-            name: "localtransfer",
-            component: () =>
-              import("../views/User/LocalTransfer/LocalTransfer.vue"),
-          },
-        ],
       },
       {
         path: "withdrawal",
+        name: "withdrawal",
         component: () => import("../views/User/Withdrawal/Withdrawal.vue"),
-        children: [
-          {
-            path: "",
-            name: "withdrawal",
-            component: () => import("../views/User/Withdrawal/Withdrawal.vue"),
-          },
-        ],
       },
       {
         path: "profile",
-        component: () => import("../views/User/Profile/Profile.vue"),
         children: [
           {
             path: "",
@@ -220,11 +119,10 @@ const routes = [
       },
     ],
   },
-
   {
     path: "/beneficiary",
     component: ProcessLayout,
-    beforeEnter: authGuard,
+    meta: { requiresAuth: true },
     children: [
       {
         path: "addbeneficiary",
@@ -236,34 +134,33 @@ const routes = [
   {
     path: "/transaction",
     component: ProcessLayout,
-    beforeEnter: authGuard,
+    meta: { requiresAuth: true },
     children: [
       {
         path: "addtransaction",
         name: "addtransaction",
         component: () => import("../views/User/Transaction/AddTransaction.vue"),
+        meta: { requiresVerified: true },
       },
     ],
   },
   {
     path: "/profile",
     component: ProcessLayout,
-    beforeEnter: authGuard,
     children: [
       {
         path: "accountverification",
         name: "accountverification",
         component: () =>
           import("../views/User/Profile/AccountVerification.vue"),
+        meta: { requiresAuth: true },
       },
     ],
   },
-
-  // Admin Routes
   {
     path: "/admin",
     component: AdminLayout,
-    // beforeEnter: adminAuthGuard, // Protect admin dashboard routes with admin authentication
+    meta: { requiresAuth: true },
     children: [
       {
         path: "remittance",
@@ -295,8 +192,6 @@ const routes = [
       },
     ],
   },
-
-  // Catch All Error Routes
   {
     path: "/:catchAll(.*)",
     component: ErrorLayout,
@@ -311,14 +206,40 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes,
 });
 
-// Global beforeEach to check session
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
-  authStore.checkSession();
+  const profileStore = useProfileStore();
+  const alertStore = useAlertStore();
+
+  const isLoggedIn = await authStore.checkSession();
+
+  if (to.meta.requiresAuth && !isLoggedIn) {
+    // alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
+    // await authStore.logout();
+    return next({ name: "login" });
+  }
+
+  if (to.meta.requiresGuest && isLoggedIn) {
+    return next({ name: "dashboard" });
+  }
+
+  if (to.meta.requiresVerified && isLoggedIn) {
+    try {
+      const profileDetail = await profileStore.getProfileDetail();
+      if (profileDetail?.userStatus !== 3) {
+        alertStore.alert("pending", "Please verify your account");
+        return next({ name: "profiledetail" });
+      }
+    } catch (error) {
+      alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
+      return next({ name: "profiledetail" });
+    }
+  }
+
   next();
 });
 
@@ -326,8 +247,6 @@ const pendingRoute = ref(null);
 
 const queueNavigation = (to) => {
   pendingRoute.value = to;
-
-  // Watch `isLoading` and navigate when false
   const store = useStore();
   const stopWatcher = watch(
     () => store.isLoading,

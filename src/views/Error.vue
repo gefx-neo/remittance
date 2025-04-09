@@ -4,7 +4,7 @@
       <h1>404</h1>
       <h2>Page not found</h2>
       <p>Sorry, we couldn't find the page you're looking for</p>
-      <router-link to="/dashboard" v-if="authStore.user" class="btn-blue"
+      <router-link to="/#/dashboard" v-if="authStore.username" class="btn-blue"
         >Return to Dashboard</router-link
       >
       <router-link to="/" v-else class="btn-blue">Return to Home</router-link>

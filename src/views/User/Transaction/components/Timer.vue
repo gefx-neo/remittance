@@ -36,7 +36,7 @@ const startTimer = () => {
       countdown.value -= 1;
     } else {
       clearInterval(timerInterval);
-      window.location.href = "/dashboard";
+      window.location.href = "/#/dashboard";
     }
   }, 1000);
 };

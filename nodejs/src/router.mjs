@@ -77,7 +77,7 @@ router.get("/callback", async function handleSingpassCallback(ctx) {
     console.log(userInfo);
 
     ctx.session.user = { ...tokenSet.claims(), ...userInfo };
-    ctx.redirect("/dashboard");
+    ctx.redirect("/#/dashboard");
   } catch (err) {
     console.error(err);
     ctx.status = 401;

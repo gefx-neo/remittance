@@ -340,7 +340,7 @@ onMounted(() => {
 });
 
 const handleCancel = () => {
-  window.location.href = "/dashboard";
+  window.location.href = "/#/dashboard";
 };
 
 onUnmounted(() => {

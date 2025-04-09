@@ -6,7 +6,7 @@
         @click="store.openSidebar"
         class="icon"
       />
-      <a href="/dashboard">
+      <a href="/#/dashboard">
         <img src="@/assets/logo.jpg" class="logo" />
       </a>
     </div>
@@ -65,7 +65,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRouter, RouterLink } from "vue-router";
 import { useAuthStore } from "../../stores/authStore.js";
 import { useStore } from "@/stores/store.js";
@@ -73,7 +73,7 @@ import { useStore } from "@/stores/store.js";
 const authStore = useAuthStore();
 const store = useStore();
 const router = useRouter();
-const username = authStore.username;
+const username = computed(() => authStore.username);
 const profileDropdown = ref(null);
 const logout = async () => {
   try {

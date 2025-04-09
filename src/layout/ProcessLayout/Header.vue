@@ -3,7 +3,7 @@
     <div class="header-area">
       <!-- Logo Section -->
       <div class="logo">
-        <a href="/dashboard">
+        <a href="/#/dashboard">
           <img src="@/assets/logo.jpg" />
         </a>
       </div>

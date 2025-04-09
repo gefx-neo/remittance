@@ -30,15 +30,21 @@ export const useAuthStore = defineStore("auth", {
       }
       if (username) {
         setLocalStorageWithExpiry("username", username, 4); // Update username with 4-hour expiry
-        this.username = username; // Update the state
+        this.username = username;
       }
+
+      this.stopSessionMonitor(); // explicitly stop previous interval
+      this.startSessionMonitor(); // explicitly restart the interval
+
+      console.log("Session refreshed and monitor restarted");
     },
+
     async checkSession() {
       const token = getLocalStorageWithExpiry("token");
       const username = getLocalStorageWithExpiry("username");
 
       if (token && username) {
-        this.user = username;
+        this.username = username;
         return true;
       } else {
         this.clearSession();
@@ -78,7 +84,7 @@ export const useAuthStore = defineStore("auth", {
       const alertStore = useAlertStore();
 
       if (!this.hex || !this.iv) {
-        alertStore.alert("error", response.message || DEFAULT_ERROR_MESSAGE);
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         return;
       }
 
@@ -122,7 +128,6 @@ export const useAuthStore = defineStore("auth", {
 
     async logout() {
       const store = useStore();
-      const transactionStore = useTransactionStore();
       const alertStore = useAlertStore();
       store.isLoading = true;
 
@@ -132,7 +137,6 @@ export const useAuthStore = defineStore("auth", {
 
         if (response.status === 1) {
           this.clearSession();
-          window.clearInterval(this.tokenCheckInterval); // Clear any active intervals
         } else {
           alertStore.alert("error", response.message);
         }
@@ -140,7 +144,37 @@ export const useAuthStore = defineStore("auth", {
         alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
       } finally {
         store.isLoading = false;
-        window.location.href = "/"; // Redirect to login page
+        this.stopSessionMonitor();
+        // window.location.href = "/"; // Redirect to login page
+        router.push({ name: "login" });
+      }
+    },
+
+    startSessionMonitor() {
+      const alertStore = useAlertStore();
+
+      // Stop any existing interval to prevent multiple instances
+      this.stopSessionMonitor();
+
+      this.sessionCheckInterval = setInterval(() => {
+        const token = getLocalStorageWithExpiry("token");
+        const username = getLocalStorageWithExpiry("username");
+
+        if (!token || !username) {
+          this.stopSessionMonitor();
+          // alertStore.alert(
+          //   "error",
+          //   "Your session has expired. Please re-login again."
+          // );
+          this.logout();
+        }
+      }, 1000);
+    },
+
+    stopSessionMonitor() {
+      if (this.sessionCheckInterval) {
+        clearInterval(this.sessionCheckInterval);
+        this.sessionCheckInterval = null;
       }
     },
   },

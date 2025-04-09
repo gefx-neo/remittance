@@ -1,10 +1,10 @@
 <template>
   <div class="header-area">
     <div class="logo">
-      <a href="/dashboard" v-if="authStore.user">
+      <a href="/#/dashboard" v-if="authStore.username">
         <img src="@/assets/logo.jpg" />
       </a>
-      <a href="/" v-else>
+      <a href="/#/" v-else>
         <img src="@/assets/logo.jpg" />
       </a>
     </div>
