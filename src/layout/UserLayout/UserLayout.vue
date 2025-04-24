@@ -1,5 +1,5 @@
 <template>
-  <div class="page-layout" v-if="authStore.username">
+  <div class="page-layout">
     <Sidebar />
     <div class="main-container">
       <Header />
@@ -52,7 +52,7 @@ const authStore = useAuthStore();
   .main-container {
     width: 100%;
     padding: 0 var(--size-16);
-    padding-bottom: 60px;
+    padding-bottom: 76px;
   }
 }
 /* MOBILE */

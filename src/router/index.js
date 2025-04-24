@@ -48,7 +48,6 @@ const routes = [
   {
     path: "/",
     component: UserLayout,
-    meta: { requiresAuth: true },
     children: [
       {
         path: "dashboard",
@@ -101,6 +100,11 @@ const routes = [
         path: "withdrawal",
         name: "withdrawal",
         component: () => import("../views/User/Withdrawal/Withdrawal.vue"),
+      },
+      {
+        path: "faq",
+        name: "faq",
+        component: () => import("../views/User/Faq/Faq.vue"),
       },
       {
         path: "profile",
@@ -160,7 +164,6 @@ const routes = [
   {
     path: "/admin",
     component: AdminLayout,
-    meta: { requiresAuth: true },
     children: [
       {
         path: "remittance",

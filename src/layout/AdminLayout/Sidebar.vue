@@ -90,18 +90,20 @@ router.afterEach(() => {
   position: sticky;
   top: 0;
   height: 100vh;
-  width: 240px;
+  width: 260px;
   display: flex;
   flex-direction: column;
-  background-color: var(--white);
+  background: var(--black);
 }
 .logo {
-  width: 240px;
+  width: 260px;
   height: 100px;
   display: flex;
   justify-content: center;
   align-items: center;
+  background: var(--white);
 }
+
 .logo img {
   height: 40px;
 }

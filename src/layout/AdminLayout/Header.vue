@@ -148,6 +148,7 @@ onUnmounted(() => {
   align-items: center;
   gap: var(--size-16);
 }
+
 .hamburger {
   display: flex;
   flex-grow: 1;

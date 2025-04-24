@@ -30,12 +30,12 @@ const authStore = useAuthStore();
 }
 
 .main-container {
-  max-width: 1024px;
   margin: 0 auto;
   padding: 0 var(--size-32);
   display: block;
   width: calc(100% - 240px);
   padding-bottom: var(--size-24);
+  background: var(--sky-blue);
 }
 
 /* TABLET */
@@ -61,7 +61,6 @@ const authStore = useAuthStore();
 /* DESKTOP */
 @media (min-width: 1023px) {
   .page-layout {
-    max-width: 1440px;
     display: flex;
     margin: 0 auto;
   }

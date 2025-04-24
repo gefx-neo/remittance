@@ -96,6 +96,8 @@
                       completed: transaction.status === 1,
                       unpaid: transaction.status === 2,
                       pending: transaction.status === 3,
+                      priority:
+                        transaction.status === 3 && transaction.isUrgent === 1,
                       cancelled: transaction.status === 4,
                     }"
                   >

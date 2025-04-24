@@ -9,6 +9,7 @@ import { fileURLToPath } from "url";
 
 import config from "./config.mjs";
 import { router } from "./router.mjs";
+import bodyParser from "koa-bodyparser";
 
 // Create in-memory session store
 function createInMemorySessionStore() {
@@ -29,7 +30,7 @@ const app = new Koa();
 
 // Log all requests
 app.use(logger());
-
+app.use(bodyParser());
 // Session middleware
 app.keys = [crypto.randomBytes(8).toString("hex")];
 app.use(

@@ -26,13 +26,13 @@
           >
             Next
           </ButtonAPI>
-          <!-- <ButtonAPI
+          <ButtonAPI
             class="btn-singpass standard-button"
             :disabled="store.isLoading"
             @click="redirectToSingpass"
           >
             Log in with <img src="@/assets/singpass_logo_fullcolours-1.png" />
-          </ButtonAPI> -->
+          </ButtonAPI>
         </div>
       </fieldset>
     </div>
@@ -127,9 +127,9 @@ const form = reactive({
   password: "",
 });
 
-// const redirectToSingpass = () => {
-//   window.location.href = "/login";
-// };
+const redirectToSingpass = () => {
+  window.location.href = "/login";
+};
 const isTermsModal = ref(false);
 const isPolicyModal = ref(false);
 const openTermsModal = () => {

@@ -1,23 +1,28 @@
-// IMPORTANT NOTE:
-//
-// Please DO NOT hardcode private keys in your code.
-// Private keys are secrets. Store private keys in a safe place (e.g. SecretsManager, Vault, ...).
-// The below private keys are hardcoded here for the convenience of the demo.
-// Please DO NOT hardcode private keys in your code.
+// config.mjs
+import dotenv from "dotenv";
+dotenv.config();
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-let config;
-
-try {
-  config = JSON.parse(fs.readFileSync(path.join(__filename, '../../../config.json')));
-  console.info('[INFO]: config is imported.');
-} catch (e) {
-  config = {};
-  console.error('[ERROR]: facing error when parsing config.', e);
+function parseJSONEnv(key) {
+  try {
+    return JSON.parse(process.env[key]);
+  } catch (e) {
+    console.error(`[ERROR]: Failed to parse ${key}.`, e);
+    return null;
+  }
 }
+
+const config = {
+  SERVER_PORT: process.env.SERVER_PORT || 3080,
+  CLIENT_ID: process.env.CLIENT_ID,
+  ISSUER_URL: process.env.ISSUER_URL,
+  REDIRECT_URI: process.env.REDIRECT_URI,
+  SCOPES: process.env.SCOPES,
+  KEYS: {
+    PRIVATE_SIG_KEY: parseJSONEnv("PRIVATE_SIG_KEY_JSON"),
+    PRIVATE_ENC_KEY: parseJSONEnv("PRIVATE_ENC_KEY_JSON"),
+    PUBLIC_SIG_KEY: parseJSONEnv("PUBLIC_SIG_KEY_JSON"),
+    PUBLIC_ENC_KEY: parseJSONEnv("PUBLIC_ENC_KEY_JSON"),
+  },
+};
 
 export default config;

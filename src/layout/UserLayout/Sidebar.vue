@@ -29,7 +29,12 @@
     :class="{ open: store.isSidebarOpen }"
   ></div>
   <div class="mobile-footer-container">
-    <RouterLink v-for="route in routes" :key="route.label" :to="route.to">
+    <RouterLink
+      v-for="route in routes"
+      :key="route.label"
+      :to="route.to"
+      :class="{ faq: route.label === 'FAQ' }"
+    >
       <span class="icon">
         <font-awesome-icon :icon="route.icon" size="1x" />
       </span>
@@ -63,7 +68,7 @@ const routes = [
     icon: ["fas", "hand-holding-usd"],
     label: "Withdrawal",
   },
-  // { to: "/help", icon: ["fas", "question-circle"], label: "Help" },
+  { to: "/faq", icon: ["fas", "question-circle"], label: "Help" },
 ];
 
 // Handle dropdown state on route change
@@ -211,6 +216,10 @@ router.afterEach(() => {
     gap: var(--size-4);
     text-decoration: none;
     color: var(--cool-blue);
+  }
+
+  .mobile-footer-container a.faq {
+    display: none;
   }
 
   .mobile-footer-container a .icon {
