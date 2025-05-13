@@ -76,11 +76,18 @@ export const useRateStore = defineStore("rate", {
       }
     },
     toggleRateClass(currency) {
-      const currentClass = this.rateClasses[currency];
+      const currentClass = this.rateClasses[currency] || "rate";
 
-      // Invert the class when toggled
-      const newClass =
-        currentClass === "rate-increase" ? "rate-decrease" : "rate-increase";
+      // Determine the new class based on the current class
+      let newClass;
+      if (currentClass === "rate-increase") {
+        newClass = "rate-decrease";
+      } else if (currentClass === "rate-decrease") {
+        newClass = "rate-increase";
+      } else {
+        // If the current class is just 'rate', do nothing
+        return;
+      }
 
       // Update the class in the store
       this.rateClasses[currency] = newClass;
