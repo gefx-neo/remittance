@@ -353,9 +353,9 @@ export const useTransactionStore = defineStore("transaction", {
           });
 
         // Log only changed currencies with their previous and new values
-        if (changes.length) {
-          console.log(`[TransactionStore] Changes: ${changes.join(", ")}`);
-        }
+        // if (changes.length) {
+        //   console.log(`[TransactionStore] Changes: ${changes.join(", ")}`);
+        // }
 
         // Sort the rates based on CURRENCY_LIST order before updating the store
         formattedRates.sort(

@@ -564,12 +564,15 @@ const toggleRate = async (currency) => {
   await nextTick();
 
   const originalRate = previousRates.value[currency];
-
   const index = rates.value.findIndex((r) => r.currency === currency);
+
   if (index !== -1 && originalRate) {
-    rates.value[index].rate = rateToggles.value[currency]
-      ? 1 / originalRate
-      : originalRate;
+    const isReciprocal = rateToggles.value[currency];
+    const newRate = isReciprocal ? 1 / originalRate : originalRate;
+    rates.value[index].rate = newRate;
+
+    // Call the centralized toggleRateClass in the store
+    rateStore.toggleRateClass(currency);
   }
 };
 
@@ -608,9 +611,18 @@ watch(
 
     rates.value = allowedRates.map((rate) => {
       const isReciprocal = rateToggles.value[rate.currency] || false;
+      const displayRate = isReciprocal ? 1 / rate.rate : rate.rate;
+
+      // Update the class inversion if in reciprocal state
+      const currentClass = rateStore.rateClasses[rate.currency];
+      if (isReciprocal && currentClass) {
+        rateStore.rateClasses[rate.currency] =
+          currentClass === "rate-increase" ? "rate-decrease" : "rate-increase";
+      }
+
       return {
         currency: rate.currency,
-        rate: isReciprocal ? 1 / rate.rate : rate.rate,
+        rate: displayRate,
       };
     });
   },

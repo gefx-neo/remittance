@@ -315,6 +315,9 @@
 .currency {
   min-width: 30%;
   max-width: 30%;
+  border: 1px solid var(--light-grey);
+  box-shadow: 0 0 40px rgba(69, 71, 69, 0.2);
+  padding: var(--size-8);
 }
 
 .currency .item-section {

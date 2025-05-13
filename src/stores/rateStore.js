@@ -75,6 +75,23 @@ export const useRateStore = defineStore("rate", {
         }, 2000);
       }
     },
+    toggleRateClass(currency) {
+      const currentClass = this.rateClasses[currency];
+
+      // Invert the class when toggled
+      const newClass =
+        currentClass === "rate-increase" ? "rate-decrease" : "rate-increase";
+
+      // Update the class in the store
+      this.rateClasses[currency] = newClass;
+
+      // Set timeout to remove the class after 2 seconds
+      setTimeout(() => {
+        if (this.rateClasses[currency] === newClass) {
+          this.rateClasses[currency] = "";
+        }
+      }, 2000);
+    },
     initSocketRateUpdates() {
       socket.on("rateUpdate", ({ base, rates, source }) => {
         if (source !== "rateStore") return;
@@ -108,9 +125,9 @@ export const useRateStore = defineStore("rate", {
           });
 
         // Log only changed currencies with their previous and new values
-        if (changes.length) {
-          console.log(`[RateStore] Changes: ${changes.join(", ")}`);
-        }
+        // if (changes.length) {
+        //   console.log(`[RateStore] Changes: ${changes.join(", ")}`);
+        // }
 
         // Sort the rates based on CURRENCY_LIST order before updating the store
         formattedRates.sort(
