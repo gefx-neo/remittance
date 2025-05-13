@@ -2,6 +2,8 @@ import { defineStore } from "pinia";
 import apiService from "@/services/apiService";
 import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 import { useStore, useAuthStore, useAlertStore } from "@/stores/index";
+import socket from "@/plugins/socket";
+import { CURRENCY_LIST, getAllowedCurrencies } from "@/utils/currencyUtils"; // Import the list
 
 export const useTransactionStore = defineStore("transaction", {
   state: () => ({
@@ -13,6 +15,9 @@ export const useTransactionStore = defineStore("transaction", {
     receivingAmount: 0,
     receivingCurrency: "MYR",
     error: null,
+    baseCurrency: "SGD", // centralized
+    rates: [], // all real-time rates received via socket
+    rateClasses: {}, // Track increase or decrease classes for each currency
   }),
   actions: {
     setTransactionData(data) {
@@ -117,37 +122,37 @@ export const useTransactionStore = defineStore("transaction", {
         store.isLoading = false;
       }
     },
-    async getLockedRate(payCurrency, getCurrency) {
-      const store = useStore();
-      const authStore = useAuthStore();
-      const alertStore = useAlertStore();
-      store.isMoneyLoading = true;
-      try {
-        const response = await apiService.getRequest(
-          `/transaction/getLockedRate?username=${authStore.username}&payCurrency=${payCurrency}&getCurrency=${getCurrency}`
-        );
-        if (response.status === 1) {
-          if (response.token) {
-            authStore.refreshSession(response.token, authStore.username);
-          }
-          this.memoId = response.memoId;
-          this.rate = response.rates?.[0]?.rate || null;
-          this.fee = response.rates?.[0]?.fee || null;
+    // async getLockedRate(payCurrency, getCurrency) {
+    //   const store = useStore();
+    //   const authStore = useAuthStore();
+    //   const alertStore = useAlertStore();
+    //   store.isMoneyLoading = true;
+    //   try {
+    //     const response = await apiService.getRequest(
+    //       `/transaction/getLockedRate?username=${authStore.username}&payCurrency=${payCurrency}&getCurrency=${getCurrency}`
+    //     );
+    //     if (response.status === 1) {
+    //       if (response.token) {
+    //         authStore.refreshSession(response.token, authStore.username);
+    //       }
+    //       this.memoId = response.memoId;
+    //       this.rate = response.rates?.[0]?.rate || null;
+    //       this.fee = response.rates?.[0]?.fee || null;
 
-          this.sendingCurrency = payCurrency;
-          this.receivingCurrency = getCurrency;
-        } else {
-          alertStore.alert("error", response.message);
-        }
+    //       this.sendingCurrency = payCurrency;
+    //       this.receivingCurrency = getCurrency;
+    //     } else {
+    //       alertStore.alert("error", response.message);
+    //     }
 
-        return response;
-      } catch (error) {
-        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
-        throw error;
-      } finally {
-        store.isMoneyLoading = false;
-      }
-    },
+    //     return response;
+    //   } catch (error) {
+    //     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
+    //     throw error;
+    //   } finally {
+    //     store.isMoneyLoading = false;
+    //   }
+    // },
     async getLockedAmount(amount, getOrPay) {
       const store = useStore();
       const authStore = useAuthStore();
@@ -249,26 +254,119 @@ export const useTransactionStore = defineStore("transaction", {
         store.isLoading = false;
       }
     },
-    async getRate() {
-      const authStore = useAuthStore();
+    getAllowedCurrencies(base) {
+      return CURRENCY_LIST.filter((currency) => currency !== base);
+    },
+    async getRate(base) {
       const alertStore = useAlertStore();
       try {
-        const response = await apiService.getRequest(
-          `/transaction/getRate?username=${authStore.username}`
+        const baseUrl = import.meta.env.VITE_RATE_API_URL;
+        const response = await fetch(`${baseUrl}/rate.html?base=${base}`);
+        const data = await response.json();
+
+        if (!data?.Rate) throw new Error("Invalid rate response");
+
+        const allowedCurrencies = getAllowedCurrencies(base);
+        const formattedRates = data.Rate.filter((rate) =>
+          allowedCurrencies.includes(rate.symbol)
+        ).map((rate) => ({
+          currency: rate.symbol,
+          rate: parseFloat(rate.value),
+        }));
+
+        // Sort the rates based on CURRENCY_LIST order
+        formattedRates.sort(
+          (a, b) =>
+            CURRENCY_LIST.indexOf(a.currency) -
+            CURRENCY_LIST.indexOf(b.currency)
         );
-        if (response.status === 1) {
-          if (response.token) {
-            authStore.refreshSession(response.token, authStore.username);
+
+        this.baseCurrency = base;
+        this.rates = formattedRates;
+
+        return {
+          status: 1,
+          rates: formattedRates,
+        };
+      } catch (error) {
+        alertStore.alert("error", "Failed to fetch rates from rate API");
+        return { status: 0, message: "Rate fetch failed" };
+      }
+    },
+    updateRateClass(currency, newRate) {
+      const prevRate = this.rates.find((r) => r.currency === currency)?.rate;
+      // Use rounded values for comparison to ensure displayed precision matches
+      const prevDecimal = prevRate ? Math.round(prevRate * 10000) : null;
+      const newDecimal = Math.round(newRate * 10000);
+
+      // If there's no previous rate or no change in the 4th decimal, do nothing
+      if (prevDecimal === null || prevDecimal === newDecimal) {
+        return;
+      }
+
+      // Determine the change direction (increase or decrease)
+      const className =
+        newDecimal > prevDecimal ? "rate-increase" : "rate-decrease";
+
+      // Apply the class only if it's a new change (to prevent flickering)
+      if (this.rateClasses[currency] !== className) {
+        this.rateClasses[currency] = className;
+
+        // Automatically remove the class after 2 seconds
+        setTimeout(() => {
+          if (this.rateClasses[currency] === className) {
+            this.rateClasses[currency] = ""; // Clear the class after timeout
           }
-        } else {
-          alertStore.alert("error", response.message);
+        }, 2000);
+      }
+    },
+    initSocketRateUpdates() {
+      socket.on("rateUpdate", ({ base, rates, source }) => {
+        if (source !== "transactionStore") return;
+        if (this.baseCurrency !== base) {
+          this.baseCurrency = base;
         }
 
-        return response;
-      } catch (error) {
-        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
-        throw error;
-      }
+        // Collect changed rates in a concise format
+        const changes = [];
+
+        // Get allowed currencies, excluding the base
+        const allowedCurrencies = getAllowedCurrencies(base);
+
+        // Iterate over the received rates
+        const formattedRates = Object.entries(rates)
+          .filter(([currency]) => allowedCurrencies.includes(currency))
+          .map(([currency, value]) => {
+            const prevRate = this.rates.find(
+              (r) => r.currency === currency
+            )?.rate;
+            const prevDecimal = prevRate ? Math.round(prevRate * 10000) : null;
+            const newDecimal = Math.round(parseFloat(value) * 10000);
+
+            // Check if the 4th decimal place has changed
+            if (prevDecimal !== null && prevDecimal !== newDecimal) {
+              changes.push(`${currency}: ${prevRate} ➡️ ${parseFloat(value)}`);
+              this.updateRateClass(currency, parseFloat(value));
+            }
+
+            return { currency, rate: parseFloat(value) };
+          });
+
+        // Log only changed currencies with their previous and new values
+        if (changes.length) {
+          console.log(`[TransactionStore] Changes: ${changes.join(", ")}`);
+        }
+
+        // Sort the rates based on CURRENCY_LIST order before updating the store
+        formattedRates.sort(
+          (a, b) =>
+            CURRENCY_LIST.indexOf(a.currency) -
+            CURRENCY_LIST.indexOf(b.currency)
+        );
+
+        // Update the store with the mapped and sorted rates
+        this.rates = formattedRates;
+      });
     },
     resetStore() {
       this.$reset();

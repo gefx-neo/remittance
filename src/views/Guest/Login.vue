@@ -26,13 +26,12 @@
           >
             Next
           </ButtonAPI>
-          <ButtonAPI
+          <button
             class="btn-singpass standard-button"
-            :disabled="store.isLoading"
             @click="redirectToSingpass"
           >
             Log in with <img src="@/assets/singpass_logo_fullcolours-1.png" />
-          </ButtonAPI>
+          </button>
         </div>
       </fieldset>
     </div>

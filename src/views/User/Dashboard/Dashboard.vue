@@ -6,8 +6,8 @@
           id="sendingAmount"
           label="Sending amount"
           :modelValue="form.sendingAmount"
-          :isSending="true"
           @update:modelValue="updateSendingAmount"
+          :isSending="true"
           :error="errors.sendingAmount"
         />
         <InputSendingCurrency
@@ -34,9 +34,19 @@
 
       <div class="button-section">
         <div class="rate-group">
-          1 {{ form.sendingCurrency }} = {{ transactionStore.rate }}
+          1 {{ form.sendingCurrency }} ≈
+          {{
+            formatCurrency(
+              transactionStore.rates.find(
+                (rate) => rate.currency === form.receivingCurrency
+              )?.rate || 0,
+              form.receivingCurrency,
+              rateToggles[form.receivingCurrency]
+            )
+          }}
           {{ form.receivingCurrency }}
         </div>
+
         <div class="button-group">
           <ButtonAPI
             :disabled="store.isMoneyLoading"
@@ -57,7 +67,7 @@
         </div>
 
         <div v-if="store.isLoading">
-          <SkeletonLoader type="dashboardTransaction" :count="5" />
+          <SkeletonLoader type="dashboardTransaction" :count="6" />
         </div>
         <div v-else-if="transactions.length === 0">
           <EmptyList />
@@ -120,13 +130,25 @@
         </div>
       </div>
       <div class="currency">
-        <div class="title">
-          <h3>Current Rates</h3>
-          <!-- <router-link to="/history">View all</router-link > -->
+        <div class="tabs">
+          <Tooltip
+            text="SGD"
+            :class="{ active: rateStore.baseCurrency === 'SGD' }"
+            @click="updateRate('SGD')"
+          >
+            <img src="@/assets/currency/sgd.svg" />
+          </Tooltip>
+          <Tooltip
+            text="USD"
+            :class="{ active: rateStore.baseCurrency === 'USD' }"
+            @click="updateRate('USD')"
+          >
+            <img src="@/assets/currency/usd.svg" />
+          </Tooltip>
         </div>
 
         <div v-if="store.isLoading">
-          <SkeletonLoader type="dashboardCurrentRates" :count="5" />
+          <SkeletonLoader type="dashboardCurrentRates" :count="6" />
         </div>
         <div v-else-if="rates.length === 0">
           <EmptyList />
@@ -135,16 +157,24 @@
           <div class="item-section">
             <div v-for="(rate, index) in rates" :key="index" class="item">
               <div class="country">
-                <div class="icon-round">
-                  <img
-                    :src="
-                      rateToggles[rate.currency]
-                        ? getCurrencyImagePath('SGD')
-                        : getCurrencyImagePath(rate.currency)
-                    "
-                    alt="Currency"
-                  />
-                </div>
+                <Tooltip
+                  :text="
+                    rateToggles[rate.currency]
+                      ? `${rateStore.baseCurrency}`
+                      : `${rate.currency}`
+                  "
+                >
+                  <div class="icon-round">
+                    <img
+                      :src="
+                        rateToggles[rate.currency]
+                          ? getCurrencyImagePath(rateStore.baseCurrency)
+                          : getCurrencyImagePath(rate.currency)
+                      "
+                    />
+                  </div>
+                </Tooltip>
+
                 <button
                   @click="toggleRate(rate.currency)"
                   class="exchange-item"
@@ -171,20 +201,36 @@
                     ></path>
                   </svg>
                 </button>
-                <div class="icon-round">
-                  <img
-                    :src="
-                      rateToggles[rate.currency]
-                        ? getCurrencyImagePath(rate.currency)
-                        : getCurrencyImagePath('SGD')
-                    "
-                    alt="Currency"
-                  />
-                </div>
+                <Tooltip
+                  :text="
+                    rateToggles[rate.currency]
+                      ? `${rate.currency}`
+                      : `${rateStore.baseCurrency}`
+                  "
+                >
+                  <div class="icon-round">
+                    <img
+                      :src="
+                        rateToggles[rate.currency]
+                          ? getCurrencyImagePath(rate.currency)
+                          : getCurrencyImagePath(rateStore.baseCurrency)
+                      "
+                    />
+                  </div>
+                </Tooltip>
               </div>
 
-              <div class="rate">
-                {{ rate.rate }}
+              <div
+                class="rate"
+                :class="rateStore.rateClasses[rate.currency] || ''"
+              >
+                {{
+                  formatCurrency(
+                    rate.rate,
+                    rate.currency,
+                    rateToggles[rate.currency]
+                  )
+                }}
               </div>
             </div>
           </div>
@@ -291,7 +337,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, nextTick } from "vue";
+import { ref, reactive, onMounted, watch, nextTick } from "vue";
 import { ButtonAPI } from "@/components/Form";
 import InputAmount from "@/components/Form/Dashboard/InputAmount.vue";
 import InputSendingCurrency from "@/components/Form/Dashboard/InputSendingCurrency.vue";
@@ -302,6 +348,7 @@ import {
   useAlertStore,
   useProfileStore,
   useTransactionStore,
+  useRateStore,
   useAuthStore,
   useStore,
 } from "@/stores/index.js";
@@ -316,21 +363,24 @@ import {
   getTransactionStatus,
   formatDateTime,
 } from "@/utils/transactionUtils.js";
-import { getCurrencySymbol, formatCurrency } from "@/utils/currencyUtils";
+import { formatCurrency, getAllowedCurrencies } from "@/utils/currencyUtils";
 import SkeletonLoader from "@/views/SkeletonLoader.vue";
 import EmptyList from "@/views/EmptyList.vue";
 import { useEnvironment } from "@/composables/useEnvironment";
 import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
+import socket from "@/plugins/socket";
+import Tooltip from "@/components/Tooltip.vue";
+import { CURRENCY_LIST } from "@/utils/currencyUtils"; // Import the list
 
 const router = useRouter();
 const transactionStore = useTransactionStore();
+const rateStore = useRateStore();
 const store = useStore();
 const authStore = useAuthStore();
 const alertStore = useAlertStore();
 const profileStore = useProfileStore();
 const { errors, validateForm, validateSendingAmount, validateReceivingAmount } =
   useValidation();
-const { ENV_TYPE } = useEnvironment();
 
 const form = reactive({
   sendingAmount: 0,
@@ -344,7 +394,7 @@ const profileDetails = reactive({});
 const transactions = ref([]);
 const rates = ref([]);
 const previousRates = ref({});
-let rateInterval = null;
+const baseCurrency = ref("SGD");
 
 const updateSendingAmount = async (amount) => {
   const formattedAmount = parseFloat(amount);
@@ -358,57 +408,19 @@ const updateSendingCurrency = async (currency) => {
   if (form.sendingCurrency === currency) return;
 
   form.sendingCurrency = currency;
+  await transactionStore.getRate(currency);
+  transactionStore.baseCurrency = currency;
 
-  try {
-    const lockedRateResponse = await transactionStore.getLockedRate(
-      form.sendingCurrency,
-      form.receivingCurrency
-    );
-
-    if (lockedRateResponse && lockedRateResponse.status === 1) {
-      if (form.sendingAmount) {
-        const response = await transactionStore.getLockedAmount(
-          form.sendingAmount,
-          "pay"
-        );
-
-        if (response && response.status === 1) {
-          form.receivingAmount = parseFloat(response.getAmount).toFixed(2);
-        }
-      }
-    }
-  } catch (error) {
-    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
-  }
+  // Emit with the correct source
+  socket.emit("changeBase", {
+    base: transactionStore.baseCurrency,
+    source: "transactionStore",
+  });
 };
-
 const updateReceivingCurrency = async (currency) => {
   if (form.receivingCurrency === currency) return;
 
   form.receivingCurrency = currency;
-
-  try {
-    const lockedRateResponse = await transactionStore.getLockedRate(
-      form.sendingCurrency,
-      form.receivingCurrency
-    );
-
-    if (lockedRateResponse && lockedRateResponse.status === 1) {
-      if (form.sendingAmount) {
-        // Fetch the receiving amount based on the current sending amount
-        const response = await transactionStore.getLockedAmount(
-          form.sendingAmount,
-          "pay"
-        );
-
-        if (response && response.status === 1) {
-          form.receivingAmount = parseFloat(response.getAmount).toFixed(2);
-        }
-      }
-    }
-  } catch (error) {
-    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
-  }
 };
 
 const handleSubmit = async () => {
@@ -474,6 +486,31 @@ const handleSubmit = async () => {
   }
 };
 
+const updateRate = async (selectedBase) => {
+  if (rateStore.baseCurrency === selectedBase) return;
+
+  // Emit with the correct source for rateStore updates
+  socket.emit("changeBase", {
+    base: selectedBase,
+    source: "rateStore",
+  });
+
+  const rateResponse = await rateStore.getRate(selectedBase);
+
+  if (rateResponse.status === 1 && rateResponse.rates) {
+    previousRates.value = Object.fromEntries(
+      rateResponse.rates.map((rate) => [rate.currency, rate.rate])
+    );
+    rates.value = rateResponse.rates.map((rate) => {
+      const isReciprocal = rateToggles.value[rate.currency];
+      return {
+        currency: rate.currency,
+        rate: isReciprocal ? 1 / rate.rate : rate.rate,
+      };
+    });
+  }
+};
+
 onMounted(async () => {
   await profileStore.getProfileDetail();
   Object.assign(profileDetails, profileStore.profileDetails); // Assign store data to reactive object
@@ -481,57 +518,40 @@ onMounted(async () => {
   if (profileDetails.userStatus !== 3) {
     return;
   }
+  rateStore.resetStore(); // Clear rate classes on page load
 
   try {
-    const [lockedRateResponse, transactionListResponse, rateResponse] =
-      await Promise.all([
-        transactionStore.getLockedRate(
-          form.sendingCurrency,
-          form.receivingCurrency
-        ),
-        transactionStore.getTransactionList(),
-        transactionStore.getRate(),
-      ]);
+    const [transactionListResponse, rateResponse] = await Promise.all([
+      transactionStore.getTransactionList(),
+      transactionStore.getRate(baseCurrency.value), // Only once
+      rateStore.getRate(baseCurrency.value), // Only once
+    ]);
+    transactionStore.initSocketRateUpdates(); // then start socket
+    rateStore.initSocketRateUpdates(); // then start socket
 
     if (transactionListResponse?.trxns) {
       transactions.value = transactionListResponse.trxns
         .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .slice(0, 5);
+        .slice(0, 6);
     }
 
     if (rateResponse?.status === 1 && rateResponse?.rates) {
-      const allowedCurrencies =
-        ENV_TYPE === "PRODUCTION"
-          ? ["USD", "MYR", "IDR", "JPY", "THB"]
-          : ["USD", "MYR", "IDR", "YEN", "THB"];
-
-      previousRates.value = Object.fromEntries(
-        rateResponse.rates.map((rate) => [rate.currency, parseFloat(rate.rate)])
+      const rawRates = rateResponse.rates.filter((rate) =>
+        getAllowedCurrencies(baseCurrency.value).includes(rate.currency)
       );
 
-      rates.value = rateResponse.rates
-        .filter((rate) => allowedCurrencies.includes(rate.currency))
-        .map((rate) => {
-          const currency = rate.currency;
-          const isToggled = rateToggles.value[currency] || false;
+      previousRates.value = Object.fromEntries(
+        rawRates.map((rate) => [rate.currency, rate.rate])
+      );
 
-          return {
-            currency,
-            rate: formatCurrency(
-              previousRates.value[currency],
-              currency,
-              isToggled
-            ), // Just the rate
-          };
-        })
-        .sort(
-          (a, b) =>
-            allowedCurrencies.indexOf(a.currency) -
-            allowedCurrencies.indexOf(b.currency)
-        );
+      rateStore.rates = rawRates;
+
+      rates.value = rawRates.map((rate) => ({
+        currency: rate.currency,
+        rate: rate.rate,
+      }));
     }
   } catch (error) {
-    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 });
@@ -541,14 +561,15 @@ const rateToggles = ref({}); // Object to store toggle state
 
 const toggleRate = async (currency) => {
   rateToggles.value[currency] = !rateToggles.value[currency];
+  await nextTick();
 
-  await nextTick(); // Wait for Vue to apply updates
+  const originalRate = previousRates.value[currency];
 
-  const rateObj = rates.value.find((rate) => rate.currency === currency);
-  if (rateObj) {
-    rateObj.rate = rateToggles.value[currency]
-      ? formatCurrency(1 / previousRates.value[currency], currency, true) // Reciprocal uses unique currency symbol
-      : formatCurrency(previousRates.value[currency], currency, false); // Normal uses "S$"
+  const index = rates.value.findIndex((r) => r.currency === currency);
+  if (index !== -1 && originalRate) {
+    rates.value[index].rate = rateToggles.value[currency]
+      ? 1 / originalRate
+      : originalRate;
   }
 };
 
@@ -565,51 +586,98 @@ const navigateToTransactionDetail = async (memoId) => {
   }
 };
 
-const navigateToProfile = () => {
-  router.push({ name: "profile" });
-};
-
 const navigateToAccountVerification = () => {
   router.push({ name: "accountverification" });
 };
-</script>
 
+watch(
+  () => rateStore.rates,
+  (newRates) => {
+    const allowedRates = newRates
+      .filter((rate) =>
+        getAllowedCurrencies(rateStore.baseCurrency).includes(rate.currency)
+      )
+      .sort(
+        (a, b) =>
+          CURRENCY_LIST.indexOf(a.currency) - CURRENCY_LIST.indexOf(b.currency)
+      );
+
+    previousRates.value = Object.fromEntries(
+      allowedRates.map((rate) => [rate.currency, rate.rate])
+    );
+
+    rates.value = allowedRates.map((rate) => {
+      const isReciprocal = rateToggles.value[rate.currency] || false;
+      return {
+        currency: rate.currency,
+        rate: isReciprocal ? 1 / rate.rate : rate.rate,
+      };
+    });
+  },
+  { deep: true, immediate: true }
+);
+</script>
 <style scoped>
 @import "@/assets/dashboard.css";
 
-/* @keyframes fadeUpOut {
-  0% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes fadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .rate {
-  position: relative;
-  display: inline-block;
-  transition: opacity 0.5s, transform 0.5s;
+  color: var(--black);
+  font-weight: bold;
+  transition: background-color 2s ease-in-out, color 2s ease-in-out;
+  display: flex;
+  justify-content: end;
+  padding: 0 var(--size-4);
+  margin-inline: -4px;
+  border-radius: var(--border-sm);
 }
 
-.rate.fade-up-out {
-  animation: fadeUpOut 0.5s ease forwards;
+.rate-increase {
+  animation: flashBackground 2s forwards;
 }
 
-.rate.fade-in {
-  animation: fadeIn 0.5s ease forwards;
-} */
+.rate-decrease {
+  animation: flashBackgroundRed 2s forwards;
+}
+
+@keyframes flashBackground {
+  0% {
+    background-color: transparent;
+    color: var(--black);
+  }
+  10% {
+    background-color: rgba(103, 204, 137, 0.8);
+    color: var(--white);
+  }
+  90% {
+    background-color: rgba(103, 204, 137, 0.8);
+    color: var(--white);
+  }
+  100% {
+    background-color: transparent;
+    color: var(--black);
+  }
+}
+
+@keyframes flashBackgroundRed {
+  0% {
+    background-color: transparent;
+    color: var(--black);
+  }
+  10% {
+    background-color: rgba(226, 10, 59, 0.8);
+    color: white;
+    padding-left: var(--size-4);
+    border-radius: var(--border-sm);
+  }
+  90% {
+    background-color: rgba(226, 10, 59, 0.8);
+    color: white;
+    padding-left: var(--size-4);
+    border-radius: var(--border-sm);
+  }
+  100% {
+    background-color: transparent;
+    color: var(--black);
+  }
+}
 </style>

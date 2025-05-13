@@ -108,7 +108,7 @@ watch(
 // Handle click outside the modal
 const handleClose = () => {
   if (props.success) {
-    if (!authStore.user) {
+    if (!authStore.username) {
       window.location.href = "/";
     } else {
       emit("close");
