@@ -66,8 +66,8 @@
 }
 
 .history {
-  min-width: 65%;
-  max-width: 65%;
+  min-width: 60%;
+  max-width: 60%;
 }
 
 .history .title,
@@ -89,7 +89,6 @@
   justify-content: center;
   align-items: center;
   gap: var(--size-12);
-  height: 51.26px;
   position: relative;
 }
 
@@ -313,11 +312,11 @@
 }
 
 .currency {
-  min-width: 30%;
-  max-width: 30%;
+  min-width: 35%;
+  max-width: 35%;
   border: 1px solid var(--light-grey);
-  box-shadow: 0 0 40px rgba(69, 71, 69, 0.2);
-  padding: var(--size-8);
+  box-shadow: 0 0 5px rgba(69, 71, 69, 0.2);
+  padding: var(--size-8) var(--size-8);
 }
 
 .currency .item-section {
@@ -331,7 +330,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: calc(100% + var(--size-16));
+  width: 100%;
   padding: var(--size-8);
   border-radius: var(--border-md);
   cursor: pointer;

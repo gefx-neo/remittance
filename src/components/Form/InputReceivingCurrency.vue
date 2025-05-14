@@ -31,7 +31,7 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import CurrencyDropdown from "@/components/Dropdown/CurrencyDropdown.vue";
 import { receivingCurrencies } from "@/data/data";
-import { getCurrencyImagePath } from "@/utils/beneficiaryUtils";
+import { getCurrencyImagePath } from "@/utils/currencyUtils.js";
 
 const props = defineProps({
   label: String,

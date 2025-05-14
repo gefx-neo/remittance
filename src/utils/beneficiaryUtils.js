@@ -21,14 +21,6 @@ export const getAccountType = (value) => {
   return type ? type.name : "Unknown Account Type";
 };
 
-export const getCurrencyImagePath = (currencyCode) => {
-  const { imagePath } = useEnvironment();
-
-  return currencyCode
-    ? `${imagePath}/currency/${currencyCode.toLowerCase()}.svg`
-    : `${imagePath}/currency/default.svg`;
-};
-
 export const getNationality = (id) => {
   const country = beneficiaryCountries.find((item) => item.id === parseInt(id));
   return country ? country.name : "Unknown Nationality";

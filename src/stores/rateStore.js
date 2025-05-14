@@ -9,7 +9,6 @@ export const useRateStore = defineStore("rate", {
   state: () => ({
     baseCurrency: "SGD", // centralized
     rates: [], // all real-time rates received via socket
-    reciprocalRates: [],
     rateClasses: {}, // Track increase or decrease classes for each currency
   }),
   actions: {
@@ -76,29 +75,33 @@ export const useRateStore = defineStore("rate", {
       }
     },
     toggleRateClass(currency) {
-      const currentClass = this.rateClasses[currency] || "rate";
-
-      // Determine the new class based on the current class
-      let newClass;
-      if (currentClass === "rate-increase") {
-        newClass = "rate-decrease";
-      } else if (currentClass === "rate-decrease") {
-        newClass = "rate-increase";
-      } else {
-        // If the current class is just 'rate', do nothing
-        return;
-      }
-
-      // Update the class in the store
-      this.rateClasses[currency] = newClass;
-
-      // Set timeout to remove the class after 2 seconds
-      setTimeout(() => {
-        if (this.rateClasses[currency] === newClass) {
-          this.rateClasses[currency] = "";
-        }
-      }, 2000);
+      // Clear the current rate class immediately
+      this.rateClasses[currency] = "";
     },
+    // toggleRateClass(currency) {
+    //   const currentClass = this.rateClasses[currency] || "rate";
+
+    //   // Determine the new class based on the current class
+    //   let newClass;
+    //   if (currentClass === "rate-increase") {
+    //     newClass = "rate-decrease";
+    //   } else if (currentClass === "rate-decrease") {
+    //     newClass = "rate-increase";
+    //   } else {
+    //     // If the current class is just 'rate', do nothing
+    //     return;
+    //   }
+
+    //   // Update the class in the store
+    //   this.rateClasses[currency] = newClass;
+
+    //   // Set timeout to remove the class after 2 seconds
+    //   setTimeout(() => {
+    //     if (this.rateClasses[currency] === newClass) {
+    //       this.rateClasses[currency] = "";
+    //     }
+    //   }, 2000);
+    // },
     initSocketRateUpdates() {
       socket.on("rateUpdate", ({ base, rates, source }) => {
         if (source !== "rateStore") return;

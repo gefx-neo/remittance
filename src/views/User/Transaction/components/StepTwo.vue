@@ -291,11 +291,8 @@ import {
 } from "@/stores/index.js";
 import FavouriteButton from "../../Beneficiary/components/FavouriteButton.vue";
 import { useRouter } from "vue-router";
-import {
-  getInitials,
-  getAccountType,
-  getCurrencyImagePath,
-} from "@/utils/beneficiaryUtils.js";
+import { getInitials, getAccountType } from "@/utils/beneficiaryUtils.js";
+import { getCurrencyImagePath } from "@/utils/currencyUtils";
 import EmptyList from "@/views/EmptyList.vue";
 import SkeletonLoader from "@/views/SkeletonLoader.vue";
 

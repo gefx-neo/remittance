@@ -58,7 +58,7 @@ import CurrencyDropdown from "@/components/Dropdown/CurrencyDropdown.vue";
 import { sendingCurrencies, receivingCurrencies } from "@/data/data";
 import { useStore } from "@/stores/store";
 import { useAlertStore } from "@/stores/index.js";
-import { getCurrencyImagePath } from "@/utils/beneficiaryUtils";
+import { getCurrencyImagePath } from "@/utils/currencyUtils.js";
 
 const props = defineProps({
   label: String,

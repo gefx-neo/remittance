@@ -357,13 +357,16 @@ import {
   formValidation,
   currencySchema,
 } from "./components/schemas/dashboardSchema";
-import { getCurrencyImagePath } from "@/utils/beneficiaryUtils.js";
 import {
   formatNumber,
   getTransactionStatus,
   formatDateTime,
 } from "@/utils/transactionUtils.js";
-import { formatCurrency, getAllowedCurrencies } from "@/utils/currencyUtils";
+import {
+  formatCurrency,
+  getAllowedCurrencies,
+  getCurrencyImagePath,
+} from "@/utils/currencyUtils";
 import SkeletonLoader from "@/views/SkeletonLoader.vue";
 import EmptyList from "@/views/EmptyList.vue";
 import { useEnvironment } from "@/composables/useEnvironment";

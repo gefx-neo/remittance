@@ -1,3 +1,5 @@
+import { useEnvironment } from "@/composables/useEnvironment";
+
 export const currencyDetails = {
   MYR: { symbol: "RM", normal: 4, reciprocal: 4 },
   IDR: { symbol: "Rp", normal: 4, reciprocal: 4 },
@@ -46,3 +48,12 @@ export function formatCurrency(value, currency, isReciprocal = false) {
 
   return Number.parseFloat(value).toFixed(decimals); // Return only the numeric value
 }
+
+export const getCurrencyImagePath = (currencyCode, usePng = false) => {
+  const { imagePath } = useEnvironment();
+  const extension = usePng ? "png" : "svg";
+
+  return currencyCode
+    ? `${imagePath}/currency/${currencyCode.toLowerCase()}.${extension}`
+    : `${imagePath}/currency/default.${extension}`;
+};

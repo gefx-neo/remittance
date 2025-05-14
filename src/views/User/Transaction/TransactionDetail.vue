@@ -202,10 +202,10 @@ import {
 } from "@/utils/transactionUtils";
 import {
   getInitials,
-  getCurrencyImagePath,
   getRemittancePurpose,
   getFundSource,
 } from "@/utils/beneficiaryUtils";
+import { getCurrencyImagePath } from "@/utils/currencyUtils";
 import { ButtonAPI } from "@/components/Form";
 import Tooltip from "@/components/Tooltip.vue";
 import SkeletonLoader from "@/views/SkeletonLoader.vue";

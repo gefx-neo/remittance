@@ -290,7 +290,6 @@ export const useTransactionStore = defineStore("transaction", {
         };
       } catch (error) {
         alertStore.alert("error", "Failed to fetch rates from rate API");
-        return { status: 0, message: "Rate fetch failed" };
       }
     },
     updateRateClass(currency, newRate) {
@@ -319,6 +318,10 @@ export const useTransactionStore = defineStore("transaction", {
           }
         }, 2000);
       }
+    },
+    toggleRateClass(currency) {
+      // Clear the current rate class immediately
+      this.rateClasses[currency] = "";
     },
     initSocketRateUpdates() {
       socket.on("rateUpdate", ({ base, rates, source }) => {
@@ -354,7 +357,7 @@ export const useTransactionStore = defineStore("transaction", {
 
         // Log only changed currencies with their previous and new values
         // if (changes.length) {
-        //   console.log(`[TransactionStore] Changes: ${changes.join(", ")}`);
+        //   console.log(`[TransactionStore ] Changes: ${changes.join(", ")}`);
         // }
 
         // Sort the rates based on CURRENCY_LIST order before updating the store

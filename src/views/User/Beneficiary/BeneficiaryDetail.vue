@@ -305,8 +305,8 @@ import {
   getBusinessCategory,
   getRemittancePurpose,
   getFundSource,
-  getCurrencyImagePath,
 } from "@/utils/beneficiaryUtils.js";
+import { getCurrencyImagePath } from "@/utils/currencyUtils.js";
 import {
   formatNumber,
   getTransactionStatus,

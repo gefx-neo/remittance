@@ -39,7 +39,7 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from "vue";
-import { getCurrencyImagePath } from "@/utils/beneficiaryUtils";
+import { getCurrencyImagePath } from "@/utils/currencyUtils.js";
 
 const props = defineProps({
   isDropdownOpen: Boolean,
