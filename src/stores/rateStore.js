@@ -49,18 +49,39 @@ export const useRateStore = defineStore("rate", {
     },
     updateRateClass(currency, newRate) {
       const prevRate = this.rates.find((r) => r.currency === currency)?.rate;
-      // Use rounded values for comparison to ensure displayed precision matches
       const prevDecimal = prevRate ? Math.round(prevRate * 10000) : null;
       const newDecimal = Math.round(newRate * 10000);
 
-      // If there's no previous rate or no change in the 4th decimal, do nothing
-      if (prevDecimal === null || prevDecimal === newDecimal) {
-        return;
+      // Handle reciprocal state comparison
+      const isReciprocal = this.rateClasses[currency]?.includes("reciprocal");
+      let prevReciprocalDecimal = null;
+      let newReciprocalDecimal = null;
+
+      if (isReciprocal) {
+        prevReciprocalDecimal = prevRate
+          ? Math.round((1 / prevRate) * 10000)
+          : null;
+        newReciprocalDecimal = Math.round((1 / newRate) * 10000);
       }
 
-      // Determine the change direction (increase or decrease)
-      const className =
-        newDecimal > prevDecimal ? "rate-increase" : "rate-decrease";
+      // Determine if there is a meaningful change
+      const hasChanged = isReciprocal
+        ? prevReciprocalDecimal !== newReciprocalDecimal
+        : prevDecimal !== newDecimal;
+
+      if (!hasChanged) return;
+
+      // Determine the change direction (increase or decrease) based on the state
+      let className;
+      if (isReciprocal) {
+        className =
+          newReciprocalDecimal > prevReciprocalDecimal
+            ? "rate-increase"
+            : "rate-decrease";
+      } else {
+        className =
+          newDecimal > prevDecimal ? "rate-increase" : "rate-decrease";
+      }
 
       // Apply the class only if it's a new change (to prevent flickering)
       if (this.rateClasses[currency] !== className) {
@@ -68,12 +89,37 @@ export const useRateStore = defineStore("rate", {
 
         // Automatically remove the class after 2 seconds
         setTimeout(() => {
-          if (this.rateClasses[currency] === className) {
-            this.rateClasses[currency] = ""; // Clear the class after timeout
-          }
+          this.rateClasses[currency] = ""; // Clear the class after timeout
         }, 2000);
       }
     },
+    // updateRateClass(currency, newRate) {
+    //   const prevRate = this.rates.find((r) => r.currency === currency)?.rate;
+    //   // Use rounded values for comparison to ensure displayed precision matches
+    //   const prevDecimal = prevRate ? Math.round(prevRate * 10000) : null;
+    //   const newDecimal = Math.round(newRate * 10000);
+
+    //   // If there's no previous rate or no change in the 4th decimal, do nothing
+    //   if (prevDecimal === null || prevDecimal === newDecimal) {
+    //     return;
+    //   }
+
+    //   // Determine the change direction (increase or decrease)
+    //   const className =
+    //     newDecimal > prevDecimal ? "rate-increase" : "rate-decrease";
+
+    //   // Apply the class only if it's a new change (to prevent flickering)
+    //   if (this.rateClasses[currency] !== className) {
+    //     this.rateClasses[currency] = className;
+
+    //     // Automatically remove the class after 2 seconds
+    //     setTimeout(() => {
+    //       // Always clear the class, regardless of current state
+    //       this.rateClasses[currency] = "";
+    //       console.log(`[Cleared] ${currency}: ${this.rateClasses[currency]}`);
+    //     }, 2000);
+    //   }
+    // },
     toggleRateClass(currency) {
       // Clear the current rate class immediately
       this.rateClasses[currency] = "";
@@ -135,9 +181,9 @@ export const useRateStore = defineStore("rate", {
           });
 
         // Log only changed currencies with their previous and new values
-        // if (changes.length) {
-        //   console.log(`[RateStore] Changes: ${changes.join(", ")}`);
-        // }
+        if (changes.length) {
+          console.log(`[RateStore] Changes: ${changes.join(", ")}`);
+        }
 
         // Sort the rates based on CURRENCY_LIST order before updating the store
         formattedRates.sort(

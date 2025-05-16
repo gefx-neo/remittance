@@ -225,7 +225,7 @@
 
 .btn-back:hover {
   border: 1px solid var(--darkest-grey);
-  color: var(--darkest-grey);
+  color: var(--crimson-red);
 }
 
 .btn-back:focus {

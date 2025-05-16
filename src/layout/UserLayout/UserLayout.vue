@@ -34,6 +34,7 @@ const authStore = useAuthStore();
   max-width: 1024px;
   margin: 0 auto;
   padding: 0 var(--size-32);
+  padding-bottom: var(--size-32);
   display: block;
   width: calc(100% - 240px);
 }

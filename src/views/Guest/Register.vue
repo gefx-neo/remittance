@@ -109,8 +109,8 @@ import { useStore } from "@/stores/store";
 import { useAlertStore } from "@/stores/alertStore";
 import { validationService } from "@/services/validationUserService.js";
 import Modal from "@/components/Modal/Modal.vue";
-import ModalTerms from "./components/ModalTerms.vue";
-import ModalPolicy from "./components/ModalPolicy.vue";
+import ModalTerms from "../../components/Modal/ModalTerms.vue";
+import ModalPolicy from "../../components/Modal/ModalPolicy.vue";
 import { ButtonAPI } from "@/components/Form";
 import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 

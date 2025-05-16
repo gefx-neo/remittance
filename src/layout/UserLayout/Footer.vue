@@ -19,6 +19,7 @@ onMounted(() => {
   display: flex;
   justify-content: end;
   padding: var(--size-12) 0;
+  display: none;
 }
 
 .footer-area p {

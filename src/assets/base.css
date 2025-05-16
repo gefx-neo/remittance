@@ -18,11 +18,11 @@
   --pastel-green: #67cc89;
   --dark-yellow: #f6b800;
   --black: #3c3f41;
-  --lighter-grey: rgba(102, 102, 102, 0.1);
-  --light-grey: rgba(102, 102, 102, 0.2);
-  --dark-grey: rgba(102, 102, 102, 0.3);
-  --darker-grey: rgba(102, 102, 102, 0.4);
-  --darkest-grey: rgba(102, 102, 102, 0.8);
+  --lighter-grey: #6666661a;
+  --light-grey: #66666633;
+  --dark-grey: #6666664d;
+  --darker-grey: #66666666;
+  --darkest-grey: #666666cc;
   --grey: #666666;
   --midnight-violet: #231d9a;
   --yellow-star: #ffd700;
@@ -108,8 +108,9 @@ video {
 }
 
 .router-link-active {
+  background: var(--sky-blue);
   color: var(--slate-blue) !important;
-  fill: var(--slate-blue) !important;
+  border-radius: var(--border-circle);
 }
 
 .router-link-active svg {

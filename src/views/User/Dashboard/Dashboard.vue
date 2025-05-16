@@ -61,9 +61,9 @@
 
     <div class="transaction">
       <div class="history">
-        <div class="title">
-          <h3>Transaction History</h3>
-          <router-link to="/transaction">View all</router-link>
+        <div class="tabs">
+          <div class="title">Transactions</div>
+          <!-- <router-link to="/transaction">View all</router-link> -->
         </div>
 
         <div v-if="store.isLoading">
@@ -128,22 +128,49 @@
             </div>
           </div>
         </div>
+        <button class="btn-load">Load more</button>
       </div>
       <div class="currency">
         <div class="tabs">
           <Tooltip
             text="SGD"
-            :class="{ active: rateStore.baseCurrency === 'SGD' }"
+            :class="{
+              active: rateStore.baseCurrency === 'SGD',
+              animating: isAnimating,
+            }"
+            @animationstart="startAnimation"
+            @animationend="endAnimation"
             @click="updateRate('SGD')"
           >
-            <img src="@/assets/currency/sgd.svg" />
+            <img
+              :src="
+                $getImagePath(
+                  `currency/sgd.${
+                    rateStore.baseCurrency === 'SGD' ? 'png' : 'svg'
+                  }`
+                )
+              "
+            />
           </Tooltip>
           <Tooltip
             text="USD"
-            :class="{ active: rateStore.baseCurrency === 'USD' }"
+            :class="{
+              active: rateStore.baseCurrency === 'USD',
+              animating: isAnimating,
+            }"
+            @animationstart="startAnimation"
+            @animationend="endAnimation"
             @click="updateRate('USD')"
           >
-            <img src="@/assets/currency/usd.svg" />
+            <img
+              :src="
+                $getImagePath(
+                  `currency/usd.${
+                    rateStore.baseCurrency === 'USD' ? 'png' : 'svg'
+                  }`
+                )
+              "
+            />
           </Tooltip>
         </div>
 
@@ -156,25 +183,18 @@
         <div v-else>
           <div class="item-section">
             <div v-for="(rate, index) in rates" :key="index" class="item">
-              <div class="country">
-                <Tooltip
-                  :text="
-                    rateToggles[rate.currency]
-                      ? `${rateStore.baseCurrency}`
-                      : `${rate.currency}`
-                  "
-                >
+              <div
+                class="country"
+                :class="{ reciprocal: rateToggles[rate.currency] }"
+              >
+                <!-- First Image: Other currency (non-base) -->
+                <Tooltip :text="rate.currency">
                   <div class="icon-round">
-                    <img
-                      :src="
-                        rateToggles[rate.currency]
-                          ? getCurrencyImagePath(rateStore.baseCurrency)
-                          : getCurrencyImagePath(rate.currency)
-                      "
-                    />
+                    <img :src="getCurrencyImagePath(rate.currency)" />
                   </div>
                 </Tooltip>
 
+                <!-- Toggle Button -->
                 <button
                   @click="toggleRate(rate.currency)"
                   class="exchange-item"
@@ -201,21 +221,11 @@
                     ></path>
                   </svg>
                 </button>
-                <Tooltip
-                  :text="
-                    rateToggles[rate.currency]
-                      ? `${rate.currency}`
-                      : `${rateStore.baseCurrency}`
-                  "
-                >
+
+                <!-- Second Image: Base currency (always PNG) -->
+                <Tooltip :text="rateStore.baseCurrency">
                   <div class="icon-round">
-                    <img
-                      :src="
-                        rateToggles[rate.currency]
-                          ? getCurrencyImagePath(rate.currency)
-                          : getCurrencyImagePath(rateStore.baseCurrency)
-                      "
-                    />
+                    <img :src="getCurrencyImagePath(rateStore.baseCurrency)" />
                   </div>
                 </Tooltip>
               </div>
@@ -535,7 +545,7 @@ onMounted(async () => {
     if (transactionListResponse?.trxns) {
       transactions.value = transactionListResponse.trxns
         .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .slice(0, 6);
+        .slice(0, 5);
     }
 
     if (rateResponse?.status === 1 && rateResponse?.rates) {
@@ -631,6 +641,16 @@ watch(
   },
   { deep: true, immediate: true }
 );
+
+const isAnimating = ref(false);
+
+const startAnimation = () => {
+  isAnimating.value = true;
+};
+
+const endAnimation = () => {
+  isAnimating.value = false;
+};
 </script>
 <style scoped>
 @import "@/assets/dashboard.css";
@@ -694,5 +714,26 @@ watch(
     background-color: transparent;
     color: var(--black);
   }
+}
+
+.icon-rectangle {
+  min-width: var(--size-56);
+  max-width: var(--size-56);
+  min-height: var(--size-48);
+  max-height: var(--size-48);
+  border-radius: var(--border-sm);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--sky-blue);
+}
+
+.icon-rectangle img {
+  min-width: var(--size-56);
+  max-width: var(--size-56);
+  min-height: var(--size-48);
+  max-height: var(--size-48);
+  border: 1px solid var(--light-grey);
+  border-radius: var(--border-sm);
 }
 </style>

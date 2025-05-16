@@ -46,14 +46,16 @@ export function formatCurrency(value, currency, isReciprocal = false) {
     ? getReciprocalDecimals(currency)
     : getCurrencyDecimals(currency);
 
-  return Number.parseFloat(value).toFixed(decimals); // Return only the numeric value
+  return (
+    Math.round(Number.parseFloat(value) * Math.pow(10, decimals)) /
+    Math.pow(10, decimals)
+  ).toFixed(decimals);
 }
 
-export const getCurrencyImagePath = (currencyCode, usePng = false) => {
+export const getCurrencyImagePath = (currencyCode) => {
   const { imagePath } = useEnvironment();
-  const extension = usePng ? "png" : "svg";
 
   return currencyCode
-    ? `${imagePath}/currency/${currencyCode.toLowerCase()}.${extension}`
-    : `${imagePath}/currency/default.${extension}`;
+    ? `${imagePath}/currency/${currencyCode.toLowerCase()}.svg`
+    : `${imagePath}/currency/default.svg`;
 };

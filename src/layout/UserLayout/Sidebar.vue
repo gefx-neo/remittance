@@ -22,6 +22,18 @@
         <span>{{ route.label }}</span>
       </RouterLink>
     </div>
+    <div class="footer">
+      <div class="title">
+        <div class="item">
+          <p @click="openTermsModal">Terms</p>
+          <span></span>
+        </div>
+        <div class="item">
+          <p @click="openPolicyModal">Privacy</p>
+        </div>
+      </div>
+      <p>Great East Forex © {{ currentYear }} All Rights Reserved</p>
+    </div>
   </div>
   <div
     @click="store.closeSidebar"
@@ -41,14 +53,42 @@
       <span class="label">{{ route.label }}</span>
     </RouterLink>
   </div>
+  <ModalTerms
+    :isModalOpen="isTermsModal"
+    title="Terms and conditions"
+    @close="isTermsModal = false"
+  />
+  <ModalPolicy
+    :isModalOpen="isPolicyModal"
+    title="Privacy Policy"
+    @close="isPolicyModal = false"
+  />
 </template>
 
 <script setup>
 import { useRouter, RouterLink } from "vue-router";
 import { useStore } from "@/stores/store";
+import { ref, onMounted } from "vue";
+import ModalTerms from "@/components/Modal/ModalTerms.vue";
+import ModalPolicy from "@/components/Modal/ModalPolicy.vue";
 
 const store = useStore();
 const router = useRouter();
+
+const isTermsModal = ref(false);
+const isPolicyModal = ref(false);
+const openTermsModal = () => {
+  isTermsModal.value = true;
+};
+const openPolicyModal = () => {
+  isPolicyModal.value = true;
+};
+
+const currentYear = ref(null);
+
+onMounted(() => {
+  currentYear.value = new Date().getFullYear();
+});
 
 const routes = [
   { to: "/dashboard", icon: ["fas", "home"], label: "Dashboard" },
@@ -116,13 +156,14 @@ router.afterEach(() => {
   align-items: center;
   gap: var(--size-12);
   padding: var(--size-dropdown-item);
+
   color: var(--cool-blue);
   text-decoration: none;
 }
 
 .navigation a:hover svg,
 .navigation a:hover span {
-  color: var(--slate-blue) !important;
+  color: var(--slate-blue);
   font-weight: var(--semi-bold);
 }
 
@@ -239,6 +280,51 @@ router.afterEach(() => {
   .mobile-footer-container a:hover .label {
     color: var(--slate-blue) !important;
     font-weight: var(--semi-bold);
+  }
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding-left: var(--size-24);
+  padding-bottom: var(--size-12);
+}
+
+.footer .title {
+  display: flex;
+  gap: var(--size-4);
+  cursor: pointer;
+}
+
+.footer .title p {
+  font-weight: var(--semi-bold);
+}
+
+.footer .title .item {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4);
+}
+
+.footer .title .item span {
+  width: 2px;
+  height: 2px;
+  background: var(--grey);
+  border-radius: var(--border-circle);
+}
+
+.footer p {
+  color: var(--grey);
+  font-size: var(--text-xs);
+}
+
+@media (max-width: 767px) {
+  .footer {
+    display: none;
   }
 }
 </style>
