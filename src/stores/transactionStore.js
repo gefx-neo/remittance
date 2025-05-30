@@ -1,7 +1,12 @@
 import { defineStore } from "pinia";
 import apiService from "@/services/apiService";
 import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
-import { useStore, useAuthStore, useAlertStore } from "@/stores/index";
+import {
+  useStore,
+  useAuthStore,
+  useAlertStore,
+  useRateStore,
+} from "@/stores/index";
 import socket from "@/plugins/socket";
 import { CURRENCY_LIST, getAllowedCurrencies } from "@/utils/currencyUtils"; // Import the list
 
@@ -31,10 +36,12 @@ export const useTransactionStore = defineStore("transaction", {
       const authStore = useAuthStore();
       const alertStore = useAlertStore();
       store.isLoading = true;
+
       try {
         const response = await apiService.getRequest(
           `/transaction/list?username=${authStore.username}`
         );
+
         if (response.status === 1) {
           if (response.token) {
             authStore.refreshSession(response.token, authStore.username);
@@ -42,7 +49,6 @@ export const useTransactionStore = defineStore("transaction", {
         } else {
           alertStore.alert("error", response.message);
         }
-
         return response;
       } catch (error) {
         alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
@@ -51,11 +57,13 @@ export const useTransactionStore = defineStore("transaction", {
         store.isLoading = false;
       }
     },
+
     async getTransactionDetail(memoId) {
       const store = useStore();
       const authStore = useAuthStore();
       const alertStore = useAlertStore();
       store.isLoading = true;
+
       try {
         const response = await apiService.getRequest(
           `/transaction/transactionDetails?username=${authStore.username}&memoId=${memoId}`
@@ -68,7 +76,6 @@ export const useTransactionStore = defineStore("transaction", {
         } else {
           alertStore.alert("error", response.message);
         }
-
         return response;
       } catch (error) {
         alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
@@ -79,7 +86,6 @@ export const useTransactionStore = defineStore("transaction", {
     },
     async uploadFiles(formData) {
       const alertStore = useAlertStore();
-
       try {
         const response = await apiService.postRequest(
           "/transaction/upload",
@@ -122,6 +128,7 @@ export const useTransactionStore = defineStore("transaction", {
         store.isLoading = false;
       }
     },
+
     // async getLockedRate(payCurrency, getCurrency) {
     //   const store = useStore();
     //   const authStore = useAuthStore();
@@ -138,13 +145,11 @@ export const useTransactionStore = defineStore("transaction", {
     //       this.memoId = response.memoId;
     //       this.rate = response.rates?.[0]?.rate || null;
     //       this.fee = response.rates?.[0]?.fee || null;
-
     //       this.sendingCurrency = payCurrency;
     //       this.receivingCurrency = getCurrency;
     //     } else {
     //       alertStore.alert("error", response.message);
     //     }
-
     //     return response;
     //   } catch (error) {
     //     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
@@ -153,6 +158,7 @@ export const useTransactionStore = defineStore("transaction", {
     //     store.isMoneyLoading = false;
     //   }
     // },
+
     async getLockedAmount(amount, getOrPay) {
       const store = useStore();
       const authStore = useAuthStore();
@@ -171,7 +177,6 @@ export const useTransactionStore = defineStore("transaction", {
         } else {
           alertStore.alert("error", response.message);
         }
-
         return response;
       } catch (error) {
         alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
@@ -208,7 +213,6 @@ export const useTransactionStore = defineStore("transaction", {
         } else {
           alertStore.alert("error", response.message);
         }
-
         return response;
       } catch (error) {
         alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
@@ -217,12 +221,12 @@ export const useTransactionStore = defineStore("transaction", {
         store.isLoading = false;
       }
     },
+
     async sendAcknowledgement(payload) {
       const store = useStore();
       const authStore = useAuthStore();
       const alertStore = useAlertStore();
       store.isLoading = true;
-
       try {
         // Construct the query string
         const queryParams = new URLSearchParams({
@@ -232,7 +236,6 @@ export const useTransactionStore = defineStore("transaction", {
 
         // Full URL with query parameters
         const url = `/transaction/acknowledge?${queryParams}`;
-
         // Send the POST request with any additional data in the body
         const response = await apiService.postRequest(url, payload.data || {}, {
           format: "json", // Adjust format if needed
@@ -245,10 +248,10 @@ export const useTransactionStore = defineStore("transaction", {
         } else {
           alertStore.alert("error", response.message);
         }
-
         return response;
       } catch (error) {
         alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
+
         throw error;
       } finally {
         store.isLoading = false;
@@ -259,13 +262,12 @@ export const useTransactionStore = defineStore("transaction", {
     },
     async getRate(base) {
       const alertStore = useAlertStore();
+
       try {
         const baseUrl = import.meta.env.VITE_RATE_API_URL;
         const response = await fetch(`${baseUrl}/rate.html?base=${base}`);
         const data = await response.json();
-
         if (!data?.Rate) throw new Error("Invalid rate response");
-
         const allowedCurrencies = getAllowedCurrencies(base);
         const formattedRates = data.Rate.filter((rate) =>
           allowedCurrencies.includes(rate.symbol)
@@ -292,8 +294,64 @@ export const useTransactionStore = defineStore("transaction", {
         alertStore.alert("error", "Failed to fetch rates from rate API");
       }
     },
+
+    async getParticularRate(base, targetCurrency) {
+      const alertStore = useAlertStore();
+
+      try {
+        const baseUrl = import.meta.env.VITE_RATE_API_URL;
+        const url = `${baseUrl}/rate.html?base=${base}&to=${targetCurrency}`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (!data?.rate) {
+          console.warn(`Missing rate for ${base} ➝ ${targetCurrency}`);
+          return {
+            status: 0,
+            error: `Missing rate for ${base} ➝ ${targetCurrency}`,
+          };
+        }
+
+        const parsedRate = parseFloat(data.rate);
+
+        // Update or insert rate
+        const idx = this.rates.findIndex((r) => r.currency === targetCurrency);
+
+        if (idx !== -1) {
+          this.rates[idx].rate = parsedRate;
+        } else {
+          this.rates.push({ currency: targetCurrency, rate: parsedRate });
+        }
+
+        // Set base
+        this.baseCurrency = base;
+
+        // 🔔 Subscribe to single pair
+        socket.emit("changeBase", {
+          base,
+          to: targetCurrency,
+          source: "transactionStore",
+        });
+
+        return {
+          status: 1,
+          rate: parsedRate,
+        };
+      } catch (error) {
+        alertStore.alert(
+          "error",
+          `Failed to fetch ${base} ➝ ${targetCurrency} rate`
+        );
+
+        return {
+          status: 0,
+          error: error.message,
+        };
+      }
+    },
     updateRateClass(currency, newRate) {
       const prevRate = this.rates.find((r) => r.currency === currency)?.rate;
+
       // Use rounded values for comparison to ensure displayed precision matches
       const prevDecimal = prevRate ? Math.round(prevRate * 10000) : null;
       const newDecimal = Math.round(newRate * 10000);
@@ -304,6 +362,7 @@ export const useTransactionStore = defineStore("transaction", {
       }
 
       // Determine the change direction (increase or decrease)
+
       const className =
         newDecimal > prevDecimal ? "rate-increase" : "rate-decrease";
 
@@ -319,16 +378,16 @@ export const useTransactionStore = defineStore("transaction", {
         }, 2000);
       }
     },
+
     toggleRateClass(currency) {
       // Clear the current rate class immediately
       this.rateClasses[currency] = "";
     },
-    initSocketRateUpdates() {
+
+    subscribeToMultiRateUpdates() {
       socket.on("rateUpdate", ({ base, rates, source }) => {
         if (source !== "transactionStore") return;
-        if (this.baseCurrency !== base) {
-          this.baseCurrency = base;
-        }
+        if (this.baseCurrency !== base) return;
 
         // Collect changed rates in a concise format
         const changes = [];
@@ -343,6 +402,7 @@ export const useTransactionStore = defineStore("transaction", {
             const prevRate = this.rates.find(
               (r) => r.currency === currency
             )?.rate;
+
             const prevDecimal = prevRate ? Math.round(prevRate * 10000) : null;
             const newDecimal = Math.round(parseFloat(value) * 10000);
 
@@ -351,14 +411,13 @@ export const useTransactionStore = defineStore("transaction", {
               changes.push(`${currency}: ${prevRate} ➡️ ${parseFloat(value)}`);
               this.updateRateClass(currency, parseFloat(value));
             }
-
             return { currency, rate: parseFloat(value) };
           });
 
         // Log only changed currencies with their previous and new values
-        // if (changes.length) {
-        //   console.log(`[TransactionStore ] Changes: ${changes.join(", ")}`);
-        // }
+        if (changes.length) {
+          console.log(`[TransactionStore] Changes: ${changes.join(", ")}`);
+        }
 
         // Sort the rates based on CURRENCY_LIST order before updating the store
         formattedRates.sort(
@@ -371,10 +430,42 @@ export const useTransactionStore = defineStore("transaction", {
         this.rates = formattedRates;
       });
     },
+
+    subscribeToSingleRateUpdates() {
+      // 🔔 One-to-one socket listener (e.g. USD ➝ MYR)
+      socket.on("rateUpdateOne", ({ base, to, rate, source }) => {
+        if (source !== "transactionStore") return; // ✅ Add this check
+
+        if (this.baseCurrency !== base) return;
+
+        const prevRate = this.rates.find((r) => r.currency === to)?.rate;
+        const prevDecimal = prevRate ? Math.round(prevRate * 10000) : null;
+        const newDecimal = Math.round(parseFloat(rate) * 10000);
+
+        if (prevDecimal !== null && prevDecimal !== newDecimal) {
+          this.updateRateClass(to, parseFloat(rate));
+          console.log(
+            `[TransactionStore] One-to-one update: ${to}: ${prevRate} ➡️ ${parseFloat(
+              rate
+            )}`
+          );
+        }
+
+        const idx = this.rates.findIndex((r) => r.currency === to);
+
+        if (idx !== -1) {
+          this.rates[idx].rate = parseFloat(rate);
+        } else {
+          this.rates.push({ currency: to, rate: parseFloat(rate) });
+        }
+      });
+    },
+
     resetStore() {
       this.$reset();
     },
   },
+
   persist: {
     enabled: true,
     strategies: [

@@ -7,6 +7,7 @@ export const useProfileStore = defineStore("profile", {
   state: () => ({
     profileDetails: null,
     error: null,
+    token: null,
   }),
   actions: {
     async getProfileDetail() {
@@ -26,6 +27,27 @@ export const useProfileStore = defineStore("profile", {
           }
         } else {
           alertStore.alert("error", response.message);
+        }
+
+        return response;
+      } catch (error) {
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
+        throw error;
+      } finally {
+        store.isLoading = false;
+      }
+    },
+    async getToken() {
+      const store = useStore();
+      const authStore = useAuthStore();
+      const alertStore = useAlertStore();
+      store.isLoading = true;
+      try {
+        const response = await apiService.getRequest(
+          `/profile/checkToken?username=${authStore.username}&token=${authStore.token}`
+        );
+        if (response.status === 1) {
+          this.token = response;
         }
 
         return response;

@@ -48,6 +48,7 @@ const routes = [
   {
     path: "/",
     component: UserLayout,
+    meta: { requiresAuth: true },
     children: [
       {
         path: "dashboard",

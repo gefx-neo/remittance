@@ -67,7 +67,7 @@
         </div>
 
         <div v-if="store.isLoading">
-          <SkeletonLoader type="dashboardTransaction" :count="6" />
+          <SkeletonLoader type="dashboardTransaction" :count="5" />
         </div>
         <div v-else-if="transactions.length === 0">
           <EmptyList />
@@ -128,7 +128,9 @@
             </div>
           </div>
         </div>
-        <button class="btn-load">Load more</button>
+        <button class="btn-load" @click="navigateToTransaction">
+          View all
+        </button>
       </div>
       <div class="currency">
         <div class="tabs">
@@ -421,19 +423,24 @@ const updateSendingCurrency = async (currency) => {
   if (form.sendingCurrency === currency) return;
 
   form.sendingCurrency = currency;
-  await transactionStore.getRate(currency);
+  const target = form.receivingCurrency;
+
   transactionStore.baseCurrency = currency;
 
-  // Emit with the correct source
-  socket.emit("changeBase", {
-    base: transactionStore.baseCurrency,
-    source: "transactionStore",
-  });
+  if (rateStore.rateAdjustment === 1) {
+    await transactionStore.getParticularRate(currency, target);
+  } else {
+    await transactionStore.getRate(currency);
+  }
 };
+
 const updateReceivingCurrency = async (currency) => {
   if (form.receivingCurrency === currency) return;
 
   form.receivingCurrency = currency;
+  const base = form.sendingCurrency;
+
+  await transactionStore.getParticularRate(base, currency);
 };
 
 const handleSubmit = async () => {
@@ -502,18 +509,26 @@ const handleSubmit = async () => {
 const updateRate = async (selectedBase) => {
   if (rateStore.baseCurrency === selectedBase) return;
 
-  // Emit with the correct source for rateStore updates
+  // Emit socket with correct source
   socket.emit("changeBase", {
     base: selectedBase,
     source: "rateStore",
   });
 
-  const rateResponse = await rateStore.getRate(selectedBase);
+  let rateResponse;
+
+  // Check rate adjustment logic
+  if (rateStore.rateAdjustment === 1) {
+    rateResponse = await rateStore.getParticularRate(selectedBase);
+  } else {
+    rateResponse = await rateStore.getRate(selectedBase);
+  }
 
   if (rateResponse.status === 1 && rateResponse.rates) {
     previousRates.value = Object.fromEntries(
       rateResponse.rates.map((rate) => [rate.currency, rate.rate])
     );
+
     rates.value = rateResponse.rates.map((rate) => {
       const isReciprocal = rateToggles.value[rate.currency];
       return {
@@ -526,43 +541,51 @@ const updateRate = async (selectedBase) => {
 
 onMounted(async () => {
   await profileStore.getProfileDetail();
-  Object.assign(profileDetails, profileStore.profileDetails); // Assign store data to reactive object
+  Object.assign(profileDetails, profileStore.profileDetails);
 
-  if (profileDetails.userStatus !== 3) {
-    return;
-  }
-  rateStore.resetStore(); // Clear rate classes on page load
+  if (profileDetails.userStatus !== 3) return;
+
+  rateStore.resetStore(); // Clear rate classes
 
   try {
-    const [transactionListResponse, rateResponse] = await Promise.all([
+    const adjustmentResponse = await rateStore.getUserAdjustment();
+    const rateAdjustment = adjustmentResponse?.rateAdjustment || 0;
+
+    const base = baseCurrency.value;
+    const target = form.receivingCurrency;
+
+    let transactionRatePromise, rateStoreRatePromise;
+
+    if (rateAdjustment === 1) {
+      // Call both getParticularRate in parallel
+      transactionRatePromise = transactionStore.getParticularRate(base, target);
+      rateStoreRatePromise = rateStore.getParticularRate(base);
+    } else {
+      // Call both getRate in parallel
+      transactionRatePromise = transactionStore.getRate(base);
+      rateStoreRatePromise = rateStore.getRate(base);
+    }
+
+    // Fetch rates + transaction list simultaneously
+    const [transactionListResponse] = await Promise.all([
       transactionStore.getTransactionList(),
-      transactionStore.getRate(baseCurrency.value), // Only once
-      rateStore.getRate(baseCurrency.value), // Only once
+      transactionRatePromise,
+      rateStoreRatePromise,
     ]);
-    transactionStore.initSocketRateUpdates(); // then start socket
-    rateStore.initSocketRateUpdates(); // then start socket
+
+    // After all API done, now subscribe
+    if (rateAdjustment === 1) {
+      transactionStore.subscribeToSingleRateUpdates();
+      rateStore.subscribeToSingleRateUpdates();
+    } else {
+      transactionStore.subscribeToMultiRateUpdates();
+      rateStore.subscribeToMultiRateUpdates();
+    }
 
     if (transactionListResponse?.trxns) {
       transactions.value = transactionListResponse.trxns
         .sort((a, b) => new Date(b.date) - new Date(a.date))
         .slice(0, 5);
-    }
-
-    if (rateResponse?.status === 1 && rateResponse?.rates) {
-      const rawRates = rateResponse.rates.filter((rate) =>
-        getAllowedCurrencies(baseCurrency.value).includes(rate.currency)
-      );
-
-      previousRates.value = Object.fromEntries(
-        rawRates.map((rate) => [rate.currency, rate.rate])
-      );
-
-      rateStore.rates = rawRates;
-
-      rates.value = rawRates.map((rate) => ({
-        currency: rate.currency,
-        rate: rate.rate,
-      }));
     }
   } catch (error) {
     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
@@ -589,6 +612,12 @@ const toggleRate = async (currency) => {
   }
 };
 
+const navigateToTransaction = () => {
+  router.push({
+    name: "transaction",
+  });
+};
+
 const navigateToTransactionDetail = async (memoId) => {
   const transaction = transactions.value.find((txn) => txn.memoId === memoId);
 
@@ -609,6 +638,8 @@ const navigateToAccountVerification = () => {
 watch(
   () => rateStore.rates,
   (newRates) => {
+    if (!Array.isArray(newRates)) return; // ✅ prevent crash
+
     const allowedRates = newRates
       .filter((rate) =>
         getAllowedCurrencies(rateStore.baseCurrency).includes(rate.currency)

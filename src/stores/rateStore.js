@@ -11,9 +11,52 @@ export const useRateStore = defineStore("rate", {
     rates: [], // all real-time rates received via socket
     rateClasses: {}, // Track increase or decrease classes for each currency
   }),
+
   actions: {
+    async getUserAdjustment() {
+      const store = useStore();
+      const authStore = useAuthStore();
+      const alertStore = useAlertStore();
+      store.isLoading = true;
+
+      try {
+        const response = await apiService.getRequest(
+          `/transaction/getUserAdjustment?username=${authStore.username}`
+        );
+
+        if (response.status === 1) {
+          if (response.token) {
+            authStore.refreshSession(response.token, authStore.username);
+          }
+          // Store the rate adjustment status
+          this.rateAdjustment = response.rateAdjustment;
+          // Store the adjustments (paypoint and getpoint) in the state
+          const adjustments = {};
+
+          response.rate.forEach((item) => {
+            adjustments[item.currency] = {
+              payPoint: parseFloat(item.payPoint),
+              getPoint: parseFloat(item.getPoint),
+            };
+          });
+
+          this.userAdjustments = adjustments;
+          return response;
+        } else {
+          alertStore.alert("error", response.message);
+        }
+      } catch (error) {
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
+        throw error;
+      } finally {
+        store.isLoading = false;
+      }
+    },
+
     async getRate(base) {
       const alertStore = useAlertStore();
+      const authStore = useAuthStore();
+
       try {
         const baseUrl = import.meta.env.VITE_RATE_API_URL;
         const response = await fetch(`${baseUrl}/rate.html?base=${base}`);
@@ -38,13 +81,69 @@ export const useRateStore = defineStore("rate", {
 
         this.baseCurrency = base;
         this.rates = formattedRates;
+        console.log(this.rates);
 
         return {
           status: 1,
           rates: formattedRates,
         };
       } catch (error) {
-        alertStore.alert("error", "Failed to fetch rates from rate API");
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
+      }
+    },
+
+    async getParticularRate(base) {
+      const alertStore = useAlertStore();
+      const authStore = useAuthStore();
+
+      try {
+        const baseUrl = import.meta.env.VITE_RATE_API_URL;
+        const allowedCurrencies = getAllowedCurrencies(base);
+        const result = [];
+
+        for (const to of allowedCurrencies) {
+          const url = `${baseUrl}/rate.html?base=${base}&to=${to}`;
+          const response = await fetch(url);
+          const data = await response.json();
+
+          if (!data?.rate) {
+            console.warn(`Missing rate for ${base} ➝ ${to}`);
+            continue;
+          }
+
+          result.push({
+            currency: to,
+            rate: parseFloat(data.rate), // already adjusted by backend
+          });
+
+          // 🔔 Subscribe to one-to-one real-time updates
+          socket.emit("changeBase", {
+            base,
+            to,
+            source: "rateStore",
+          });
+        }
+
+        result.sort(
+          (a, b) =>
+            CURRENCY_LIST.indexOf(a.currency) -
+            CURRENCY_LIST.indexOf(b.currency)
+        );
+
+        this.baseCurrency = base;
+        this.rates = result;
+        console.log(this.rates);
+
+        return {
+          status: 1,
+          rates: result,
+        };
+      } catch (error) {
+        alertStore.alert("error", `Failed to fetch ${base} rates`);
+        return {
+          status: 0,
+          error: error.message,
+        };
       }
     },
     updateRateClass(currency, newRate) {
@@ -61,6 +160,7 @@ export const useRateStore = defineStore("rate", {
         prevReciprocalDecimal = prevRate
           ? Math.round((1 / prevRate) * 10000)
           : null;
+
         newReciprocalDecimal = Math.round((1 / newRate) * 10000);
       }
 
@@ -73,6 +173,7 @@ export const useRateStore = defineStore("rate", {
 
       // Determine the change direction (increase or decrease) based on the state
       let className;
+
       if (isReciprocal) {
         className =
           newReciprocalDecimal > prevReciprocalDecimal
@@ -93,68 +194,16 @@ export const useRateStore = defineStore("rate", {
         }, 2000);
       }
     },
-    // updateRateClass(currency, newRate) {
-    //   const prevRate = this.rates.find((r) => r.currency === currency)?.rate;
-    //   // Use rounded values for comparison to ensure displayed precision matches
-    //   const prevDecimal = prevRate ? Math.round(prevRate * 10000) : null;
-    //   const newDecimal = Math.round(newRate * 10000);
 
-    //   // If there's no previous rate or no change in the 4th decimal, do nothing
-    //   if (prevDecimal === null || prevDecimal === newDecimal) {
-    //     return;
-    //   }
-
-    //   // Determine the change direction (increase or decrease)
-    //   const className =
-    //     newDecimal > prevDecimal ? "rate-increase" : "rate-decrease";
-
-    //   // Apply the class only if it's a new change (to prevent flickering)
-    //   if (this.rateClasses[currency] !== className) {
-    //     this.rateClasses[currency] = className;
-
-    //     // Automatically remove the class after 2 seconds
-    //     setTimeout(() => {
-    //       // Always clear the class, regardless of current state
-    //       this.rateClasses[currency] = "";
-    //       console.log(`[Cleared] ${currency}: ${this.rateClasses[currency]}`);
-    //     }, 2000);
-    //   }
-    // },
     toggleRateClass(currency) {
       // Clear the current rate class immediately
       this.rateClasses[currency] = "";
     },
-    // toggleRateClass(currency) {
-    //   const currentClass = this.rateClasses[currency] || "rate";
-
-    //   // Determine the new class based on the current class
-    //   let newClass;
-    //   if (currentClass === "rate-increase") {
-    //     newClass = "rate-decrease";
-    //   } else if (currentClass === "rate-decrease") {
-    //     newClass = "rate-increase";
-    //   } else {
-    //     // If the current class is just 'rate', do nothing
-    //     return;
-    //   }
-
-    //   // Update the class in the store
-    //   this.rateClasses[currency] = newClass;
-
-    //   // Set timeout to remove the class after 2 seconds
-    //   setTimeout(() => {
-    //     if (this.rateClasses[currency] === newClass) {
-    //       this.rateClasses[currency] = "";
-    //     }
-    //   }, 2000);
-    // },
-    initSocketRateUpdates() {
+    subscribeToMultiRateUpdates() {
       socket.on("rateUpdate", ({ base, rates, source }) => {
         if (source !== "rateStore") return;
-        if (this.baseCurrency !== base) {
-          this.baseCurrency = base;
-        }
 
+        if (this.baseCurrency !== base) return;
         // Collect changed rates in a concise format
         const changes = [];
 
@@ -168,6 +217,7 @@ export const useRateStore = defineStore("rate", {
             const prevRate = this.rates.find(
               (r) => r.currency === currency
             )?.rate;
+
             const prevDecimal = prevRate ? Math.round(prevRate * 10000) : null;
             const newDecimal = Math.round(parseFloat(value) * 10000);
 
@@ -176,7 +226,6 @@ export const useRateStore = defineStore("rate", {
               changes.push(`${currency}: ${prevRate} ➡️ ${parseFloat(value)}`);
               this.updateRateClass(currency, parseFloat(value));
             }
-
             return { currency, rate: parseFloat(value) };
           });
 
@@ -196,10 +245,39 @@ export const useRateStore = defineStore("rate", {
         this.rates = formattedRates;
       });
     },
+    subscribeToSingleRateUpdates() {
+      // 🔔 One-to-one socket listener (e.g. USD ➝ MYR)
+      socket.on("rateUpdateOne", ({ base, to, rate, source }) => {
+        if (source !== "rateStore") return; // ✅ Add this check
+        if (this.baseCurrency !== base) return;
+
+        const prevRate = this.rates.find((r) => r.currency === to)?.rate;
+        const prevDecimal = prevRate ? Math.round(prevRate * 10000) : null;
+        const newDecimal = Math.round(parseFloat(rate) * 10000);
+
+        if (prevDecimal !== null && prevDecimal !== newDecimal) {
+          this.updateRateClass(to, parseFloat(rate));
+          console.log(
+            `[RateStore] One-to-one update: ${to}: ${prevRate} ➡️ ${parseFloat(
+              rate
+            )}`
+          );
+        }
+
+        const idx = this.rates.findIndex((r) => r.currency === to);
+
+        if (idx !== -1) {
+          this.rates[idx].rate = parseFloat(rate);
+        } else {
+          this.rates.push({ currency: to, rate: parseFloat(rate) });
+        }
+      });
+    },
     resetStore() {
       this.$reset();
     },
   },
+
   persist: {
     enabled: true,
     strategies: [
