@@ -9,7 +9,7 @@ import {
 } from "@/stores/index";
 import socket from "@/plugins/socket";
 import { CURRENCY_LIST, getAllowedCurrencies } from "@/utils/currencyUtils"; // Import the list
-
+import { useEnvironment } from "@/composables/useEnvironment";
 export const useTransactionStore = defineStore("transaction", {
   state: () => ({
     memoId: null,
@@ -30,6 +30,9 @@ export const useTransactionStore = defineStore("transaction", {
       this.receivingAmount = data.receivingAmount;
       this.sendingCurrency = data.sendingCurrency;
       this.receivingCurrency = data.receivingCurrency;
+      this.fee = data.fee;
+      this.rate = data.rate;
+      this.memoId = data.memoId;
     },
     async getTransactionList() {
       const store = useStore();
@@ -57,7 +60,6 @@ export const useTransactionStore = defineStore("transaction", {
         store.isLoading = false;
       }
     },
-
     async getTransactionDetail(memoId) {
       const store = useStore();
       const authStore = useAuthStore();
@@ -128,61 +130,59 @@ export const useTransactionStore = defineStore("transaction", {
         store.isLoading = false;
       }
     },
-
-    // async getLockedRate(payCurrency, getCurrency) {
-    //   const store = useStore();
-    //   const authStore = useAuthStore();
-    //   const alertStore = useAlertStore();
-    //   store.isMoneyLoading = true;
-    //   try {
-    //     const response = await apiService.getRequest(
-    //       `/transaction/getLockedRate?username=${authStore.username}&payCurrency=${payCurrency}&getCurrency=${getCurrency}`
-    //     );
-    //     if (response.status === 1) {
-    //       if (response.token) {
-    //         authStore.refreshSession(response.token, authStore.username);
-    //       }
-    //       this.memoId = response.memoId;
-    //       this.rate = response.rates?.[0]?.rate || null;
-    //       this.fee = response.rates?.[0]?.fee || null;
-    //       this.sendingCurrency = payCurrency;
-    //       this.receivingCurrency = getCurrency;
-    //     } else {
-    //       alertStore.alert("error", response.message);
-    //     }
-    //     return response;
-    //   } catch (error) {
-    //     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
-    //     throw error;
-    //   } finally {
-    //     store.isMoneyLoading = false;
-    //   }
-    // },
-
-    async getLockedAmount(amount, getOrPay) {
-      const store = useStore();
-      const authStore = useAuthStore();
+    async getLockedRate(payCurrency, getCurrency) {
       const alertStore = useAlertStore();
-      store.isMoneyLoading = true;
+      const authStore = useAuthStore();
+      const { apiRateBaseUrl } = useEnvironment();
 
       try {
-        const response = await apiService.getRequest(
-          `/transaction/lockedAmount?username=${authStore.username}&memoId=${this.memoId}&amount=${amount}&getOrPay=${getOrPay}`
-        );
+        const url = `${apiRateBaseUrl}/lockedrate.html?payCurrency=${payCurrency}&getCurrency=${getCurrency}&username=${encodeURIComponent(
+          authStore.username
+        )}&token=${encodeURIComponent(authStore.token)}`;
 
-        if (response.status === 1) {
-          if (response.token) {
-            authStore.refreshSession(response.token, authStore.username);
-          }
-        } else {
-          alertStore.alert("error", response.message);
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (!data?.memoId) {
+          alertStore.alert("error", "Failed to lock rate.");
+          return null;
         }
-        return response;
+        this.memoId = data.memoId;
+
+        return data; // no mutation here
       } catch (error) {
-        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
-        throw error;
-      } finally {
-        store.isMoneyLoading = false;
+        alertStore.alert("error", "Error locking rate.");
+        return null;
+      }
+    },
+    async getLockedAmount(payAmount, amount, base, to, paymentType) {
+      const alertStore = useAlertStore();
+      const authStore = useAuthStore();
+      const { apiRateBaseUrl } = useEnvironment();
+
+      try {
+        const paymentType = "localpayment";
+        const url = `${apiRateBaseUrl}/lockedamount.html?username=${encodeURIComponent(
+          authStore.username
+        )}&token=${encodeURIComponent(
+          authStore.token
+        )}&memoId=${encodeURIComponent(
+          this.memoId
+        )}&payAmount=${payAmount}&amount=${amount}&base=${base}&to=${to}&paymentType=${paymentType}`;
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (typeof data.status !== "number") {
+          alertStore.alert("error", "Failed to get locked amount.");
+          return null;
+        }
+
+        return data;
+      } catch (error) {
+        alertStore.alert("error", "Error getting locked amount.");
+        console.error("getLockedAmount error:", error);
+        return null;
       }
     },
     async sendReminder(payload) {
@@ -261,11 +261,15 @@ export const useTransactionStore = defineStore("transaction", {
       return CURRENCY_LIST.filter((currency) => currency !== base);
     },
     async getRate(base) {
+      const authStore = useAuthStore();
       const alertStore = useAlertStore();
 
       try {
-        const baseUrl = import.meta.env.VITE_RATE_API_URL;
-        const response = await fetch(`${baseUrl}/rate.html?base=${base}`);
+        const { apiRateBaseUrl } = useEnvironment();
+        const response = await fetch(`${apiRateBaseUrl}/rate.html?base=${base}
+          &username=${encodeURIComponent(
+            authStore.username
+          )}&token=${encodeURIComponent(authStore.token)}`);
         const data = await response.json();
         if (!data?.Rate) throw new Error("Invalid rate response");
         const allowedCurrencies = getAllowedCurrencies(base);
@@ -296,11 +300,14 @@ export const useTransactionStore = defineStore("transaction", {
     },
 
     async getParticularRate(base, targetCurrency) {
+      const authStore = useAuthStore();
       const alertStore = useAlertStore();
 
       try {
-        const baseUrl = import.meta.env.VITE_RATE_API_URL;
-        const url = `${baseUrl}/rate.html?base=${base}&to=${targetCurrency}`;
+        const { apiRateBaseUrl } = useEnvironment();
+        const url = `${apiRateBaseUrl}/rate.html?base=${base}&to=${targetCurrency}&username=${encodeURIComponent(
+          authStore.username
+        )}&token=${encodeURIComponent(authStore.token)}`;
         const response = await fetch(url);
         const data = await response.json();
 
@@ -331,6 +338,8 @@ export const useTransactionStore = defineStore("transaction", {
           base,
           to: targetCurrency,
           source: "transactionStore",
+          username: authStore.username,
+          token: authStore.token,
         });
 
         return {
@@ -347,6 +356,29 @@ export const useTransactionStore = defineStore("transaction", {
           status: 0,
           error: error.message,
         };
+      }
+    },
+    async getFee(base, targetCurrency, paymentType) {
+      const authStore = useAuthStore();
+      const alertStore = useAlertStore();
+      const { apiRateBaseUrl } = useEnvironment();
+
+      try {
+        const url = `${apiRateBaseUrl}/fee.html?base=${base}&to=${targetCurrency}&paymentType=${paymentType}&username=${encodeURIComponent(
+          authStore.username
+        )}&token=${encodeURIComponent(authStore.token)}`;
+        const response = await fetch(url);
+        const text = await response.text(); // ← change this
+        const fee = parseFloat(text);
+
+        this.fee = isNaN(fee) ? 0 : fee; // defensive fallback
+        return fee; // return number, not { status: 1 }
+      } catch (error) {
+        alertStore.alert(
+          "error",
+          `Failed to fetch fee for ${base} ➝ ${targetCurrency} [${paymentType}]`
+        );
+        return 0;
       }
     },
     updateRateClass(currency, newRate) {

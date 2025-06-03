@@ -172,40 +172,43 @@ watch(
 
 const updateSendingAmount = async (amount) => {
   const formattedAmount = parseFloat(amount).toFixed(2);
-
   if (localForm.sendingAmount === formattedAmount) return;
 
-  localForm.sendingAmount = parseFloat(formattedAmount); // Convert back to number
+  localForm.sendingAmount = parseFloat(formattedAmount);
 
   try {
+    const rateObj = transactionStore.rates.find(
+      (r) => r.currency === localForm.receivingCurrency
+    );
+
+    if (!rateObj?.rate) {
+      alertStore.alert("error", "Rate not available for selected currency.");
+      return;
+    }
+
+    const rate = rateObj.rate;
+    localForm.receivingAmount = parseFloat(
+      (localForm.sendingAmount * rate).toFixed(2)
+    );
+
     const response = await transactionStore.getLockedAmount(
       localForm.sendingAmount,
-      "pay"
+      localForm.receivingAmount
     );
-    if (response && response.status === 1) {
-      localForm.receivingAmount = parseFloat(response.getAmount);
+
+    if (response?.status === 1) {
       transactionStore.setTransactionData({
         sendingAmount: localForm.sendingAmount,
         sendingCurrency: localForm.sendingCurrency,
         receivingAmount: localForm.receivingAmount,
         receivingCurrency: localForm.receivingCurrency,
+        rate,
+        memoId: transactionStore.memoId,
+        fee: transactionStore.fee,
       });
     }
   } catch (error) {
     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
-  } finally {
-    validateSendingAmount(
-      localForm.sendingAmount,
-      localForm.sendingCurrency,
-      currencySchema,
-      "sending"
-    );
-    validateReceivingAmount(
-      localForm.receivingAmount,
-      localForm.receivingCurrency,
-      currencySchema,
-      "receiving"
-    );
   }
 };
 
@@ -213,22 +216,60 @@ const updateReceivingAmount = async (amount) => {
   const formattedAmount = parseFloat(amount).toFixed(2);
   if (localForm.receivingAmount === formattedAmount) return;
 
-  localForm.receivingAmount = parseFloat(formattedAmount); // Convert back to number
+  localForm.receivingAmount = parseFloat(formattedAmount);
 
   try {
-    const response = await transactionStore.getLockedAmount(
-      localForm.receivingAmount,
-      "get"
+    let rateObj = transactionStore.rates.find(
+      (r) => r.currency === localForm.receivingCurrency
     );
-    if (response && response.status === 1) {
-      localForm.sendingAmount = parseFloat(
-        response.payAmount - transactionStore.fee
+
+    // Step 1: Ensure rate is available
+    if (!rateObj?.rate) {
+      const rateResponse = await transactionStore.getParticularRate(
+        localForm.sendingCurrency,
+        localForm.receivingCurrency
       );
+
+      if (rateResponse.status !== 1 || !rateResponse.rate) {
+        alertStore.alert("error", "Rate not available for selected currency.");
+        return;
+      }
+
+      rateObj = { rate: rateResponse.rate };
+    }
+
+    const rate = rateObj.rate;
+
+    // Step 2: Recalculate sending amount
+    localForm.sendingAmount = parseFloat(
+      (localForm.receivingAmount / rate).toFixed(2)
+    );
+
+    // Step 3: Lock rate (if not already locked)
+    const lockedRate = await transactionStore.getLockedRate(
+      localForm.sendingCurrency,
+      localForm.receivingCurrency
+    );
+    if (!lockedRate?.memoId) {
+      alertStore.alert("error", "Failed to lock rate.");
+      return;
+    }
+
+    // Step 4: Lock amount
+    const response = await transactionStore.getLockedAmount(
+      localForm.sendingAmount,
+      localForm.receivingAmount
+    );
+
+    if (response?.status === 1) {
       transactionStore.setTransactionData({
         sendingAmount: localForm.sendingAmount,
         sendingCurrency: localForm.sendingCurrency,
         receivingAmount: localForm.receivingAmount,
         receivingCurrency: localForm.receivingCurrency,
+        rate,
+        memoId: lockedRate.memoId,
+        fee: transactionStore.fee,
       });
     }
   } catch (error) {
@@ -255,25 +296,51 @@ const updateSendingCurrency = async (currency) => {
   localForm.sendingCurrency = currency;
 
   try {
-    const lockedRateResponse = await transactionStore.getLockedRate(
+    // Step 1: Populate live rate
+    const rateResponse = await transactionStore.getParticularRate(
       localForm.sendingCurrency,
       localForm.receivingCurrency
     );
-    if (lockedRateResponse && lockedRateResponse.status === 1) {
-      if (localForm.sendingAmount) {
-        const response = await transactionStore.getLockedAmount(
-          localForm.sendingAmount,
-          "pay"
-        );
-        if (response && response.status === 1) {
-          localForm.receivingAmount = parseFloat(response.getAmount);
-          transactionStore.setTransactionData({
-            sendingAmount: localForm.sendingAmount,
-            sendingCurrency: localForm.sendingCurrency,
-            receivingAmount: localForm.receivingAmount,
-            receivingCurrency: localForm.receivingCurrency,
-          });
-        }
+
+    if (rateResponse.status !== 1 || !rateResponse.rate) {
+      alertStore.alert("error", "Rate not available for selected currency.");
+      return;
+    }
+
+    const rate = rateResponse.rate;
+
+    // Step 2: Lock memoId using this rate
+    const lockedRateData = await transactionStore.getLockedRate(
+      localForm.sendingCurrency,
+      localForm.receivingCurrency
+    );
+
+    if (!lockedRateData?.memoId) {
+      alertStore.alert("error", "Failed to lock rate.");
+      return;
+    }
+
+    // Step 3: Compute receivingAmount
+    if (localForm.sendingAmount) {
+      localForm.receivingAmount = parseFloat(
+        (localForm.sendingAmount * rate).toFixed(2)
+      );
+
+      // Optional validation with lockedAmount
+      const response = await transactionStore.getLockedAmount(
+        localForm.sendingAmount,
+        localForm.receivingAmount
+      );
+
+      if (response?.status === 1) {
+        transactionStore.setTransactionData({
+          sendingAmount: localForm.sendingAmount,
+          sendingCurrency: localForm.sendingCurrency,
+          receivingAmount: localForm.receivingAmount,
+          receivingCurrency: localForm.receivingCurrency,
+          rate,
+          memoId: lockedRateData.memoId,
+        });
       }
     }
   } catch (error) {
@@ -287,25 +354,50 @@ const updateReceivingCurrency = async (currency) => {
   localForm.receivingCurrency = currency;
 
   try {
-    const lockedRateResponse = await transactionStore.getLockedRate(
+    // Step 1: Get rate
+    const rateResponse = await transactionStore.getParticularRate(
       localForm.sendingCurrency,
       localForm.receivingCurrency
     );
-    if (lockedRateResponse && lockedRateResponse.status === 1) {
-      if (localForm.sendingAmount) {
-        const response = await transactionStore.getLockedAmount(
-          localForm.sendingAmount,
-          "pay"
-        );
-        if (response && response.status === 1) {
-          localForm.receivingAmount = parseFloat(response.getAmount);
-          transactionStore.setTransactionData({
-            sendingAmount: localForm.sendingAmount,
-            sendingCurrency: localForm.sendingCurrency,
-            receivingAmount: localForm.receivingAmount,
-            receivingCurrency: localForm.receivingCurrency,
-          });
-        }
+
+    if (rateResponse.status !== 1 || !rateResponse.rate) {
+      alertStore.alert("error", "Rate not available for selected currency.");
+      return;
+    }
+
+    const rate = rateResponse.rate;
+
+    // Step 2: Lock rate
+    const lockedRate = await transactionStore.getLockedRate(
+      localForm.sendingCurrency,
+      localForm.receivingCurrency
+    );
+    if (!lockedRate?.memoId) {
+      alertStore.alert("error", "Failed to lock rate.");
+      return;
+    }
+
+    // Step 3: Recalculate
+    if (localForm.sendingAmount) {
+      localForm.receivingAmount = parseFloat(
+        (localForm.sendingAmount * rate).toFixed(2)
+      );
+
+      const response = await transactionStore.getLockedAmount(
+        localForm.sendingAmount,
+        localForm.receivingAmount
+      );
+
+      if (response?.status === 1) {
+        transactionStore.setTransactionData({
+          sendingAmount: localForm.sendingAmount,
+          sendingCurrency: localForm.sendingCurrency,
+          receivingAmount: localForm.receivingAmount,
+          receivingCurrency: localForm.receivingCurrency,
+          rate,
+          memoId: lockedRate.memoId,
+          fee: transactionStore.fee,
+        });
       }
     }
   } catch (error) {

@@ -3,11 +3,14 @@ import apiService from "@/services/apiService";
 import { useStore, useAuthStore, useAlertStore } from "@/stores/index.js";
 import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 import { setLocalStorageWithExpiry } from "@/services/localStorageService.js";
+import { useEnvironment } from "@/composables/useEnvironment"; // adjust path if needed
+import axios from "axios";
 export const useProfileStore = defineStore("profile", {
   state: () => ({
     profileDetails: null,
     error: null,
     token: null,
+    customerAdjustments: [],
   }),
   actions: {
     async getProfileDetail() {
@@ -37,23 +40,39 @@ export const useProfileStore = defineStore("profile", {
         store.isLoading = false;
       }
     },
-    async getToken() {
-      const store = useStore();
-      const authStore = useAuthStore();
+    async getCustomerAdjustments() {
       const alertStore = useAlertStore();
+      const authStore = useAuthStore();
+      const store = useStore();
+      const { apiAdminBaseUrl } = useEnvironment();
       store.isLoading = true;
-      try {
-        const response = await apiService.getRequest(
-          `/profile/checkToken?username=${authStore.username}&token=${authStore.token}`
-        );
-        if (response.status === 1) {
-          this.token = response;
-        }
 
-        return response;
+      try {
+        const response = await axios.get(
+          `${apiAdminBaseUrl}/rate/getCustomerAdjustedRate?username=${encodeURIComponent(
+            authStore.username
+          )}`,
+          {
+            headers: {
+              remitCode: authStore.token,
+            },
+          }
+        );
+
+        const data = response.data;
+
+        if (data.status === 1 && Array.isArray(data.adj)) {
+          this.customerAdjustments = data.adj;
+          console.log("[ProfileStore] Adjustments:", this.customerAdjustments);
+        } else {
+          alertStore.alert(
+            "error",
+            data.message || "Failed to load adjustments"
+          );
+        }
       } catch (error) {
+        console.error("Failed to fetch adjustments:", error);
         alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
-        throw error;
       } finally {
         store.isLoading = false;
       }

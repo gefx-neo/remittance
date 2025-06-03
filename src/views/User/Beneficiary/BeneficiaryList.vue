@@ -262,7 +262,7 @@ const beneficiaries = ref([]);
 const searchQuery = ref("");
 
 onMounted(async () => {
-  const response = await beneficiaryStore.getBeneficiaryList();
+  // const response = await beneficiaryStore.getBeneficiaryList();
   beneficiaries.value = response.beneficiaries || [];
   beneficiaries.value.sort((a, b) => b.isFav - a.isFav);
 });

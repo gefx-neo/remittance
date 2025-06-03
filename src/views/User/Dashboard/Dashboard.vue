@@ -427,11 +427,7 @@ const updateSendingCurrency = async (currency) => {
 
   transactionStore.baseCurrency = currency;
 
-  if (rateStore.rateAdjustment === 1) {
-    await transactionStore.getParticularRate(currency, target);
-  } else {
-    await transactionStore.getRate(currency);
-  }
+  await transactionStore.getParticularRate(currency, target);
 };
 
 const updateReceivingCurrency = async (currency) => {
@@ -475,34 +471,47 @@ const handleSubmit = async () => {
   }
 
   try {
-    const lockedAmountResponse = await transactionStore.getLockedAmount(
-      form.sendingAmount,
-      "pay"
+    const lockedRateData = await transactionStore.getLockedRate(
+      form.sendingCurrency,
+      form.receivingCurrency
     );
 
-    if (!lockedAmountResponse || lockedAmountResponse.status !== 1) {
-      alertStore.alert("error", "Failed to retrieve locked amount.");
+    if (!lockedRateData.memoId) {
+      alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
       return;
     }
 
-    form.receivingAmount = parseFloat(lockedAmountResponse.getAmount);
-
-    transactionStore.setTransactionData({
-      sendingAmount: form.sendingAmount,
-      sendingCurrency: form.sendingCurrency,
-      receivingAmount: form.receivingAmount,
-      receivingCurrency: form.receivingCurrency,
-    });
-
-    router.push({
-      path: "/transaction/addtransaction",
-      query: { fromDashboard: "true" },
-    });
-  } catch (error) {
-    alertStore.alert(
-      "error",
-      "An error occurred while processing your request."
+    form.receivingAmount = parseFloat(
+      (form.sendingAmount * lockedRateData.rate).toFixed(2)
     );
+
+    const lockedAmount = await transactionStore.getLockedAmount(
+      form.sendingAmount,
+      form.receivingAmount,
+      form.sendingCurrency, // base
+      form.receivingCurrency, // to
+      "localpayment" // or dynamically from form.paymentType
+    );
+
+    if (lockedAmount.status === 1) {
+      transactionStore.setTransactionData({
+        sendingAmount: form.sendingAmount,
+        sendingCurrency: form.sendingCurrency,
+        receivingAmount: form.receivingAmount,
+        receivingCurrency: form.receivingCurrency,
+        memoId: lockedRateData.memoId,
+      });
+
+      // ✅ Pass rate to AddTransaction
+      router.push({
+        path: "/transaction/addtransaction",
+        query: {
+          fromDashboard: "true",
+        },
+      });
+    }
+  } catch (error) {
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 };
 
@@ -517,12 +526,7 @@ const updateRate = async (selectedBase) => {
 
   let rateResponse;
 
-  // Check rate adjustment logic
-  if (rateStore.rateAdjustment === 1) {
-    rateResponse = await rateStore.getParticularRate(selectedBase);
-  } else {
-    rateResponse = await rateStore.getRate(selectedBase);
-  }
+  rateResponse = await rateStore.getParticularRate(selectedBase);
 
   if (rateResponse.status === 1 && rateResponse.rates) {
     previousRates.value = Object.fromEntries(
@@ -541,30 +545,22 @@ const updateRate = async (selectedBase) => {
 
 onMounted(async () => {
   await profileStore.getProfileDetail();
+  await transactionStore.getFee("SGD", "MYR", "localpayment");
   Object.assign(profileDetails, profileStore.profileDetails);
 
   if (profileDetails.userStatus !== 3) return;
 
   rateStore.resetStore(); // Clear rate classes
-
   try {
-    const adjustmentResponse = await rateStore.getUserAdjustment();
-    const rateAdjustment = adjustmentResponse?.rateAdjustment || 0;
-
     const base = baseCurrency.value;
     const target = form.receivingCurrency;
 
-    let transactionRatePromise, rateStoreRatePromise;
-
-    if (rateAdjustment === 1) {
-      // Call both getParticularRate in parallel
-      transactionRatePromise = transactionStore.getParticularRate(base, target);
-      rateStoreRatePromise = rateStore.getParticularRate(base);
-    } else {
-      // Call both getRate in parallel
-      transactionRatePromise = transactionStore.getRate(base);
-      rateStoreRatePromise = rateStore.getRate(base);
-    }
+    // Call both getParticularRate in parallel
+    const transactionRatePromise = transactionStore.getParticularRate(
+      base,
+      target
+    );
+    const rateStoreRatePromise = rateStore.getParticularRate(base);
 
     // Fetch rates + transaction list simultaneously
     const [transactionListResponse] = await Promise.all([
@@ -573,14 +569,9 @@ onMounted(async () => {
       rateStoreRatePromise,
     ]);
 
-    // After all API done, now subscribe
-    if (rateAdjustment === 1) {
-      transactionStore.subscribeToSingleRateUpdates();
-      rateStore.subscribeToSingleRateUpdates();
-    } else {
-      transactionStore.subscribeToMultiRateUpdates();
-      rateStore.subscribeToMultiRateUpdates();
-    }
+    // Always subscribe to single rate updates only
+    transactionStore.subscribeToSingleRateUpdates();
+    rateStore.subscribeToSingleRateUpdates();
 
     if (transactionListResponse?.trxns) {
       transactions.value = transactionListResponse.trxns

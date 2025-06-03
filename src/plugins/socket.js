@@ -1,12 +1,13 @@
 // src/plugins/socket.js
 import { io } from "socket.io-client";
-
+import { useEnvironment } from "@/composables/useEnvironment";
+const { apiRateBaseUrl } = useEnvironment();
 let socket;
 const maxAttempts = 10;
 let attempts = 0;
 
 function connectSocket() {
-  socket = io(import.meta.env.VITE_RATE_API_URL, {
+  socket = io(apiRateBaseUrl, {
     reconnection: false, // Disable built-in reconnection
   });
 

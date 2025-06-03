@@ -170,12 +170,6 @@ const handleSubmit = async () => {
       username: form.value.username,
       beneficiaryId: Number(selectedBeneficiary?.id),
       memoId: transactionStore.memoId,
-      rate: transactionStore.rate,
-      fee: transactionStore.fee,
-      payAmount: sendingAmount,
-      payCurrency: sendingCurrency,
-      getAmount: receivingAmount,
-      getCurrency: receivingCurrency,
       contactNo:
         selectedBeneficiary?.accountType === "1"
           ? selectedBeneficiary?.companyContactNo
