@@ -27,6 +27,7 @@ export const useAuthStore = defineStore("auth", {
     refreshSession(token, username) {
       if (token) {
         setLocalStorageWithExpiry("token", token, 4); // Update token with 4-hour expiry
+        this.token = token;
       }
       if (username) {
         setLocalStorageWithExpiry("username", username, 4); // Update username with 4-hour expiry
@@ -35,37 +36,7 @@ export const useAuthStore = defineStore("auth", {
 
       this.stopSessionMonitor(); // explicitly stop previous interval
       this.startSessionMonitor(); // explicitly restart the interval
-
-      console.log("Session refreshed and monitor restarted");
     },
-    // async checkSession() {
-    //   const token = getLocalStorageWithExpiry("token");
-    //   const username = getLocalStorageWithExpiry("username");
-
-    //   if (token && username) {
-    //     this.user = username;
-    //     return true;
-    //   }
-
-    //   // Case 2: Singpass session
-    //   try {
-    //     const res = await fetch("http://localhost:3080/user", {
-    //       credentials: "include",
-    //     });
-
-    //     if (res.ok) {
-    //       const data = await res.json();
-    //       this.user = data.sub || data.username || "singpass-user";
-    //       this.username = data.name.value;
-    //       return true;
-    //     }
-    //   } catch (err) {
-    //     console.error("Session check failed:", err);
-    //   }
-
-    //   this.clearSession();
-    //   return false;
-    // },
     async checkSession() {
       const token = getLocalStorageWithExpiry("token");
       const username = getLocalStorageWithExpiry("username");
@@ -78,11 +49,9 @@ export const useAuthStore = defineStore("auth", {
         return false;
       }
     },
-
     clearSession() {
       localStorage.clear();
     },
-
     // Step 1: Fetch reqKey (hex and iv) for the username
     async getReqKey(username) {
       const store = useStore();

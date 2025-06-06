@@ -26,12 +26,12 @@
           >
             Next
           </ButtonAPI>
-          <button
+          <!-- <button
             class="btn-singpass standard-button"
             @click="redirectToSingpass"
           >
             Log in with <img src="@/assets/singpass_logo_fullcolours-1.png" />
-          </button>
+          </button> -->
         </div>
       </fieldset>
     </div>

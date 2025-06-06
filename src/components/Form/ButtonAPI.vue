@@ -1,11 +1,7 @@
 <template>
   <button
-    :class="[
-      'btn-api',
-      props.class,
-      { 'is-loading': store.isLoading || store.isMoneyLoading },
-    ]"
-    :disabled="store.isLoading || disabled"
+    :class="['btn-api', props.class, { 'is-loading': isButtonLoading }]"
+    :disabled="isButtonLoading || props.disabled"
     @click="handleClick"
   >
     <slot></slot>
@@ -13,7 +9,7 @@
     <div
       class="loader"
       :class="{ 'custom-loader': customLoader }"
-      v-if="(store.isLoading && showLoader) || store.isMoneyLoading"
+      v-if="isButtonLoading && showLoader"
     >
       <svg viewBox="25 25 50 50" v-if="customLoader">
         <circle r="20" cy="50" cx="50"></circle>
@@ -26,10 +22,15 @@
 </template>
 
 <script setup>
+import { computed } from "vue";
 import { useStore } from "@/stores/store";
 
 const props = defineProps({
   disabled: {
+    type: Boolean,
+    default: false,
+  },
+  loading: {
     type: Boolean,
     default: false,
   },
@@ -47,12 +48,15 @@ const props = defineProps({
 });
 
 const store = useStore();
-
 const emit = defineEmits(["click"]);
 
+const isButtonLoading = computed(
+  () => store.isLoading || store.isMoneyLoading || props.loading
+);
+
 const handleClick = (event) => {
-  if (!store.isLoading && !props.disabled && !store.isMoneyLoading) {
-    emit("click", event); // Only emit click if not loading and not disabled
+  if (!isButtonLoading.value && !props.disabled) {
+    emit("click", event);
   }
 };
 </script>

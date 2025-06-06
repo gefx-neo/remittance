@@ -23,7 +23,6 @@ export const useEnvironment = () => {
   return {
     ENV_TYPE,
     apiBaseUrl: import.meta.env[`VITE_API_BASE_URL_${ENV_TYPE}`],
-    apiAdminBaseUrl: import.meta.env[`VITE_ADMIN_API_BASE_URL_${ENV_TYPE}`],
     apiRateBaseUrl: import.meta.env[`VITE_RATE_API_URL_${ENV_TYPE}`],
     appTitle: import.meta.env[`VITE_APP_TITLE_${ENV_TYPE}`],
     imagePath: import.meta.env[`VITE_APP_IMAGE_PATH_${ENV_TYPE}`],

@@ -26,7 +26,7 @@ if (!sessionStorage.getItem("sessionActive")) {
   localStorage.removeItem("stepStore");
   sessionStorage.removeItem("firstTimeFromDashboard");
   sessionStorage.removeItem("firstTimeFromBeneficiaryDetail");
-  sessionStorage.removeItem("firstTimeFromNewTransaction");
+  sessionStorage.removeItem("firstTimeFromTransactionList");
   // Mark this session as active in sessionStorage
   sessionStorage.setItem("sessionActive", "true");
 }

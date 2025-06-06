@@ -132,15 +132,21 @@
                 >
               </div>
               <div class="item">
-                <span>Amount paid</span>
+                <span>
+                  {{
+                    transactionDetail.status === 1
+                      ? "Amount paid"
+                      : "Amount to be paid"
+                  }}
+                </span>
                 <span>
                   {{
                     formatNumber(
                       transactionDetail.payAmount + transactionDetail.fee
                     )
                   }}
-                  {{ transactionDetail.payCurrency }}</span
-                >
+                  {{ transactionDetail.payCurrency }}
+                </span>
               </div>
 
               <div class="item">

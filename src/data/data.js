@@ -1269,7 +1269,7 @@ export const businessCategories = [
 ];
 
 export const paymentTypes = [
-  { name: "No preference", value: "" },
+  { name: "No preference", value: "sha" },
   { name: "Local Payment", value: "localpayment" },
   { name: "Swift SHA", value: "sha" },
   { name: "Swift BEN", value: "ben" },

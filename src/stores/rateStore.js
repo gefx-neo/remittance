@@ -5,6 +5,10 @@ import { useStore, useAuthStore, useAlertStore } from "@/stores/index";
 import socket from "@/plugins/socket";
 import { CURRENCY_LIST, getAllowedCurrencies } from "@/utils/currencyUtils"; // Import the list
 import { useEnvironment } from "@/composables/useEnvironment";
+
+//  Only one global socket listener used — declared outside store for proper cleanup
+let rateUpdateOneHandler = null;
+
 export const useRateStore = defineStore("rate", {
   state: () => ({
     baseCurrency: "SGD", // centralized
@@ -29,11 +33,6 @@ export const useRateStore = defineStore("rate", {
           const response = await fetch(url);
           const data = await response.json();
 
-          if (!data?.rate) {
-            console.warn(`Missing rate for ${base} ➝ ${to}`);
-            continue;
-          }
-
           result.push({
             currency: to,
             rate: parseFloat(data.rate), // already adjusted by backend
@@ -57,7 +56,7 @@ export const useRateStore = defineStore("rate", {
 
         this.baseCurrency = base;
         this.rates = result;
-        console.log(this.rates);
+        // console.log(this.rates);
 
         return {
           status: 1,
@@ -71,14 +70,41 @@ export const useRateStore = defineStore("rate", {
         };
       }
     },
-    subscribeToSingleRateUpdates() {
-      // 🔔 One-to-one socket listener (e.g. USD ➝ MYR)
-      socket.on("rateUpdateOne", ({ base, to, rate, source }) => {
-        // console.log(
-        //   `[Client Receive] rateUpdateOne: ${base} ➝ ${to} = ${rate}, source: ${source}`
-        // );
+    // subscribeToSingleRateUpdates() {
+    //   // Prevent duplicate listeners
+    //   socket.on("rateUpdateOne", ({ base, to, rate, source }) => {
 
-        if (source !== "rateStore") return; // ✅ Add this check
+    //     if (source !== "rateStore") return; // ✅ Add this check
+    //     if (this.baseCurrency !== base) return;
+
+    //     const prevRate = this.rates.find((r) => r.currency === to)?.rate;
+    //     const prevDecimal = prevRate ? Math.round(prevRate * 10000) : null;
+    //     const newDecimal = Math.round(parseFloat(rate) * 10000);
+
+    //     if (prevDecimal !== null && prevDecimal !== newDecimal) {
+    //       this.updateRateClass(to, parseFloat(rate));
+    //       // console.log(
+    //       //   `[RateStore] One-to-one update: ${to}: ${prevRate} ➡️ ${parseFloat(
+    //       //     rate
+    //       //   )}`
+    //       // );
+    //     }
+
+    //     const idx = this.rates.findIndex((r) => r.currency === to);
+
+    //     if (idx !== -1) {
+    //       this.rates[idx].rate = parseFloat(rate);
+    //     } else {
+    //       this.rates.push({ currency: to, rate: parseFloat(rate) });
+    //     }
+    //   });
+    // },
+    subscribeToSingleRateUpdates() {
+      // Prevent duplicate listeners
+      if (rateUpdateOneHandler) return;
+
+      rateUpdateOneHandler = ({ base, to, rate, source }) => {
+        if (source !== "rateStore") return;
         if (this.baseCurrency !== base) return;
 
         const prevRate = this.rates.find((r) => r.currency === to)?.rate;
@@ -87,21 +113,29 @@ export const useRateStore = defineStore("rate", {
 
         if (prevDecimal !== null && prevDecimal !== newDecimal) {
           this.updateRateClass(to, parseFloat(rate));
-          console.log(
-            `[RateStore] One-to-one update: ${to}: ${prevRate} ➡️ ${parseFloat(
-              rate
-            )}`
-          );
+          // console.log(
+          //   `[RateStore] One-to-one update: ${to}: ${prevRate} ➡️ ${parseFloat(
+          //     rate
+          //   )}`
+          // );
         }
 
         const idx = this.rates.findIndex((r) => r.currency === to);
-
         if (idx !== -1) {
           this.rates[idx].rate = parseFloat(rate);
         } else {
           this.rates.push({ currency: to, rate: parseFloat(rate) });
         }
-      });
+      };
+
+      socket.on("rateUpdateOne", rateUpdateOneHandler);
+    },
+    cleanupSocketListeners() {
+      if (rateUpdateOneHandler) {
+        socket.off("rateUpdateOne", rateUpdateOneHandler);
+        rateUpdateOneHandler = null;
+        console.log("disconnected websocket");
+      }
     },
     updateRateClass(currency, newRate) {
       const prevRate = this.rates.find((r) => r.currency === currency)?.rate;

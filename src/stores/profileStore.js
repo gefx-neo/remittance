@@ -40,43 +40,6 @@ export const useProfileStore = defineStore("profile", {
         store.isLoading = false;
       }
     },
-    async getCustomerAdjustments() {
-      const alertStore = useAlertStore();
-      const authStore = useAuthStore();
-      const store = useStore();
-      const { apiAdminBaseUrl } = useEnvironment();
-      store.isLoading = true;
-
-      try {
-        const response = await axios.get(
-          `${apiAdminBaseUrl}/rate/getCustomerAdjustedRate?username=${encodeURIComponent(
-            authStore.username
-          )}`,
-          {
-            headers: {
-              remitCode: authStore.token,
-            },
-          }
-        );
-
-        const data = response.data;
-
-        if (data.status === 1 && Array.isArray(data.adj)) {
-          this.customerAdjustments = data.adj;
-          console.log("[ProfileStore] Adjustments:", this.customerAdjustments);
-        } else {
-          alertStore.alert(
-            "error",
-            data.message || "Failed to load adjustments"
-          );
-        }
-      } catch (error) {
-        console.error("Failed to fetch adjustments:", error);
-        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
-      } finally {
-        store.isLoading = false;
-      }
-    },
     async uploadFiles(formData) {
       const store = useStore();
       const alertStore = useAlertStore();

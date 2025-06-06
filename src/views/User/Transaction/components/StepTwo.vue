@@ -433,7 +433,7 @@ const handleNext = () => {
   const schema = formValidation(localForm);
 
   const isValid = validateForm(localForm, schema);
-  console.log("Validation Errors:", errors);
+  // console.log("Validation Errors:", errors);
 
   if (isValid) {
     // Add query parameters when navigating to the next step

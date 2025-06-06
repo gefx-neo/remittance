@@ -1,9 +1,9 @@
 <template>
   <div class="sidebar-container" :class="{ open: store.isSidebarOpen }">
     <div class="logo">
-      <a href="/#/dashboard">
+      <RouterLink to="/dashboard">
         <img src="@/assets/logo.jpg" />
-      </a>
+      </RouterLink>
     </div>
 
     <div class="btn-close" @click="store.closeSidebar">
@@ -45,7 +45,7 @@
       v-for="route in routes"
       :key="route.label"
       :to="route.to"
-      :class="{ faq: route.label === 'FAQ' }"
+      :class="{ help: route.label === 'Help' }"
     >
       <span class="icon">
         <font-awesome-icon :icon="route.icon" size="1x" />
@@ -259,7 +259,7 @@ router.afterEach(() => {
     color: var(--cool-blue);
   }
 
-  .mobile-footer-container a.faq {
+  .mobile-footer-container a.help {
     display: none;
   }
 

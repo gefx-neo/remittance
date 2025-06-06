@@ -12,16 +12,16 @@ import { CURRENCY_LIST, getAllowedCurrencies } from "@/utils/currencyUtils"; // 
 import { useEnvironment } from "@/composables/useEnvironment";
 export const useTransactionStore = defineStore("transaction", {
   state: () => ({
-    memoId: null,
-    rate: null,
-    fee: null,
     sendingAmount: 0,
     sendingCurrency: "SGD",
     receivingAmount: 0,
     receivingCurrency: "MYR",
+    memoId: null,
+    rate: null,
+    fee: null,
+    paymentType: "localpayment",
     error: null,
     baseCurrency: "SGD", // centralized
-    rates: [], // all real-time rates received via socket
     rateClasses: {}, // Track increase or decrease classes for each currency
   }),
   actions: {
@@ -30,9 +30,10 @@ export const useTransactionStore = defineStore("transaction", {
       this.receivingAmount = data.receivingAmount;
       this.sendingCurrency = data.sendingCurrency;
       this.receivingCurrency = data.receivingCurrency;
-      this.fee = data.fee;
-      this.rate = data.rate;
       this.memoId = data.memoId;
+      this.rate = data.rate;
+      this.fee = data.fee;
+      this.paymentType = data.paymentType;
     },
     async getTransactionList() {
       const store = useStore();
@@ -130,61 +131,6 @@ export const useTransactionStore = defineStore("transaction", {
         store.isLoading = false;
       }
     },
-    async getLockedRate(payCurrency, getCurrency) {
-      const alertStore = useAlertStore();
-      const authStore = useAuthStore();
-      const { apiRateBaseUrl } = useEnvironment();
-
-      try {
-        const url = `${apiRateBaseUrl}/lockedrate.html?payCurrency=${payCurrency}&getCurrency=${getCurrency}&username=${encodeURIComponent(
-          authStore.username
-        )}&token=${encodeURIComponent(authStore.token)}`;
-
-        const response = await fetch(url);
-        const data = await response.json();
-
-        if (!data?.memoId) {
-          alertStore.alert("error", "Failed to lock rate.");
-          return null;
-        }
-        this.memoId = data.memoId;
-
-        return data; // no mutation here
-      } catch (error) {
-        alertStore.alert("error", "Error locking rate.");
-        return null;
-      }
-    },
-    async getLockedAmount(payAmount, amount, base, to, paymentType) {
-      const alertStore = useAlertStore();
-      const authStore = useAuthStore();
-      const { apiRateBaseUrl } = useEnvironment();
-
-      try {
-        const paymentType = "localpayment";
-        const url = `${apiRateBaseUrl}/lockedamount.html?username=${encodeURIComponent(
-          authStore.username
-        )}&token=${encodeURIComponent(
-          authStore.token
-        )}&memoId=${encodeURIComponent(
-          this.memoId
-        )}&payAmount=${payAmount}&amount=${amount}&base=${base}&to=${to}&paymentType=${paymentType}`;
-
-        const response = await fetch(url);
-        const data = await response.json();
-
-        if (typeof data.status !== "number") {
-          alertStore.alert("error", "Failed to get locked amount.");
-          return null;
-        }
-
-        return data;
-      } catch (error) {
-        alertStore.alert("error", "Error getting locked amount.");
-        console.error("getLockedAmount error:", error);
-        return null;
-      }
-    },
     async sendReminder(payload) {
       const store = useStore();
       const authStore = useAuthStore();
@@ -221,7 +167,6 @@ export const useTransactionStore = defineStore("transaction", {
         store.isLoading = false;
       }
     },
-
     async sendAcknowledgement(payload) {
       const store = useStore();
       const authStore = useAuthStore();
@@ -260,45 +205,6 @@ export const useTransactionStore = defineStore("transaction", {
     getAllowedCurrencies(base) {
       return CURRENCY_LIST.filter((currency) => currency !== base);
     },
-    async getRate(base) {
-      const authStore = useAuthStore();
-      const alertStore = useAlertStore();
-
-      try {
-        const { apiRateBaseUrl } = useEnvironment();
-        const response = await fetch(`${apiRateBaseUrl}/rate.html?base=${base}
-          &username=${encodeURIComponent(
-            authStore.username
-          )}&token=${encodeURIComponent(authStore.token)}`);
-        const data = await response.json();
-        if (!data?.Rate) throw new Error("Invalid rate response");
-        const allowedCurrencies = getAllowedCurrencies(base);
-        const formattedRates = data.Rate.filter((rate) =>
-          allowedCurrencies.includes(rate.symbol)
-        ).map((rate) => ({
-          currency: rate.symbol,
-          rate: parseFloat(rate.value),
-        }));
-
-        // Sort the rates based on CURRENCY_LIST order
-        formattedRates.sort(
-          (a, b) =>
-            CURRENCY_LIST.indexOf(a.currency) -
-            CURRENCY_LIST.indexOf(b.currency)
-        );
-
-        this.baseCurrency = base;
-        this.rates = formattedRates;
-
-        return {
-          status: 1,
-          rates: formattedRates,
-        };
-      } catch (error) {
-        alertStore.alert("error", "Failed to fetch rates from rate API");
-      }
-    },
-
     async getParticularRate(base, targetCurrency) {
       const authStore = useAuthStore();
       const alertStore = useAlertStore();
@@ -308,32 +214,16 @@ export const useTransactionStore = defineStore("transaction", {
         const url = `${apiRateBaseUrl}/rate.html?base=${base}&to=${targetCurrency}&username=${encodeURIComponent(
           authStore.username
         )}&token=${encodeURIComponent(authStore.token)}`;
+
         const response = await fetch(url);
         const data = await response.json();
 
-        if (!data?.rate) {
-          console.warn(`Missing rate for ${base} ➝ ${targetCurrency}`);
-          return {
-            status: 0,
-            error: `Missing rate for ${base} ➝ ${targetCurrency}`,
-          };
-        }
-
         const parsedRate = parseFloat(data.rate);
 
-        // Update or insert rate
-        const idx = this.rates.findIndex((r) => r.currency === targetCurrency);
+        // ✅ Only assign to this.rate
+        this.rate = parsedRate;
 
-        if (idx !== -1) {
-          this.rates[idx].rate = parsedRate;
-        } else {
-          this.rates.push({ currency: targetCurrency, rate: parsedRate });
-        }
-
-        // Set base
-        this.baseCurrency = base;
-
-        // 🔔 Subscribe to single pair
+        // 🔔 Still emit socket if needed (optional)
         socket.emit("changeBase", {
           base,
           to: targetCurrency,
@@ -351,34 +241,51 @@ export const useTransactionStore = defineStore("transaction", {
           "error",
           `Failed to fetch ${base} ➝ ${targetCurrency} rate`
         );
-
         return {
           status: 0,
           error: error.message,
         };
       }
     },
-    async getFee(base, targetCurrency, paymentType) {
+    async getLockedTransaction(payAmount, base, to, paymentType) {
+      const store = useAuthStore();
       const authStore = useAuthStore();
       const alertStore = useAlertStore();
       const { apiRateBaseUrl } = useEnvironment();
-
       try {
-        const url = `${apiRateBaseUrl}/fee.html?base=${base}&to=${targetCurrency}&paymentType=${paymentType}&username=${encodeURIComponent(
-          authStore.username
-        )}&token=${encodeURIComponent(authStore.token)}`;
-        const response = await fetch(url);
-        const text = await response.text(); // ← change this
-        const fee = parseFloat(text);
+        const rate = this.rate;
 
-        this.fee = isNaN(fee) ? 0 : fee; // defensive fallback
-        return fee; // return number, not { status: 1 }
-      } catch (error) {
-        alertStore.alert(
-          "error",
-          `Failed to fetch fee for ${base} ➝ ${targetCurrency} [${paymentType}]`
+        const calculatedAmount = (parseFloat(payAmount) * rate).toFixed(2);
+
+        const url = `${apiRateBaseUrl}/lock-transaction.html?username=${encodeURIComponent(
+          authStore.username
+        )}&token=${encodeURIComponent(
+          authStore.token
+        )}&payCurrency=${base}&getCurrency=${to}&paymentType=${paymentType}&payAmount=${payAmount}&amount=${calculatedAmount}`;
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (
+          !data?.memoId ||
+          typeof data?.rate !== "number" ||
+          typeof data?.fee !== "number"
+        ) {
+          alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
+          return null;
+        }
+
+        this.memoId = data.memoId;
+        this.rate = data.rate;
+        this.fee = data.fee;
+        console.log(
+          `[getLockedTransaction] memoId: ${this.memoId}, rate: ${this.rate}, fee: ${this.fee}`
         );
-        return 0;
+
+        return data;
+      } catch (error) {
+        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
+        return null;
       }
     },
     updateRateClass(currency, newRate) {
@@ -416,53 +323,6 @@ export const useTransactionStore = defineStore("transaction", {
       this.rateClasses[currency] = "";
     },
 
-    subscribeToMultiRateUpdates() {
-      socket.on("rateUpdate", ({ base, rates, source }) => {
-        if (source !== "transactionStore") return;
-        if (this.baseCurrency !== base) return;
-
-        // Collect changed rates in a concise format
-        const changes = [];
-
-        // Get allowed currencies, excluding the base
-        const allowedCurrencies = getAllowedCurrencies(base);
-
-        // Iterate over the received rates
-        const formattedRates = Object.entries(rates)
-          .filter(([currency]) => allowedCurrencies.includes(currency))
-          .map(([currency, value]) => {
-            const prevRate = this.rates.find(
-              (r) => r.currency === currency
-            )?.rate;
-
-            const prevDecimal = prevRate ? Math.round(prevRate * 10000) : null;
-            const newDecimal = Math.round(parseFloat(value) * 10000);
-
-            // Check if the 4th decimal place has changed
-            if (prevDecimal !== null && prevDecimal !== newDecimal) {
-              changes.push(`${currency}: ${prevRate} ➡️ ${parseFloat(value)}`);
-              this.updateRateClass(currency, parseFloat(value));
-            }
-            return { currency, rate: parseFloat(value) };
-          });
-
-        // Log only changed currencies with their previous and new values
-        if (changes.length) {
-          console.log(`[TransactionStore] Changes: ${changes.join(", ")}`);
-        }
-
-        // Sort the rates based on CURRENCY_LIST order before updating the store
-        formattedRates.sort(
-          (a, b) =>
-            CURRENCY_LIST.indexOf(a.currency) -
-            CURRENCY_LIST.indexOf(b.currency)
-        );
-
-        // Update the store with the mapped and sorted rates
-        this.rates = formattedRates;
-      });
-    },
-
     subscribeToSingleRateUpdates() {
       // 🔔 One-to-one socket listener (e.g. USD ➝ MYR)
       socket.on("rateUpdateOne", ({ base, to, rate, source }) => {
@@ -476,11 +336,11 @@ export const useTransactionStore = defineStore("transaction", {
 
         if (prevDecimal !== null && prevDecimal !== newDecimal) {
           this.updateRateClass(to, parseFloat(rate));
-          console.log(
-            `[TransactionStore] One-to-one update: ${to}: ${prevRate} ➡️ ${parseFloat(
-              rate
-            )}`
-          );
+          // console.log(
+          //   `[TransactionStore] One-to-one update: ${to}: ${prevRate} ➡️ ${parseFloat(
+          //     rate
+          //   )}`
+          // );
         }
 
         const idx = this.rates.findIndex((r) => r.currency === to);
@@ -505,13 +365,14 @@ export const useTransactionStore = defineStore("transaction", {
         key: "transactionStore", // The key to use in localStorage
         storage: localStorage, // Use localStorage
         paths: [
-          "memoId",
-          "rate",
-          "fee",
           "sendingAmount",
           "sendingCurrency",
           "receivingAmount",
           "receivingCurrency",
+          "memoId",
+          "rate",
+          "fee",
+          "paymentType",
         ],
       },
     ],

@@ -18,6 +18,8 @@
           v-model="form"
           @nextStep="nextStep"
           :isFromBeneficiaryDetail="isFromBeneficiaryDetail"
+          :isFromDashboard="isFromDashboard"
+          :isFromTransactionList="isFromTransactionList"
         />
 
         <StepTwo
@@ -70,12 +72,13 @@ const { scrollToTop } = useValidation();
 
 const form = ref({});
 const beneficiaries = ref([]);
+
+const isFromDashboard = ref(route.query.fromDashboard === "true");
 const isFromBeneficiaryDetail = ref(
   route.query.fromBeneficiaryDetail === "true"
 );
-// const isFromTransactionList = ref(false);
-const isFromDashboard = ref(route.query.fromDashboard === "true");
-const isfromTransactionList = ref(route.query.fromTransactionList === "true");
+const isFromTransactionList = ref(route.query.fromTransactionList === "true");
+
 const handleSubmit = async () => {
   form.value.username = authStore.username;
 
@@ -216,68 +219,7 @@ watch(
 onMounted(async () => {
   try {
     const query = router.currentRoute.value.query;
-    isFromBeneficiaryDetail.value = query.fromBeneficiaryDetail === "true";
-    isFromDashboard.value = query.fromDashboard === "true";
-    isfromTransactionList.value = query.fromTransactionList === "true";
-    const transactionData = localStorage.getItem("transaction");
 
-    // Group 1
-    if (isFromDashboard.value) {
-    } else if (
-      !isFromDashboard.value &&
-      !isFromBeneficiaryDetail.value &&
-      !isfromTransactionList.value
-    ) {
-      const firstTimeFromNewTransaction = sessionStorage.getItem(
-        "firstTimeFromNewTransaction"
-      );
-      if (!firstTimeFromNewTransaction) {
-        sessionStorage.setItem("firstTimeFromNewTransaction", "true");
-        const payCurrency = transactionStore.sendingCurrency;
-        const getCurrency = transactionStore.receivingCurrency;
-        await transactionStore.getLockedRate(payCurrency, getCurrency);
-      }
-    } else if (isFromBeneficiaryDetail.value) {
-      const firstTimeFromBeneficiaryDetail = sessionStorage.getItem(
-        "firstTimeFromBeneficiaryDetail"
-      );
-      if (!firstTimeFromBeneficiaryDetail) {
-        sessionStorage.setItem("firstTimeFromBeneficiaryDetail", "true");
-        const payCurrency = transactionStore.sendingCurrency || "SGD";
-        const getCurrency = query.currency;
-        await transactionStore.getLockedRate(payCurrency, getCurrency);
-      }
-    } else if (isfromTransactionList.value) {
-      const payCurrency = transactionStore.sendingCurrency;
-      const getCurrency = transactionStore.receivingCurrency;
-      await transactionStore.getLockedRate(payCurrency, getCurrency);
-      try {
-        const response = await transactionStore.getLockedAmount(
-          transactionStore.sendingAmount,
-          "pay"
-        );
-        if (response && response.status === 1) {
-          transactionStore.receivingAmount = parseFloat(response.getAmount);
-          transactionStore.setTransactionData({
-            sendingAmount: transactionStore.sendingAmount,
-            sendingCurrency: transactionStore.sendingCurrency,
-            receivingAmount: transactionStore.receivingAmount,
-            receivingCurrency: transactionStore.receivingCurrency,
-          });
-        }
-      } catch (error) {
-        alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
-      }
-    }
-
-    if (!transactionData) {
-      const payCurrency = transactionStore.sendingCurrency || "SGD";
-      const getCurrency = transactionStore.receivingCurrency || "MYR";
-      await transactionStore.getLockedRate(payCurrency, getCurrency);
-    }
-    // End of Group 1
-
-    // Group 2 (Executes only if Group 1 completes successfully)
     if (!beneficiaries.value.length) {
       const response = await beneficiaryStore.getBeneficiaryList();
       beneficiaries.value = response.beneficiaries || [];
@@ -338,13 +280,13 @@ const handleCancel = () => {
 };
 
 onUnmounted(() => {
-  transactionStore.$reset();
+  transactionStore.resetStore();
   localStorage.removeItem("transaction");
   localStorage.removeItem("beneficiary");
   localStorage.removeItem("stepStore");
   sessionStorage.removeItem("firstTimeFromDashboard");
   sessionStorage.removeItem("firstTimeFromBeneficiaryDetail");
-  sessionStorage.removeItem("firstTimeFromNewTransaction");
+  sessionStorage.removeItem("firstTimeFromTransactionList");
 });
 </script>
 

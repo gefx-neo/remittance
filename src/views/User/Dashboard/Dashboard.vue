@@ -35,21 +35,14 @@
       <div class="button-section">
         <div class="rate-group">
           1 {{ form.sendingCurrency }} ≈
-          {{
-            formatCurrency(
-              transactionStore.rates.find(
-                (rate) => rate.currency === form.receivingCurrency
-              )?.rate || 0,
-              form.receivingCurrency,
-              rateToggles[form.receivingCurrency]
-            )
-          }}
+          {{ formatCurrency(transactionStore.rate) }}
           {{ form.receivingCurrency }}
         </div>
 
         <div class="button-group">
           <ButtonAPI
-            :disabled="store.isMoneyLoading"
+            :disabled="isDashboardLoading"
+            :loading="isDashboardLoading"
             class="btn-red standard-button"
             @click="handleSubmit"
           >
@@ -66,8 +59,8 @@
           <!-- <router-link to="/transaction">View all</router-link> -->
         </div>
 
-        <div v-if="store.isLoading">
-          <SkeletonLoader type="dashboardTransaction" :count="5" />
+        <div v-if="isDashboardLoading">
+          <SkeletonLoader type="dashboardTransaction" :count="9" />
         </div>
         <div v-else-if="transactions.length === 0">
           <EmptyList />
@@ -176,7 +169,7 @@
           </Tooltip>
         </div>
 
-        <div v-if="store.isLoading">
+        <div v-if="isDashboardLoading">
           <SkeletonLoader type="dashboardCurrentRates" :count="6" />
         </div>
         <div v-else-if="rates.length === 0">
@@ -231,10 +224,11 @@
                   </div>
                 </Tooltip>
               </div>
-
+              <div v-if="isRateLoading" class="skeleton text-sm h-sm"></div>
               <div
                 class="rate"
                 :class="rateStore.rateClasses[rate.currency] || ''"
+                v-else
               >
                 {{
                   formatCurrency(
@@ -349,7 +343,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch, nextTick } from "vue";
+import { ref, reactive, onMounted, onUnmounted, watch, nextTick } from "vue";
 import { ButtonAPI } from "@/components/Form";
 import InputAmount from "@/components/Form/Dashboard/InputAmount.vue";
 import InputSendingCurrency from "@/components/Form/Dashboard/InputSendingCurrency.vue";
@@ -441,7 +435,6 @@ const updateReceivingCurrency = async (currency) => {
 
 const handleSubmit = async () => {
   form.sendingAmount = parseFloat(form.sendingAmount);
-  form.receivingAmount = parseFloat(form.receivingAmount);
 
   validateSendingAmount(
     form.sendingAmount,
@@ -459,93 +452,91 @@ const handleSubmit = async () => {
   const isValid = validateForm(form, schema);
 
   if (!isValid) {
-    if (form.sendingAmount === 0 || form.receivingAmount === 0) {
-      alertStore.alert("error", "Please fill in the required fields.");
-    } else {
-      alertStore.alert(
-        "error",
-        "Please provide valid amounts for both sending and receiving"
-      );
-    }
+    alertStore.alert("error", "Please fill in valid amounts.");
     return;
   }
 
   try {
-    const lockedRateData = await transactionStore.getLockedRate(
+    const result = await transactionStore.getLockedTransaction(
+      form.sendingAmount,
       form.sendingCurrency,
-      form.receivingCurrency
+      form.receivingCurrency,
+      transactionStore.paymentType
     );
 
-    if (!lockedRateData.memoId) {
-      alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
-      return;
-    }
+    if (!result) return;
 
     form.receivingAmount = parseFloat(
-      (form.sendingAmount * lockedRateData.rate).toFixed(2)
+      (form.sendingAmount * result.rate).toFixed(2)
     );
 
-    const lockedAmount = await transactionStore.getLockedAmount(
-      form.sendingAmount,
-      form.receivingAmount,
-      form.sendingCurrency, // base
-      form.receivingCurrency, // to
-      "localpayment" // or dynamically from form.paymentType
-    );
+    transactionStore.setTransactionData({
+      sendingAmount: form.sendingAmount,
+      sendingCurrency: form.sendingCurrency,
+      receivingAmount: form.receivingAmount,
+      receivingCurrency: form.receivingCurrency,
+      memoId: result.memoId,
+      rate: result.rate,
+      fee: result.fee,
+      paymentType: "localpayment",
+    });
 
-    if (lockedAmount.status === 1) {
-      transactionStore.setTransactionData({
-        sendingAmount: form.sendingAmount,
-        sendingCurrency: form.sendingCurrency,
-        receivingAmount: form.receivingAmount,
-        receivingCurrency: form.receivingCurrency,
-        memoId: lockedRateData.memoId,
-      });
-
-      // ✅ Pass rate to AddTransaction
-      router.push({
-        path: "/transaction/addtransaction",
-        query: {
-          fromDashboard: "true",
-        },
-      });
-    }
+    router.push({
+      path: "/transaction/addtransaction",
+      query: { fromDashboard: "true" },
+    });
   } catch (error) {
     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 };
 
+const isRateLoading = ref(false);
+
 const updateRate = async (selectedBase) => {
-  if (rateStore.baseCurrency === selectedBase) return;
+  if (rateStore.baseCurrency === selectedBase || isRateLoading.value) return;
 
-  // Emit socket with correct source
-  socket.emit("changeBase", {
-    base: selectedBase,
-    source: "rateStore",
-  });
+  // Step 1: Immediately update baseCurrency to reflect flag switch
+  rateStore.baseCurrency = selectedBase;
 
-  let rateResponse;
+  // Step 2: Delay before showing loader so flag changes first
+  await nextTick(); // Allow DOM to update first
+  await new Promise((resolve) => setTimeout(resolve, 100)); // Slight delay (~100ms)
 
-  rateResponse = await rateStore.getParticularRate(selectedBase);
+  isRateLoading.value = true;
 
-  if (rateResponse.status === 1 && rateResponse.rates) {
-    previousRates.value = Object.fromEntries(
-      rateResponse.rates.map((rate) => [rate.currency, rate.rate])
-    );
-
-    rates.value = rateResponse.rates.map((rate) => {
-      const isReciprocal = rateToggles.value[rate.currency];
-      return {
-        currency: rate.currency,
-        rate: isReciprocal ? 1 / rate.rate : rate.rate,
-      };
+  try {
+    socket.emit("changeBase", {
+      base: selectedBase,
+      source: "rateStore",
     });
+
+    const rateResponse = await rateStore.getParticularRate(selectedBase);
+
+    if (rateResponse.status === 1 && rateResponse.rates) {
+      previousRates.value = Object.fromEntries(
+        rateResponse.rates.map((rate) => [rate.currency, rate.rate])
+      );
+
+      rates.value = rateResponse.rates.map((rate) => {
+        const isReciprocal = rateToggles.value[rate.currency];
+        return {
+          currency: rate.currency,
+          rate: isReciprocal ? 1 / rate.rate : rate.rate,
+        };
+      });
+    }
+  } catch (error) {
+    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
+  } finally {
+    isRateLoading.value = false;
   }
 };
 
+const isDashboardLoading = ref(true);
+
 onMounted(async () => {
+  console.log("dashboard token", authStore.token);
   await profileStore.getProfileDetail();
-  await transactionStore.getFee("SGD", "MYR", "localpayment");
   Object.assign(profileDetails, profileStore.profileDetails);
 
   if (profileDetails.userStatus !== 3) return;
@@ -570,14 +561,14 @@ onMounted(async () => {
     ]);
 
     // Always subscribe to single rate updates only
-    transactionStore.subscribeToSingleRateUpdates();
     rateStore.subscribeToSingleRateUpdates();
 
     if (transactionListResponse?.trxns) {
       transactions.value = transactionListResponse.trxns
         .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .slice(0, 5);
+        .slice(0, 9);
     }
+    isDashboardLoading.value = false;
   } catch (error) {
     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
@@ -673,6 +664,10 @@ const startAnimation = () => {
 const endAnimation = () => {
   isAnimating.value = false;
 };
+
+onUnmounted(() => {
+  rateStore.cleanupSocketListeners();
+});
 </script>
 <style scoped>
 @import "@/assets/dashboard.css";
@@ -757,5 +752,45 @@ const endAnimation = () => {
   max-height: var(--size-48);
   border: 1px solid var(--light-grey);
   border-radius: var(--border-sm);
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.skeleton {
+  background: var(--lighter-grey);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  border-radius: var(--border-sm);
+}
+
+.text-sm {
+  width: var(--size-64);
+}
+
+.text-xl {
+  width: var(--size-176);
+}
+
+.h-sm {
+  height: 14px;
+  border-radius: var(--size-4);
+}
+
+.h-md {
+  height: 16px;
+}
+
+@media (max-width: 1023px) {
+  .h-sm {
+    height: 13px;
+    border-radius: var(--size-4);
+  }
+
+  .h-md {
+    height: 15px;
+  }
 }
 </style>

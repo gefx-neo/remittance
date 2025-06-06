@@ -75,7 +75,7 @@
             </div>
             <div class="second-column">
               <div class="first-row">
-                {{ formatNumber(transaction.payAmount) }}
+                {{ formatNumber(transaction.payAmount + transaction.fee) }}
                 {{ transaction.payCurrency }}
               </div>
               <div class="second-row">
@@ -259,10 +259,10 @@ const redirectToTransaction = (transaction) => {
   });
 
   transactionStore.setTransactionData({
-    sendingAmount: transaction.payAmount - transaction.fee,
-    receivingAmount: transaction.getAmount,
+    sendingAmount: transaction.payAmount,
     sendingCurrency: transaction.payCurrency,
     receivingCurrency: transaction.getCurrency,
+    receivingAmount: 0,
   });
 
   // Redirect to Add Transaction page with transaction details

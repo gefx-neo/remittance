@@ -8,9 +8,9 @@
           label="Sending amount"
           :modelValue="localForm.sendingAmount"
           :modelCurrency="localForm.sendingCurrency"
-          :isSending="true"
           @update:modelValue="updateSendingAmount"
           @update:modelCurrency="updateSendingCurrency"
+          :isSending="true"
           :error="errors.sendingAmount"
         />
 
@@ -19,9 +19,9 @@
           label="Receiving amount"
           :modelValue="localForm.receivingAmount"
           :modelCurrency="localForm.receivingCurrency"
-          :isSending="false"
           @update:modelValue="updateReceivingAmount"
           @update:modelCurrency="updateReceivingCurrency"
+          :isSending="false"
           :error="errors.receivingAmount"
           :disableDropdown="isFromBeneficiaryDetail"
         />
@@ -60,7 +60,8 @@
         <div class="footer">
           <ButtonAPI
             type="button"
-            :disabled="store.isMoneyLoading"
+            :disabled="isLocking"
+            :loading="isLocking"
             @click="handleNext"
             class="btn-red standard-button"
           >
@@ -81,7 +82,15 @@
 
 <script setup>
 import TransactionSummary from "./TransactionSummary.vue";
-import { onMounted, ref, reactive, watch, defineProps, defineEmits } from "vue";
+import {
+  onMounted,
+  ref,
+  reactive,
+  watch,
+  nextTick,
+  defineProps,
+  defineEmits,
+} from "vue";
 import { InputAmount, Select, ButtonAPI } from "@/components/Form";
 import { paymentTypes, gefxBanks } from "@/data/data";
 import { useValidation } from "@/composables/useValidation";
@@ -105,10 +114,9 @@ const props = defineProps({
     default: () => [], // Default to an empty array
   },
   selectedBeneficiary: Object,
-  isFromBeneficiaryDetail: {
-    type: Boolean,
-    default: false, // Default to false if not passed
-  },
+  isFromDashboard: { type: Boolean, default: false },
+  isFromBeneficiaryDetail: { type: Boolean, default: false },
+  isFromTransactionList: { type: Boolean, default: false },
 });
 const emit = defineEmits(["update:modelValue", "nextStep", "prevStep"]);
 const {
@@ -130,7 +138,7 @@ const localForm = reactive({
   selectedBeneficiary: beneficiaryStore.selectedBeneficiary || null,
   sendingAmount: props.modelValue.sendingAmount || 0,
   receivingAmount: props.modelValue.receivingAmount || 0,
-  paymentType: props.modelValue.paymentType,
+  paymentType: props.modelValue.paymentType || transactionStore.paymentType,
   gefxBank: props.modelValue.gefxBank,
   ...props.modelValue,
 });
@@ -138,19 +146,71 @@ const localForm = reactive({
 onMounted(async () => {
   const query = route.query;
 
+  // ✅ Initialize localForm from store and query (important step preserved)
   Object.assign(localForm, {
-    sendingAmount: transactionStore.sendingAmount,
-    sendingCurrency: transactionStore.sendingCurrency,
-    receivingAmount: transactionStore.receivingAmount,
-    receivingCurrency: query.currency || transactionStore.receivingCurrency,
+    sendingAmount: transactionStore.sendingAmount || 0,
+    sendingCurrency: transactionStore.sendingCurrency || "SGD",
+    receivingAmount: transactionStore.receivingAmount || 0,
+    receivingCurrency:
+      query.currency || transactionStore.receivingCurrency || "MYR",
+    paymentType: transactionStore.paymentType || "localpayment",
   });
+
+  const { sendingAmount, sendingCurrency, receivingCurrency, paymentType } =
+    localForm;
+
+  // 🟡 Optional debug log
+  if (props.isFromDashboard) {
+    console.log("🔁 StepOne: from Dashboard");
+  }
+
+  // ✅ From Beneficiary Detail
+  if (props.isFromBeneficiaryDetail) {
+    const first = sessionStorage.getItem("firstTimeFromBeneficiaryDetail");
+    if (!first) {
+      sessionStorage.setItem("firstTimeFromBeneficiaryDetail", "true");
+      await nextTick();
+      await transactionStore.getParticularRate(
+        sendingCurrency,
+        receivingCurrency
+      );
+      await performFullLock();
+    }
+  }
+
+  // ✅ From Transaction List
+  // if (props.isFromTransactionList) {
+  //   const first = sessionStorage.getItem("firstTimeFromTransactionList");
+  //   if (!first) {
+  //     sessionStorage.setItem("firstTimeFromTransactionList", "true");
+  //     console.log("✅ ENTERED: isFromTransactionList block");
+
+  //     const result = await transactionStore.getParticularRate(
+  //       sendingCurrency,
+  //       receivingCurrency
+  //     );
+  //     console.log("👀 Result from getParticularRate:", result);
+
+  //     const rate = parseFloat(result?.rate);
+  //     await nextTick();
+  //     if (!isNaN(rate) && rate > 0 && sendingAmount > 0) {
+  //       await performFullLock(rate); // ✅ Single correct call
+  //     } else {
+  //       console.warn("⚠️ Invalid rate or amount, skipping lock.");
+  //     }
+  //   }
+  // }
+
+  if (!localStorage.getItem("transaction") || !transactionStore.memoId) {
+    await performFullLock();
+  }
 });
 
 const handleNext = () => {
   const schema = formValidation(localForm);
 
   const isValid = validateForm(localForm, schema);
-  console.log("Validation Errors:", errors);
+  // console.log("Validation Errors:", errors);
 
   if (isValid) {
     emit("nextStep");
@@ -170,243 +230,93 @@ watch(
   { deep: true }
 );
 
-const updateSendingAmount = async (amount) => {
-  const formattedAmount = parseFloat(amount).toFixed(2);
-  if (localForm.sendingAmount === formattedAmount) return;
-
-  localForm.sendingAmount = parseFloat(formattedAmount);
-
-  try {
-    const rateObj = transactionStore.rates.find(
-      (r) => r.currency === localForm.receivingCurrency
-    );
-
-    if (!rateObj?.rate) {
-      alertStore.alert("error", "Rate not available for selected currency.");
-      return;
-    }
-
-    const rate = rateObj.rate;
-    localForm.receivingAmount = parseFloat(
-      (localForm.sendingAmount * rate).toFixed(2)
-    );
-
-    const response = await transactionStore.getLockedAmount(
-      localForm.sendingAmount,
-      localForm.receivingAmount
-    );
-
-    if (response?.status === 1) {
-      transactionStore.setTransactionData({
-        sendingAmount: localForm.sendingAmount,
-        sendingCurrency: localForm.sendingCurrency,
-        receivingAmount: localForm.receivingAmount,
-        receivingCurrency: localForm.receivingCurrency,
-        rate,
-        memoId: transactionStore.memoId,
-        fee: transactionStore.fee,
-      });
-    }
-  } catch (error) {
-    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
-  }
+const updateSendingAmount = (val) => {
+  localForm.sendingAmount = parseFloat(val);
+  performFullLock();
 };
 
-const updateReceivingAmount = async (amount) => {
-  const formattedAmount = parseFloat(amount).toFixed(2);
-  if (localForm.receivingAmount === formattedAmount) return;
+const updateSendingCurrency = (currency) => {
+  localForm.sendingCurrency = currency;
+  performFullLock();
+};
 
-  localForm.receivingAmount = parseFloat(formattedAmount);
+const updateReceivingAmount = (val) => {
+  localForm.receivingAmount = parseFloat(val);
+  performFullLock();
+};
+
+const updateReceivingCurrency = (currency) => {
+  localForm.receivingCurrency = currency;
+  performFullLock();
+};
+
+const isLocking = ref(false); // already defined above
+
+const performFullLock = async () => {
+  const { sendingAmount, sendingCurrency, receivingCurrency, paymentType } =
+    localForm;
+
+  isLocking.value = true;
+  console.log(
+    "🔐 performFullLock request:",
+    sendingAmount,
+    sendingCurrency,
+    receivingCurrency,
+    paymentType
+  );
 
   try {
-    let rateObj = transactionStore.rates.find(
-      (r) => r.currency === localForm.receivingCurrency
+    const result = await transactionStore.getLockedTransaction(
+      sendingAmount,
+      sendingCurrency,
+      receivingCurrency,
+      paymentType,
+      null
     );
 
-    // Step 1: Ensure rate is available
-    if (!rateObj?.rate) {
-      const rateResponse = await transactionStore.getParticularRate(
-        localForm.sendingCurrency,
-        localForm.receivingCurrency
+    console.log("🔐 performFullLock result:", result);
+
+    if (result?.status === 1 && !isNaN(parseFloat(result.rate))) {
+      const lockedRate = parseFloat(result.rate);
+      const calculatedAmount = parseFloat(
+        (sendingAmount * lockedRate).toFixed(2)
       );
+      localForm.receivingAmount = calculatedAmount;
 
-      if (rateResponse.status !== 1 || !rateResponse.rate) {
-        alertStore.alert("error", "Rate not available for selected currency.");
-        return;
-      }
-
-      rateObj = { rate: rateResponse.rate };
-    }
-
-    const rate = rateObj.rate;
-
-    // Step 2: Recalculate sending amount
-    localForm.sendingAmount = parseFloat(
-      (localForm.receivingAmount / rate).toFixed(2)
-    );
-
-    // Step 3: Lock rate (if not already locked)
-    const lockedRate = await transactionStore.getLockedRate(
-      localForm.sendingCurrency,
-      localForm.receivingCurrency
-    );
-    if (!lockedRate?.memoId) {
-      alertStore.alert("error", "Failed to lock rate.");
-      return;
-    }
-
-    // Step 4: Lock amount
-    const response = await transactionStore.getLockedAmount(
-      localForm.sendingAmount,
-      localForm.receivingAmount
-    );
-
-    if (response?.status === 1) {
       transactionStore.setTransactionData({
-        sendingAmount: localForm.sendingAmount,
-        sendingCurrency: localForm.sendingCurrency,
+        sendingAmount,
+        sendingCurrency,
         receivingAmount: localForm.receivingAmount,
-        receivingCurrency: localForm.receivingCurrency,
-        rate,
-        memoId: lockedRate.memoId,
-        fee: transactionStore.fee,
+        receivingCurrency,
+        memoId: result.memoId,
+        rate: lockedRate,
+        fee: result.fee,
+        paymentType,
       });
+    } else {
+      console.log("failed to lock transaction");
+      alertStore.alert("error", "Failed to lock transaction.");
     }
-  } catch (error) {
+  } catch (err) {
+    console.error("❌ performFullLock error:", err);
     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   } finally {
-    validateSendingAmount(
-      localForm.sendingAmount,
-      localForm.sendingCurrency,
-      currencySchema,
-      "sending"
-    );
-    validateReceivingAmount(
-      localForm.receivingAmount,
-      localForm.receivingCurrency,
-      currencySchema,
-      "receiving"
-    );
+    isLocking.value = false;
   }
 };
 
-const updateSendingCurrency = async (currency) => {
-  if (localForm.sendingCurrency === currency) return;
-
-  localForm.sendingCurrency = currency;
-
-  try {
-    // Step 1: Populate live rate
-    const rateResponse = await transactionStore.getParticularRate(
-      localForm.sendingCurrency,
-      localForm.receivingCurrency
-    );
-
-    if (rateResponse.status !== 1 || !rateResponse.rate) {
-      alertStore.alert("error", "Rate not available for selected currency.");
-      return;
+watch(
+  () => localForm.paymentType,
+  (newVal, oldVal) => {
+    if (newVal && newVal !== oldVal) {
+      performFullLock();
     }
-
-    const rate = rateResponse.rate;
-
-    // Step 2: Lock memoId using this rate
-    const lockedRateData = await transactionStore.getLockedRate(
-      localForm.sendingCurrency,
-      localForm.receivingCurrency
-    );
-
-    if (!lockedRateData?.memoId) {
-      alertStore.alert("error", "Failed to lock rate.");
-      return;
-    }
-
-    // Step 3: Compute receivingAmount
-    if (localForm.sendingAmount) {
-      localForm.receivingAmount = parseFloat(
-        (localForm.sendingAmount * rate).toFixed(2)
-      );
-
-      // Optional validation with lockedAmount
-      const response = await transactionStore.getLockedAmount(
-        localForm.sendingAmount,
-        localForm.receivingAmount
-      );
-
-      if (response?.status === 1) {
-        transactionStore.setTransactionData({
-          sendingAmount: localForm.sendingAmount,
-          sendingCurrency: localForm.sendingCurrency,
-          receivingAmount: localForm.receivingAmount,
-          receivingCurrency: localForm.receivingCurrency,
-          rate,
-          memoId: lockedRateData.memoId,
-        });
-      }
-    }
-  } catch (error) {
-    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
-};
-
-const updateReceivingCurrency = async (currency) => {
-  if (localForm.receivingCurrency === currency) return;
-
-  localForm.receivingCurrency = currency;
-
-  try {
-    // Step 1: Get rate
-    const rateResponse = await transactionStore.getParticularRate(
-      localForm.sendingCurrency,
-      localForm.receivingCurrency
-    );
-
-    if (rateResponse.status !== 1 || !rateResponse.rate) {
-      alertStore.alert("error", "Rate not available for selected currency.");
-      return;
-    }
-
-    const rate = rateResponse.rate;
-
-    // Step 2: Lock rate
-    const lockedRate = await transactionStore.getLockedRate(
-      localForm.sendingCurrency,
-      localForm.receivingCurrency
-    );
-    if (!lockedRate?.memoId) {
-      alertStore.alert("error", "Failed to lock rate.");
-      return;
-    }
-
-    // Step 3: Recalculate
-    if (localForm.sendingAmount) {
-      localForm.receivingAmount = parseFloat(
-        (localForm.sendingAmount * rate).toFixed(2)
-      );
-
-      const response = await transactionStore.getLockedAmount(
-        localForm.sendingAmount,
-        localForm.receivingAmount
-      );
-
-      if (response?.status === 1) {
-        transactionStore.setTransactionData({
-          sendingAmount: localForm.sendingAmount,
-          sendingCurrency: localForm.sendingCurrency,
-          receivingAmount: localForm.receivingAmount,
-          receivingCurrency: localForm.receivingCurrency,
-          rate,
-          memoId: lockedRate.memoId,
-          fee: transactionStore.fee,
-        });
-      }
-    }
-  } catch (error) {
-    alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
-  }
-};
+);
 
 const handleCancel = () => {
   router.push({ path: "/dashboard" });
+  transactionStore.resetStore();
 };
 </script>
 
