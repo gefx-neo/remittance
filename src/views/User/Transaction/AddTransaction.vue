@@ -44,7 +44,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, nextTick, onUnmounted } from "vue";
+import { ref, onMounted, watchEffect, nextTick, onUnmounted } from "vue";
 import {
   useAuthStore,
   useAlertStore,
@@ -206,15 +206,13 @@ const prevStep = () => {
   scrollToTop();
 };
 
-// Watcher to track changes to beneId and fetch details
-watch(
-  () => router.currentRoute.value.query.beneId,
-  async (newBeneId, oldBeneId) => {
-    if (newBeneId && newBeneId !== oldBeneId) {
-      await fetchBeneficiaryDetail(newBeneId);
-    }
+// *** Watch does not work here because watch won't retrigger when value stays the same ***
+watchEffect(async () => {
+  const beneId = router.currentRoute.value.query.beneId;
+  if (beneId) {
+    await fetchBeneficiaryDetail(beneId);
   }
-);
+});
 
 onMounted(async () => {
   try {

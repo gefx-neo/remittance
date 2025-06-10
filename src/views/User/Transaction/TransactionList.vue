@@ -261,8 +261,8 @@ const redirectToTransaction = (transaction) => {
   transactionStore.setTransactionData({
     sendingAmount: transaction.payAmount,
     sendingCurrency: transaction.payCurrency,
+    // receivingAmount: 0,
     receivingCurrency: transaction.getCurrency,
-    receivingAmount: 0,
   });
 
   // Redirect to Add Transaction page with transaction details
@@ -271,7 +271,7 @@ const redirectToTransaction = (transaction) => {
     query: {
       fromTransactionList: "true",
       beneId,
-      currency,
+      // currency,
     },
   });
 };

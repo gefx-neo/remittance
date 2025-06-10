@@ -393,13 +393,20 @@ const redirectToTransaction = () => {
     currency: currency,
   });
 
+  transactionStore.setTransactionData({
+    sendingAmount: transactionStore.sendingAmount,
+    sendingCurrency: transactionStore.sendingCurrency,
+    receivingAmount: transactionStore.receivingAmount,
+    receivingCurrency: currency,
+  });
+
   // Redirect to Add Transaction page
   router.push({
     path: "/transaction/addtransaction",
     query: {
       fromBeneficiaryDetail: "true",
       beneId,
-      currency,
+      // currency,
     },
   });
 };

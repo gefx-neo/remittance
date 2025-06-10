@@ -382,7 +382,6 @@
 
 .currency .item:hover {
   background: var(--sky-blue);
-  margin-inline: -16px;
 }
 
 .currency .item .country {

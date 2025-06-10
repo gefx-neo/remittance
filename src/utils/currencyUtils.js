@@ -46,10 +46,13 @@ export function formatCurrency(value, currency, isReciprocal = false) {
     ? getReciprocalDecimals(currency)
     : getCurrencyDecimals(currency);
 
-  return (
+  const rounded = (
     Math.round(Number.parseFloat(value) * Math.pow(10, decimals)) /
     Math.pow(10, decimals)
   ).toFixed(decimals);
+
+  // Remove trailing zeroes (e.g. 3.3000 → 3.3, 3.0000 → 3)
+  return rounded.replace(/\.?0+$/, "");
 }
 
 export const getCurrencyImagePath = (currencyCode) => {

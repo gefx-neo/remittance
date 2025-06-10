@@ -151,13 +151,11 @@ onMounted(async () => {
     sendingAmount: transactionStore.sendingAmount || 0,
     sendingCurrency: transactionStore.sendingCurrency || "SGD",
     receivingAmount: transactionStore.receivingAmount || 0,
-    receivingCurrency:
-      query.currency || transactionStore.receivingCurrency || "MYR",
+    receivingCurrency: transactionStore.receivingCurrency || "MYR",
     paymentType: transactionStore.paymentType || "localpayment",
   });
 
-  const { sendingAmount, sendingCurrency, receivingCurrency, paymentType } =
-    localForm;
+  const { sendingCurrency, receivingCurrency } = localForm;
 
   // 🟡 Optional debug log
   if (props.isFromDashboard) {
@@ -167,39 +165,40 @@ onMounted(async () => {
   // ✅ From Beneficiary Detail
   if (props.isFromBeneficiaryDetail) {
     const first = sessionStorage.getItem("firstTimeFromBeneficiaryDetail");
+
     if (!first) {
+      shouldAllowLock.value = false;
       sessionStorage.setItem("firstTimeFromBeneficiaryDetail", "true");
       await nextTick();
       await transactionStore.getParticularRate(
         sendingCurrency,
         receivingCurrency
       );
+      shouldAllowLock.value = true;
       await performFullLock();
+    } else {
+      shouldAllowLock.value = true;
     }
   }
 
   // ✅ From Transaction List
-  // if (props.isFromTransactionList) {
-  //   const first = sessionStorage.getItem("firstTimeFromTransactionList");
-  //   if (!first) {
-  //     sessionStorage.setItem("firstTimeFromTransactionList", "true");
-  //     console.log("✅ ENTERED: isFromTransactionList block");
+  if (props.isFromTransactionList) {
+    const first = sessionStorage.getItem("firstTimeFromTransactionList");
 
-  //     const result = await transactionStore.getParticularRate(
-  //       sendingCurrency,
-  //       receivingCurrency
-  //     );
-  //     console.log("👀 Result from getParticularRate:", result);
-
-  //     const rate = parseFloat(result?.rate);
-  //     await nextTick();
-  //     if (!isNaN(rate) && rate > 0 && sendingAmount > 0) {
-  //       await performFullLock(rate); // ✅ Single correct call
-  //     } else {
-  //       console.warn("⚠️ Invalid rate or amount, skipping lock.");
-  //     }
-  //   }
-  // }
+    if (!first) {
+      shouldAllowLock.value = false;
+      sessionStorage.setItem("firstTimeFromTransactionList", "true");
+      await nextTick();
+      await transactionStore.getParticularRate(
+        sendingCurrency,
+        receivingCurrency
+      );
+      shouldAllowLock.value = true;
+      await performFullLock();
+    } else {
+      shouldAllowLock.value = true;
+    }
+  }
 
   if (!localStorage.getItem("transaction") || !transactionStore.memoId) {
     await performFullLock();
@@ -251,8 +250,13 @@ const updateReceivingCurrency = (currency) => {
 };
 
 const isLocking = ref(false); // already defined above
+const shouldAllowLock = ref(true); // control gate
 
 const performFullLock = async () => {
+  if (!shouldAllowLock.value) {
+    console.log("🚫 Lock blocked temporarily");
+    return;
+  }
   const { sendingAmount, sendingCurrency, receivingCurrency, paymentType } =
     localForm;
 
@@ -270,8 +274,7 @@ const performFullLock = async () => {
       sendingAmount,
       sendingCurrency,
       receivingCurrency,
-      paymentType,
-      null
+      paymentType
     );
 
     console.log("🔐 performFullLock result:", result);

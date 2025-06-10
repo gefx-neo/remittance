@@ -21,7 +21,7 @@
     </template>
 
     <template v-if="type === 'dashboardCurrentRates'">
-      <div class="dashboardCurrency">
+      <div class="dashboardCurrentRates">
         <div class="item-section">
           <div class="item" v-for="index in count" :key="index">
             <div class="country">
@@ -355,10 +355,12 @@ circle {
 
 .dashboardTransaction .item {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  width: calc(100% + var(--size-16));
+  width: 100%;
   padding: var(--size-8);
   border-radius: var(--border-md);
+  cursor: pointer;
 }
 
 .dashboardTransaction .item .icon-round {
@@ -410,35 +412,36 @@ circle {
 /* Dashboard transaction */
 
 /* Dashboard current rates */
-.dashboardCurrency .item-section {
+.dashboardCurrentRates .item-section {
   display: flex;
   flex-direction: column;
   align-items: center;
   margin: var(--size-4) 0;
 }
 
-.dashboardCurrency .item {
+.dashboardCurrentRates .item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: calc(100% + var(--size-16));
+  width: 100%;
   padding: var(--size-8);
   border-radius: var(--border-md);
+  cursor: pointer;
 }
 
-.dashboardCurrency .item .country {
+.dashboardCurrentRates .item .country {
   display: flex;
   align-items: center;
   position: relative;
   gap: var(--size-16);
 }
 
-.dashboardCurrency .item .country .name {
+.dashboardCurrentRates .item .country .name {
   color: var(--slate-blue);
   font-weight: var(--semi-bold);
 }
 
-.dashboardCurrency .item .exchange-item {
+.dashboardCurrentRates .item .exchange-item {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -449,7 +452,7 @@ circle {
   border: 1px solid var(--light-grey);
 }
 
-.dashboardCurrency .item .rate {
+.dashboardCurrentRates .item .rate {
   font-size: var(--text-sm);
 }
 /* Dashboard current rates */

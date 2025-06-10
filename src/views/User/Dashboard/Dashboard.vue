@@ -412,6 +412,7 @@ const updateSendingAmount = async (amount) => {
 
   form.sendingAmount = formattedAmount;
 };
+const isExchangeRateLoading = ref(false);
 
 const updateSendingCurrency = async (currency) => {
   if (form.sendingCurrency === currency) return;
@@ -497,10 +498,6 @@ const updateRate = async (selectedBase) => {
 
   // Step 1: Immediately update baseCurrency to reflect flag switch
   rateStore.baseCurrency = selectedBase;
-
-  // Step 2: Delay before showing loader so flag changes first
-  await nextTick(); // Allow DOM to update first
-  await new Promise((resolve) => setTimeout(resolve, 100)); // Slight delay (~100ms)
 
   isRateLoading.value = true;
 
