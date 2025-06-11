@@ -134,7 +134,6 @@ export const useRateStore = defineStore("rate", {
       if (rateUpdateOneHandler) {
         socket.off("rateUpdateOne", rateUpdateOneHandler);
         rateUpdateOneHandler = null;
-        console.log("disconnected websocket");
       }
     },
     updateRateClass(currency, newRate) {

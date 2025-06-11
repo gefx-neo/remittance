@@ -532,7 +532,6 @@ const updateRate = async (selectedBase) => {
 const isDashboardLoading = ref(true);
 
 onMounted(async () => {
-  console.log("dashboard token", authStore.token);
   await profileStore.getProfileDetail();
   Object.assign(profileDetails, profileStore.profileDetails);
 

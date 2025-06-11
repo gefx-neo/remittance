@@ -127,6 +127,8 @@ onBeforeUnmount(() => {
   max-width: var(--size-24);
   min-height: var(--size-24);
   max-height: var(--size-24);
+  border: 1px solid var(--light-grey);
+  border-radius: var(--border-circle);
 }
 
 .form-group button span:nth-child(2) {

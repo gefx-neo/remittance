@@ -1276,6 +1276,39 @@ export const paymentTypes = [
   { name: "Swift OUR", value: "our" },
 ];
 
+export const standardFees = {
+  SGD: {
+    MYR: { localpayment: 15 },
+    IDR: { localpayment: 15 },
+    CNY: { localpayment: 20, sha: 35, our: 70, ben: 20 },
+    HKD: { localpayment: 15, sha: 35, our: 70, ben: 20 },
+    THB: { localpayment: 15 },
+    INR: { localpayment: 15 },
+    PHP: { localpayment: 15 },
+    VND: { localpayment: 15 },
+    USD: { localpayment: 15, sha: 35, our: 70, ben: 20 },
+    EUR: { localpayment: 15, sha: 35, our: 70, ben: 20 },
+    GBP: { localpayment: 15, sha: 35, our: 70, ben: 20 },
+    JPY: { sha: 35, our: 70, ben: 20 },
+    AUD: { localpayment: 20, sha: 35, our: 70, ben: 20 },
+  },
+  USD: {
+    MYR: { localpayment: 10 },
+    IDR: { localpayment: 10 },
+    CNY: { localpayment: 15, sha: 25, our: 50, ben: 15 },
+    HKD: { localpayment: 10, sha: 25, our: 50, ben: 15 },
+    THB: { localpayment: 10 },
+    INR: { localpayment: 10 },
+    PHP: { localpayment: 10 },
+    VND: { localpayment: 10 },
+    USD: { localpayment: 10, sha: 25, our: 50, ben: 15 },
+    EUR: { localpayment: 10, sha: 25, our: 50, ben: 15 },
+    GBP: { localpayment: 10, sha: 25, our: 50, ben: 15 },
+    JPY: { sha: 25, our: 50, ben: 15 },
+    AUD: { localpayment: 15, sha: 25, our: 50, ben: 15 },
+  },
+};
+
 export const gefxBanks = [
   { id: 1, name: "DBS", value: "DBS" },
   { id: 2, name: "OCBC", value: "OCBC" },

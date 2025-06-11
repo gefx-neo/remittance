@@ -482,7 +482,7 @@ const navigateToAddBeneficiary = () => {
 <style scoped>
 .first-form {
   width: 100%;
-  max-width: 500px;
+  max-width: 550px;
 }
 .first-form .footer {
   display: flex;

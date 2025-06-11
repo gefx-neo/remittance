@@ -21,7 +21,6 @@ export const useTransactionStore = defineStore("transaction", {
     fee: null,
     paymentType: "localpayment",
     error: null,
-    baseCurrency: "SGD", // centralized
     rateClasses: {}, // Track increase or decrease classes for each currency
   }),
   actions: {
@@ -247,42 +246,57 @@ export const useTransactionStore = defineStore("transaction", {
         };
       }
     },
-    async getLockedTransaction(payAmount, base, to, paymentType) {
-      const store = useAuthStore();
+    async getLockedTransaction(
+      amountInput,
+      base,
+      to,
+      paymentType,
+      direction = " sending"
+    ) {
       const authStore = useAuthStore();
       const alertStore = useAlertStore();
       const { apiRateBaseUrl } = useEnvironment();
+
+      const rate = this.rate;
+      if (!rate || isNaN(rate)) {
+        alertStore.alert("error", "Missing or invalid rate. Please refresh.");
+        return null;
+      }
+
+      // 🔁 Local calculation
+      let payAmount, getAmount;
+
+      if (direction === "receiving") {
+        getAmount = parseFloat(amountInput);
+        payAmount = parseFloat((getAmount / rate).toFixed(2));
+      } else {
+        payAmount = parseFloat(amountInput);
+        getAmount = parseFloat((payAmount * rate).toFixed(2));
+      }
+
+      const url = `${apiRateBaseUrl}/lock-transaction.html?username=${encodeURIComponent(
+        authStore.username
+      )}&token=${encodeURIComponent(
+        authStore.token
+      )}&payCurrency=${base}&getCurrency=${to}&paymentType=${paymentType}&payAmount=${payAmount}&amount=${getAmount}`;
+
       try {
-        const rate = this.rate;
-
-        const calculatedAmount = (parseFloat(payAmount) * rate).toFixed(2);
-
-        const url = `${apiRateBaseUrl}/lock-transaction.html?username=${encodeURIComponent(
-          authStore.username
-        )}&token=${encodeURIComponent(
-          authStore.token
-        )}&payCurrency=${base}&getCurrency=${to}&paymentType=${paymentType}&payAmount=${payAmount}&amount=${calculatedAmount}`;
-
         const response = await fetch(url);
         const data = await response.json();
 
-        if (
-          !data?.memoId ||
-          typeof data?.rate !== "number" ||
-          typeof data?.fee !== "number"
-        ) {
-          alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
+        if (!data?.memoId || typeof data?.status !== "number") {
+          alertStore.alert("error", "Failed to lock transaction.");
           return null;
         }
 
         this.memoId = data.memoId;
-        this.rate = data.rate;
-        this.fee = data.fee;
-        console.log(
-          `[getLockedTransaction] memoId: ${this.memoId}, rate: ${this.rate}, fee: ${this.fee}`
-        );
 
-        return data;
+        return {
+          ...data,
+          rate,
+          payAmount, //  computed locally
+          getAmount, //  computed locally
+        };
       } catch (error) {
         alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         return null;
@@ -323,35 +337,35 @@ export const useTransactionStore = defineStore("transaction", {
       this.rateClasses[currency] = "";
     },
 
-    subscribeToSingleRateUpdates() {
-      // 🔔 One-to-one socket listener (e.g. USD ➝ MYR)
-      socket.on("rateUpdateOne", ({ base, to, rate, source }) => {
-        if (source !== "transactionStore") return; // ✅ Add this check
+    // subscribeToSingleRateUpdates() {
+    //   // 🔔 One-to-one socket listener (e.g. USD ➝ MYR)
+    //   socket.on("rateUpdateOne", ({ base, to, rate, source }) => {
+    //     if (source !== "transactionStore") return; // ✅ Add this check
 
-        if (this.baseCurrency !== base) return;
+    //     if (this.baseCurrency !== base) return;
 
-        const prevRate = this.rates.find((r) => r.currency === to)?.rate;
-        const prevDecimal = prevRate ? Math.round(prevRate * 10000) : null;
-        const newDecimal = Math.round(parseFloat(rate) * 10000);
+    //     const prevRate = this.rates.find((r) => r.currency === to)?.rate;
+    //     const prevDecimal = prevRate ? Math.round(prevRate * 10000) : null;
+    //     const newDecimal = Math.round(parseFloat(rate) * 10000);
 
-        if (prevDecimal !== null && prevDecimal !== newDecimal) {
-          this.updateRateClass(to, parseFloat(rate));
-          // console.log(
-          //   `[TransactionStore] One-to-one update: ${to}: ${prevRate} ➡️ ${parseFloat(
-          //     rate
-          //   )}`
-          // );
-        }
+    //     if (prevDecimal !== null && prevDecimal !== newDecimal) {
+    //       this.updateRateClass(to, parseFloat(rate));
+    //       // console.log(
+    //       //   `[TransactionStore] One-to-one update: ${to}: ${prevRate} ➡️ ${parseFloat(
+    //       //     rate
+    //       //   )}`
+    //       // );
+    //     }
 
-        const idx = this.rates.findIndex((r) => r.currency === to);
+    //     const idx = this.rates.findIndex((r) => r.currency === to);
 
-        if (idx !== -1) {
-          this.rates[idx].rate = parseFloat(rate);
-        } else {
-          this.rates.push({ currency: to, rate: parseFloat(rate) });
-        }
-      });
-    },
+    //     if (idx !== -1) {
+    //       this.rates[idx].rate = parseFloat(rate);
+    //     } else {
+    //       this.rates.push({ currency: to, rate: parseFloat(rate) });
+    //     }
+    //   });
+    // },
 
     resetStore() {
       this.$reset();

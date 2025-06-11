@@ -30,7 +30,7 @@
           label="Payment type"
           id="paymentType"
           v-model="localForm.paymentType"
-          :options="paymentTypes"
+          :options="availablePaymentTypes"
           :error="errors.paymentType"
           :tooltip="true"
           :isLongTooltip="true"
@@ -86,13 +86,14 @@ import {
   onMounted,
   ref,
   reactive,
+  computed,
   watch,
   nextTick,
   defineProps,
   defineEmits,
 } from "vue";
 import { InputAmount, Select, ButtonAPI } from "@/components/Form";
-import { paymentTypes, gefxBanks } from "@/data/data";
+import { paymentTypes, gefxBanks, standardFees } from "@/data/data";
 import { useValidation } from "@/composables/useValidation";
 import { formValidation, currencySchema } from "./schemas/stepOneSchema";
 import {
@@ -159,7 +160,7 @@ onMounted(async () => {
 
   // 🟡 Optional debug log
   if (props.isFromDashboard) {
-    console.log("🔁 StepOne: from Dashboard");
+    // console.log("🔁 StepOne: from Dashboard");
   }
 
   // ✅ From Beneficiary Detail
@@ -234,62 +235,65 @@ const updateSendingAmount = (val) => {
   performFullLock();
 };
 
-const updateSendingCurrency = (currency) => {
-  localForm.sendingCurrency = currency;
-  performFullLock();
-};
-
 const updateReceivingAmount = (val) => {
   localForm.receivingAmount = parseFloat(val);
-  performFullLock();
+  performFullLock("receiving");
 };
 
-const updateReceivingCurrency = (currency) => {
+const updateSendingCurrency = async (currency) => {
+  localForm.sendingCurrency = currency;
+  await nextTick();
+  await transactionStore.getParticularRate(
+    currency,
+    localForm.receivingCurrency
+  );
+  await performFullLock();
+};
+
+const updateReceivingCurrency = async (currency) => {
   localForm.receivingCurrency = currency;
-  performFullLock();
+  await nextTick();
+  await transactionStore.getParticularRate(localForm.sendingCurrency, currency);
+  await performFullLock();
 };
 
 const isLocking = ref(false); // already defined above
 const shouldAllowLock = ref(true); // control gate
 
-const performFullLock = async () => {
-  if (!shouldAllowLock.value) {
-    console.log("🚫 Lock blocked temporarily");
-    return;
-  }
-  const { sendingAmount, sendingCurrency, receivingCurrency, paymentType } =
-    localForm;
+const performFullLock = async (direction = "sending") => {
+  if (!shouldAllowLock.value) return;
 
-  isLocking.value = true;
-  console.log(
-    "🔐 performFullLock request:",
+  const {
     sendingAmount,
     sendingCurrency,
+    receivingAmount,
     receivingCurrency,
-    paymentType
-  );
+    paymentType,
+  } = localForm;
+
+  isLocking.value = true;
 
   try {
+    const amount = direction === "receiving" ? receivingAmount : sendingAmount;
+
     const result = await transactionStore.getLockedTransaction(
-      sendingAmount,
+      amount,
       sendingCurrency,
       receivingCurrency,
-      paymentType
+      paymentType,
+      direction
     );
-
-    console.log("🔐 performFullLock result:", result);
-
+    // result.rate here refers to the rate from getParticularRate
     if (result?.status === 1 && !isNaN(parseFloat(result.rate))) {
       const lockedRate = parseFloat(result.rate);
-      const calculatedAmount = parseFloat(
-        (sendingAmount * lockedRate).toFixed(2)
-      );
-      localForm.receivingAmount = calculatedAmount;
+
+      localForm.sendingAmount = result.payAmount;
+      localForm.receivingAmount = result.getAmount;
 
       transactionStore.setTransactionData({
-        sendingAmount,
+        sendingAmount: result.payAmount,
         sendingCurrency,
-        receivingAmount: localForm.receivingAmount,
+        receivingAmount: result.getAmount,
         receivingCurrency,
         memoId: result.memoId,
         rate: lockedRate,
@@ -297,11 +301,9 @@ const performFullLock = async () => {
         paymentType,
       });
     } else {
-      console.log("failed to lock transaction");
       alertStore.alert("error", "Failed to lock transaction.");
     }
   } catch (err) {
-    console.error("❌ performFullLock error:", err);
     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   } finally {
     isLocking.value = false;
@@ -316,6 +318,28 @@ watch(
     }
   }
 );
+
+const availablePaymentTypes = computed(() => {
+  const base = localForm.sendingCurrency;
+  const quote = localForm.receivingCurrency;
+
+  const feeObj = standardFees[base]?.[quote];
+  if (!feeObj) return [];
+
+  const availableKeys = Object.keys(feeObj);
+
+  const filtered = paymentTypes.filter(
+    (type) =>
+      type.name !== "No preference" && availableKeys.includes(type.value)
+  );
+
+  if (filtered.length > 1) {
+    const noPref = paymentTypes.find((type) => type.name === "No preference");
+    return [noPref, ...filtered];
+  }
+
+  return filtered;
+});
 
 const handleCancel = () => {
   router.push({ path: "/dashboard" });
