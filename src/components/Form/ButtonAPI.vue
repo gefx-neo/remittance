@@ -45,14 +45,17 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  useGlobalLoading: { type: Boolean, default: true },
 });
 
 const store = useStore();
 const emit = defineEmits(["click"]);
 
-const isButtonLoading = computed(
-  () => store.isLoading || store.isMoneyLoading || props.loading
-);
+const isButtonLoading = computed(() => {
+  return props.useGlobalLoading
+    ? store.isLoading || store.isMoneyLoading || props.loading
+    : props.loading;
+});
 
 const handleClick = (event) => {
   if (!isButtonLoading.value && !props.disabled) {

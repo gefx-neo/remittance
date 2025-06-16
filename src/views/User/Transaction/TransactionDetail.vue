@@ -127,7 +127,7 @@
                 <span>Exchange rate</span>
                 <span>
                   1 {{ transactionDetail.payCurrency }} =
-                  {{ formatNumber(transactionDetail.rate) }}
+                  {{ transactionDetail.rate }}
                   {{ transactionDetail.getCurrency }}</span
                 >
               </div>

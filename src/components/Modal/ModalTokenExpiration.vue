@@ -111,12 +111,21 @@ const tokenTimeRemaining = computed(() => {
 });
 
 // Watch for token changes
-watchEffect(() => {
-  if (getLocalStorageWithExpiry("token")) {
-    setExpiryToFiveMinutes();
-    startCountdown();
-  }
-});
+watch(
+  () => authStore.token,
+  (newToken) => {
+    if (newToken) {
+      setExpiryToFiveMinutes();
+      startCountdown();
+    } else {
+      if (countdownInterval.value) clearInterval(countdownInterval.value);
+      isOpen.value = false;
+      remainingTime.value = 0;
+      tokenExpiryTime.value = 0;
+    }
+  },
+  { immediate: true }
+);
 
 watch(
   () => isOpen.value,
@@ -159,6 +168,12 @@ const handleConfirm = () => {
 };
 
 const handleLogout = () => {
+  if (countdownInterval.value) clearInterval(countdownInterval.value);
+  isOpen.value = false;
+  remainingTime.value = 0;
+  tokenExpiryTime.value = 0;
+  document.body.style.overflow = "";
+
   authStore.logout();
 };
 </script>

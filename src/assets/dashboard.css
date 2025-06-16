@@ -451,6 +451,18 @@
   max-height: var(--size-32);
 }
 
+.currency .item .exchange-item.disabled {
+  cursor: default;
+}
+
+.currency .item .exchange-item.disabled:hover {
+  background: var(--white);
+}
+
+.currency .item .exchange-item.disabled svg {
+  fill: var(--black);
+}
+
 .currency .item .exchange-item svg {
   min-width: var(--size-12);
   max-width: var(--size-12);
@@ -651,6 +663,14 @@
   }
 
   .exchange-rate .form-section .exchange-item {
+    display: none;
+  }
+
+  .currency {
+    padding: var(--size-32) var(--size-16) var(--size-16) var(--size-16);
+  }
+
+  .history .item .icon-round {
     display: none;
   }
 

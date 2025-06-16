@@ -409,6 +409,12 @@ circle {
 .dashboardTransaction .item .detail .second-column .second-row {
   font-size: var(--text-sm);
 }
+
+@media (max-width: 767px) {
+  .dashboardTransaction .item .icon-round {
+    display: none;
+  }
+}
 /* Dashboard transaction */
 
 /* Dashboard current rates */

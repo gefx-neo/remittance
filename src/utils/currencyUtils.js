@@ -42,6 +42,8 @@ export function getReciprocalDecimals(currency) {
 }
 
 export function formatCurrency(value, currency, isReciprocal = false) {
+  if (!value || isNaN(value)) return "";
+
   const decimals = isReciprocal
     ? getReciprocalDecimals(currency)
     : getCurrencyDecimals(currency);

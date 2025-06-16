@@ -1268,12 +1268,20 @@ export const businessCategories = [
   },
 ];
 
-export const paymentTypes = [
+export const paymentTypesForTransaction = [
   { name: "No preference", value: "sha" },
   { name: "Local Payment", value: "localpayment" },
   { name: "Swift SHA", value: "sha" },
   { name: "Swift BEN", value: "ben" },
   { name: "Swift OUR", value: "our" },
+];
+
+export const paymentTypes = [
+  { name: "No preference", value: "No preference" },
+  { name: "Local Payment", value: "Local Payment" },
+  { name: "Swift SHA", value: "Swift SHA" },
+  { name: "Swift BEN", value: "Swift BEN" },
+  { name: "Swift OUR", value: "Swift OUR" },
 ];
 
 export const standardFees = {

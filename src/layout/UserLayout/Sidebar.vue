@@ -257,6 +257,7 @@ router.afterEach(() => {
     gap: var(--size-4);
     text-decoration: none;
     color: var(--cool-blue);
+    border-radius: 0;
   }
 
   .mobile-footer-container a.help {

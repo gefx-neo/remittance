@@ -818,5 +818,9 @@ const handleBack = () => {
     padding: 0 var(--size-16);
     padding-bottom: var(--size-16);
   }
+
+  .beneficiary .transaction .item-group .item .icon-round {
+    display: none;
+  }
 }
 </style>

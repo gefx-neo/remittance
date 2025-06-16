@@ -214,21 +214,22 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, from) => {
   const authStore = useAuthStore();
   const profileStore = useProfileStore();
   const alertStore = useAlertStore();
+  const store = useStore();
 
   const isLoggedIn = await authStore.checkSession();
 
   if (to.meta.requiresAuth && !isLoggedIn) {
     // alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
     // await authStore.logout();
-    return next({ name: "login" });
+    return { name: "login" };
   }
 
   if (to.meta.requiresGuest && isLoggedIn) {
-    return next({ name: "dashboard" });
+    return { name: "dashboard" };
   }
 
   if (to.meta.requiresVerified && isLoggedIn) {
@@ -236,15 +237,19 @@ router.beforeEach(async (to, from, next) => {
       const profileDetail = await profileStore.getProfileDetail();
       if (profileDetail?.userStatus !== 3) {
         alertStore.alert("pending", "Please verify your account");
-        return next({ name: "profiledetail" });
+        return { name: "profiledetail" };
       }
     } catch (error) {
       alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
-      return next({ name: "profiledetail" });
+      return { name: "profiledetail" };
     }
   }
 
-  next();
+  if (store.isLoading) {
+    queueNavigation(to);
+    return false; // Cancel current navigation, will retry later
+  }
+  return true; // allow navigation
 });
 
 const pendingRoute = ref(null);
@@ -264,10 +269,5 @@ const queueNavigation = (to) => {
     }
   );
 };
-
-router.beforeEach((to, from, next) => {
-  const store = useStore();
-  store.isLoading ? queueNavigation(to) : next();
-});
 
 export default router;

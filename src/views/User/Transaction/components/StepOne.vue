@@ -93,7 +93,11 @@ import {
   defineEmits,
 } from "vue";
 import { InputAmount, Select, ButtonAPI } from "@/components/Form";
-import { paymentTypes, gefxBanks, standardFees } from "@/data/data";
+import {
+  paymentTypesForTransaction,
+  gefxBanks,
+  standardFees,
+} from "@/data/data";
 import { useValidation } from "@/composables/useValidation";
 import { formValidation, currencySchema } from "./schemas/stepOneSchema";
 import {
@@ -328,13 +332,15 @@ const availablePaymentTypes = computed(() => {
 
   const availableKeys = Object.keys(feeObj);
 
-  const filtered = paymentTypes.filter(
+  const filtered = paymentTypesForTransaction.filter(
     (type) =>
       type.name !== "No preference" && availableKeys.includes(type.value)
   );
 
   if (filtered.length > 1) {
-    const noPref = paymentTypes.find((type) => type.name === "No preference");
+    const noPref = paymentTypesForTransaction.find(
+      (type) => type.name === "No preference"
+    );
     return [noPref, ...filtered];
   }
 

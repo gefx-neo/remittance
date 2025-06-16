@@ -163,7 +163,7 @@ export const useAuthStore = defineStore("auth", {
           // );
           this.logout();
         }
-      }, 1000);
+      }, 60000);
     },
 
     stopSessionMonitor() {

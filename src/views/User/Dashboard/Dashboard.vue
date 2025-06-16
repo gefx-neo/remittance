@@ -34,15 +34,21 @@
 
       <div class="button-section">
         <div class="rate-group">
-          1 {{ form.sendingCurrency }} ≈
-          {{ formatCurrency(transactionStore.rate) }}
-          {{ form.receivingCurrency }}
+          <template v-if="isExchangeRateLoading">
+            <div class="isExchangeRateLoading skeleton text-xl h-md"></div>
+          </template>
+          <template v-else>
+            1 {{ form.sendingCurrency }} ≈
+            {{ formatCurrency(transactionStore.rate) }}
+            {{ form.receivingCurrency }}
+          </template>
         </div>
 
         <div class="button-group">
           <ButtonAPI
-            :disabled="isDashboardLoading"
-            :loading="isDashboardLoading"
+            :loading="isExchangeRateLoading"
+            :disabled="isExchangeRateLoading"
+            :useGlobalLoading="false"
             class="btn-red standard-button"
             @click="handleSubmit"
           >
@@ -59,7 +65,7 @@
           <!-- <router-link to="/transaction">View all</router-link> -->
         </div>
 
-        <div v-if="isDashboardLoading">
+        <div v-if="isTransactionLoading">
           <SkeletonLoader type="dashboardTransaction" :count="9" />
         </div>
         <div v-else-if="transactions.length === 0">
@@ -110,7 +116,7 @@
               </div>
               <div class="second-column">
                 <div class="first-row">
-                  {{ formatNumber(transaction.payAmount) }}
+                  {{ formatNumber(transaction.payAmount + transaction.fee) }}
                   {{ transaction.payCurrency }}
                 </div>
                 <div class="second-row">
@@ -169,7 +175,7 @@
           </Tooltip>
         </div>
 
-        <div v-if="isDashboardLoading">
+        <div v-if="isLiveRateLoading">
           <SkeletonLoader type="dashboardCurrentRates" :count="6" />
         </div>
         <div v-else-if="rates.length === 0">
@@ -182,17 +188,18 @@
                 class="country"
                 :class="{ reciprocal: rateToggles[rate.currency] }"
               >
-                <!-- First Image: Other currency (non-base) -->
-                <Tooltip :text="rate.currency">
+                <!-- First Image: Base currency  -->
+                <Tooltip :text="rateStore.baseCurrency">
                   <div class="icon-round">
-                    <img :src="getCurrencyImagePath(rate.currency)" />
+                    <img :src="getCurrencyImagePath(rateStore.baseCurrency)" />
                   </div>
                 </Tooltip>
-
                 <!-- Toggle Button -->
                 <button
+                  v-if="!['IDR', 'VND'].includes(rate.currency)"
                   @click="toggleRate(rate.currency)"
                   class="exchange-item"
+                  :disabled="isRateLoading"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -217,10 +224,18 @@
                   </svg>
                 </button>
 
-                <!-- Second Image: Base currency (always PNG) -->
-                <Tooltip :text="rateStore.baseCurrency">
+                <div v-else class="exchange-item disabled">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                    <path
+                      d="M502.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L402.7 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l370.7 0-73.4 73.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l128-128z"
+                    />
+                  </svg>
+                </div>
+
+                <!-- Second Image: Other currency (non-base) -->
+                <Tooltip :text="rate.currency">
                   <div class="icon-round">
-                    <img :src="getCurrencyImagePath(rateStore.baseCurrency)" />
+                    <img :src="getCurrencyImagePath(rate.currency)" />
                   </div>
                 </Tooltip>
               </div>
@@ -412,7 +427,6 @@ const updateSendingAmount = async (amount) => {
 
   form.sendingAmount = formattedAmount;
 };
-const isExchangeRateLoading = ref(false);
 
 const updateSendingCurrency = async (currency) => {
   if (form.sendingCurrency === currency) return;
@@ -422,7 +436,12 @@ const updateSendingCurrency = async (currency) => {
 
   transactionStore.baseCurrency = currency;
 
-  await transactionStore.getParticularRate(currency, target);
+  isExchangeRateLoading.value = true;
+  try {
+    await transactionStore.getParticularRate(currency, target);
+  } finally {
+    isExchangeRateLoading.value = false;
+  }
 };
 
 const updateReceivingCurrency = async (currency) => {
@@ -431,7 +450,12 @@ const updateReceivingCurrency = async (currency) => {
   form.receivingCurrency = currency;
   const base = form.sendingCurrency;
 
-  await transactionStore.getParticularRate(base, currency);
+  isExchangeRateLoading.value = true;
+  try {
+    await transactionStore.getParticularRate(base, currency);
+  } finally {
+    isExchangeRateLoading.value = false;
+  }
 };
 
 const handleSubmit = async () => {
@@ -498,7 +522,7 @@ const updateRate = async (selectedBase) => {
 
   // Step 1: Immediately update baseCurrency to reflect flag switch
   rateStore.baseCurrency = selectedBase;
-
+  rateToggles.value = {};
   isRateLoading.value = true;
 
   try {
@@ -529,7 +553,9 @@ const updateRate = async (selectedBase) => {
   }
 };
 
-const isDashboardLoading = ref(true);
+const isExchangeRateLoading = ref(true);
+const isTransactionLoading = ref(true);
+const isLiveRateLoading = ref(true);
 
 onMounted(async () => {
   await profileStore.getProfileDetail();
@@ -537,34 +563,40 @@ onMounted(async () => {
 
   if (profileDetails.userStatus !== 3) return;
 
-  rateStore.resetStore(); // Clear rate classes
+  rateStore.resetStore();
+
+  const base = baseCurrency.value;
+  const target = form.receivingCurrency;
+
+  // Launch all three, but track each individually
+  const transactionRatePromise = transactionStore
+    .getParticularRate(base, target)
+    .finally(() => (isExchangeRateLoading.value = false));
+
+  const rateStoreRatePromise = rateStore
+    .getParticularRate(base)
+    .finally(() => (isLiveRateLoading.value = false));
+
+  const transactionListPromise = transactionStore
+    .getTransactionList()
+    .then((res) => {
+      if (res?.trxns) {
+        transactions.value = res.trxns
+          .sort((a, b) => new Date(b.date) - new Date(a.date))
+          .slice(0, 9);
+      }
+    })
+    .finally(() => (isTransactionLoading.value = false));
+
   try {
-    const base = baseCurrency.value;
-    const target = form.receivingCurrency;
-
-    // Call both getParticularRate in parallel
-    const transactionRatePromise = transactionStore.getParticularRate(
-      base,
-      target
-    );
-    const rateStoreRatePromise = rateStore.getParticularRate(base);
-
-    // Fetch rates + transaction list simultaneously
-    const [transactionListResponse] = await Promise.all([
-      transactionStore.getTransactionList(),
+    await Promise.all([
       transactionRatePromise,
       rateStoreRatePromise,
+      transactionListPromise,
     ]);
 
-    // Always subscribe to single rate updates only
+    // After all: subscribe to updates
     rateStore.subscribeToSingleRateUpdates();
-
-    if (transactionListResponse?.trxns) {
-      transactions.value = transactionListResponse.trxns
-        .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .slice(0, 9);
-    }
-    isDashboardLoading.value = false;
   } catch (error) {
     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
@@ -777,6 +809,10 @@ onUnmounted(() => {
 
 .h-md {
   height: 16px;
+}
+
+.isExchangeRateLoading.h-md {
+  margin-top: 3px;
 }
 
 @media (max-width: 1023px) {
