@@ -4,11 +4,8 @@
     <div
       :class="[
         'item',
-        {
-          visible: isVisible,
-          'long-tooltip': isLongTooltip,
-          right: position === 'right',
-        },
+        customClass,
+        { visible: isVisible, right: position === 'right' },
       ]"
       v-html="text"
     ></div>
@@ -27,9 +24,9 @@ const props = defineProps({
     type: String,
     default: "top",
   },
-  isLongTooltip: {
-    type: Boolean,
-    default: false,
+  customClass: {
+    type: String,
+    default: "",
   },
 });
 
@@ -83,12 +80,26 @@ const hideTooltip = () => {
   transform: unset;
 }
 
-@media (max-width: 767px) {
+.tooltip .item.sm-tooltip {
+  white-space: normal;
+  left: 0%;
+  width: 150px;
+  max-width: 150px;
+}
+
+@media (max-width: 1023px) {
   .tooltip .item.long-tooltip {
     white-space: normal;
-    max-width: 300px;
-    width: 300px;
     left: 290%;
+    width: 300px;
+    max-width: 300px;
+  }
+
+  .tooltip .item.sm-tooltip {
+    white-space: normal;
+    left: 0%;
+    width: 100px;
+    max-width: 100px;
   }
 }
 </style>

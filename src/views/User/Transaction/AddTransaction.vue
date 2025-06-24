@@ -187,6 +187,7 @@ const handleSubmit = async () => {
 
     if (response.status === 1) {
       alertStore.alert("success", "You have added a new transaction");
+      transactionStore.resetStore();
       window.location.href = "/#/transaction";
     } else {
       alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
@@ -275,11 +276,16 @@ onMounted(() => {
 
 const handleCancel = () => {
   router.push({ path: "/dashboard" });
+  transactionStore.resetStoreForDashboard();
 };
 
 onUnmounted(() => {
-  transactionStore.resetStore();
-  localStorage.removeItem("transaction");
+  const isFromAddBene = sessionStorage.getItem("firstTimeFromAddBeneficiary");
+
+  if (!isFromAddBene) {
+    transactionStore.resetStoreForDashboard();
+  }
+
   localStorage.removeItem("beneficiary");
   localStorage.removeItem("stepStore");
   sessionStorage.removeItem("firstTimeFromDashboard");

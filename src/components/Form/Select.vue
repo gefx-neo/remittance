@@ -5,7 +5,7 @@
       <Tooltip
         v-if="tooltip"
         :text="tooltipText"
-        :isLongTooltip="isLongTooltip"
+        :customClass="tooltipCustomClass"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
           <path
@@ -49,10 +49,7 @@ const props = defineProps({
   },
   tooltip: Boolean,
   tooltipText: String,
-  isLongTooltip: {
-    type: Boolean,
-    default: false,
-  },
+  tooltipCustomClass: String,
 });
 
 const emit = defineEmits(["update:modelValue"]);

@@ -122,6 +122,14 @@
         :options="hearAboutUs"
       />
 
+      <Input
+        label="Where did you hear about us? (others)"
+        id="otherHearAboutUs"
+        v-if="corporateForm.hearAboutUs === 'Others'"
+        v-model="corporateForm.otherHearAboutUs"
+        :error="errors.otherHearAboutUs"
+      />
+
       <Switch
         label="Beneficial owner's involvement in public functions"
         id="beneficiaryInvolvement"
@@ -238,6 +246,14 @@
         id="hearAboutUs"
         v-model="individualForm.hearAboutUs"
         :options="hearAboutUs"
+      />
+
+      <Input
+        label="Where did you hear about us? (others)"
+        id="otherHearAboutUs"
+        v-if="individualForm.hearAboutUs === 'Others'"
+        v-model="individualForm.otherHearAboutUs"
+        :error="errors.otherHearAboutUs"
       />
 
       <Select
@@ -442,6 +458,52 @@ watch(
         delete props.corporateForm.otherFundSource;
       } else {
         delete props.individualForm.otherFundSource;
+      }
+    }
+  }
+);
+
+// Delete otherHearAboutUs from form if toggled open and close again
+// watch(
+//   () =>
+//     selectedCustomerType.value === "Corporate & Trading Company"
+//       ? props.corporateForm.hearAboutUs
+//       : props.individualForm.hearAboutUs,
+//   (newVal) => {
+//     if (newVal !== "Others") {
+//       if (selectedCustomerType.value === "Corporate & Trading Company") {
+//         delete props.corporateForm.otherHearAboutUs;
+//       } else {
+//         delete props.individualForm.otherHearAboutUs;
+//       }
+//     }
+//   }
+// );
+watch(
+  () => ({
+    fundSource:
+      selectedCustomerType.value === "Corporate & Trading Company"
+        ? props.corporateForm.fundSource
+        : props.individualForm.fundSource,
+    hearAboutUs:
+      selectedCustomerType.value === "Corporate & Trading Company"
+        ? props.corporateForm.hearAboutUs
+        : props.individualForm.hearAboutUs,
+  }),
+  (newVal) => {
+    if (newVal.fundSource !== "Others") {
+      if (selectedCustomerType.value === "Corporate & Trading Company") {
+        delete props.corporateForm.otherFundSource;
+      } else {
+        delete props.individualForm.otherFundSource;
+      }
+    }
+
+    if (newVal.hearAboutUs !== "Others") {
+      if (selectedCustomerType.value === "Corporate & Trading Company") {
+        delete props.corporateForm.otherHearAboutUs;
+      } else {
+        delete props.individualForm.otherHearAboutUs;
       }
     }
   }

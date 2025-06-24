@@ -469,13 +469,8 @@ const refreshPage = () => {
 };
 
 const navigateToAddBeneficiary = () => {
-  router.push({
-    name: "addbeneficiary",
-    query: {
-      from: "transaction",
-      redirectTo: "addtransaction",
-    },
-  });
+  sessionStorage.setItem("firstTimeFromAddBeneficiary", "true");
+  router.push({ name: "addbeneficiary" });
 };
 </script>
 

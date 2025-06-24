@@ -10,6 +10,8 @@ import {
 import socket from "@/plugins/socket";
 import { CURRENCY_LIST, getAllowedCurrencies } from "@/utils/currencyUtils"; // Import the list
 import { useEnvironment } from "@/composables/useEnvironment";
+let rateUpdateOneHandler = null;
+
 export const useTransactionStore = defineStore("transaction", {
   state: () => ({
     sendingAmount: 0,
@@ -303,7 +305,7 @@ export const useTransactionStore = defineStore("transaction", {
       }
     },
     updateRateClass(currency, newRate) {
-      const prevRate = this.rates.find((r) => r.currency === currency)?.rate;
+      const prevRate = this.rate;
 
       // Use rounded values for comparison to ensure displayed precision matches
       const prevDecimal = prevRate ? Math.round(prevRate * 10000) : null;
@@ -336,39 +338,54 @@ export const useTransactionStore = defineStore("transaction", {
       // Clear the current rate class immediately
       this.rateClasses[currency] = "";
     },
+    subscribeToSingleRateUpdates() {
+      if (rateUpdateOneHandler) return;
 
-    // subscribeToSingleRateUpdates() {
-    //   // 🔔 One-to-one socket listener (e.g. USD ➝ MYR)
-    //   socket.on("rateUpdateOne", ({ base, to, rate, source }) => {
-    //     if (source !== "transactionStore") return; // ✅ Add this check
+      rateUpdateOneHandler = ({ base, to, rate, source }) => {
+        if (source !== "transactionStore") return;
+        if (this.sendingCurrency !== base) return;
+        if (this.receivingCurrency !== to) return;
 
-    //     if (this.baseCurrency !== base) return;
+        const newRate = parseFloat(rate);
+        const prevRate = this.rate;
 
-    //     const prevRate = this.rates.find((r) => r.currency === to)?.rate;
-    //     const prevDecimal = prevRate ? Math.round(prevRate * 10000) : null;
-    //     const newDecimal = Math.round(parseFloat(rate) * 10000);
+        const prevDecimal = prevRate ? Math.round(prevRate * 10000) : null;
+        const newDecimal = Math.round(newRate * 10000);
 
-    //     if (prevDecimal !== null && prevDecimal !== newDecimal) {
-    //       this.updateRateClass(to, parseFloat(rate));
-    //       // console.log(
-    //       //   `[TransactionStore] One-to-one update: ${to}: ${prevRate} ➡️ ${parseFloat(
-    //       //     rate
-    //       //   )}`
-    //       // );
-    //     }
+        if (prevDecimal !== null && prevDecimal !== newDecimal) {
+          this.updateRateClass(to, newRate);
+          // console.log(
+          //   `[TransactionStore] One-to-one update: ${to}: ${prevRate} ➡️ ${newRate}`
+          // );
+        }
 
-    //     const idx = this.rates.findIndex((r) => r.currency === to);
-
-    //     if (idx !== -1) {
-    //       this.rates[idx].rate = parseFloat(rate);
-    //     } else {
-    //       this.rates.push({ currency: to, rate: parseFloat(rate) });
-    //     }
-    //   });
-    // },
-
+        // ✅ Only update single rate — do NOT touch this.rates
+        this.rate = newRate;
+      };
+      socket.on("rateUpdateOne", rateUpdateOneHandler);
+    },
+    cleanupSocketListeners() {
+      if (rateUpdateOneHandler) {
+        socket.off("rateUpdateOne", rateUpdateOneHandler);
+        rateUpdateOneHandler = null;
+      }
+    },
     resetStore() {
       this.$reset();
+    },
+    resetStoreForDashboard() {
+      const preserved = {
+        sendingAmount: this.sendingAmount,
+        sendingCurrency: this.sendingCurrency,
+        receivingCurrency: this.receivingCurrency,
+      };
+
+      this.$reset();
+
+      // Restore preserved values
+      this.sendingAmount = preserved.sendingAmount;
+      this.sendingCurrency = preserved.sendingCurrency;
+      this.receivingCurrency = preserved.receivingCurrency;
     },
   },
 

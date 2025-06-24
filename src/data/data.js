@@ -624,14 +624,6 @@ export const fundSource = [
 ];
 
 export const purposeOfIntendedTransactions = [
-  { id: 1, name: "Immigration", value: "Immigration" },
-  {
-    id: 2,
-    name: "Overseas Mortgage And Rental",
-    value: "Overseas Mortgage And Rental",
-  },
-  { id: 3, name: "Family Or Friends", value: "Family Or Friends" },
-  { id: 4, name: "Sending Money Home", value: "Sending Money Home" },
   { id: 5, name: "Accounting Services", value: "Accounting Services" },
   { id: 6, name: "Administrative Expenses", value: "Administrative Expenses" },
   { id: 7, name: "Charity", value: "Charity" },
@@ -654,29 +646,28 @@ export const purposeOfIntendedTransactions = [
   { id: 16, name: "Financial Services", value: "Financial Services" },
   { id: 17, name: "Food and Live Animals", value: "Food and Live Animals" },
   { id: 18, name: "Freight", value: "Freight" },
+  { id: 3, name: "Family Or Friends", value: "Family Or Friends" },
+  { id: 21, name: "Gift", value: "Gift" },
   { id: 19, name: "Goods and Services", value: "Goods and Services" },
   {
     id: 20,
     name: "Goods for Processing/Manufacturing Services",
     value: "Goods for Processing/Manufacturing Services",
   },
-  { id: 21, name: "Gift", value: "Gift" },
   { id: 22, name: "Health Services", value: "Health Services" },
-  { id: 23, name: "Real Estate", value: "Real Estate" },
-  { id: 24, name: "Recreational Services", value: "Recreational Services" },
-  { id: 25, name: "Rental", value: "Rental" },
+  { id: 1, name: "Immigration", value: "Immigration" },
   { id: 26, name: "Information Services", value: "Information Services" },
   { id: 27, name: "Insurance", value: "Insurance" },
   { id: 28, name: "Interest", value: "Interest" },
   { id: 29, name: "Investment", value: "Investment" },
   { id: 30, name: "Investment Income", value: "Investment Income" },
   { id: 31, name: "Legal Services", value: "Legal Services" },
-  { id: 32, name: "Loans", value: "Loans" },
   {
     id: 33,
     name: "License Fees to Reproduce and Distribute Intellectual Property",
     value: "License Fees to Reproduce and Distribute Intellectual Property",
   },
+  { id: 32, name: "Loans", value: "Loans" },
   { id: 34, name: "Machinery", value: "Machinery" },
   { id: 35, name: "Manufactured Goods", value: "Manufactured Goods" },
   {
@@ -686,26 +677,35 @@ export const purposeOfIntendedTransactions = [
   },
   { id: 37, name: "Other Business Services", value: "Other Business Services" },
   { id: 38, name: "Other Personal Services", value: "Other Personal Services" },
+  {
+    id: 2,
+    name: "Overseas Mortgage And Rental",
+    value: "Overseas Mortgage And Rental",
+  },
   { id: 39, name: "Pension", value: "Pension" },
+  { id: 23, name: "Real Estate", value: "Real Estate" },
+  { id: 24, name: "Recreational Services", value: "Recreational Services" },
+  { id: 25, name: "Rental", value: "Rental" },
   {
     id: 40,
     name: "Research and Development Services",
     value: "Research and Development Services",
   },
+  { id: 4, name: "Sending Money Home", value: "Sending Money Home" },
   { id: 41, name: "Social Contributions", value: "Social Contributions" },
-  { id: 42, name: "Staff Salary", value: "Staff Salary" },
+  {
+    id: 46,
+    name: "Staff Family Maintenance",
+    value: "Staff Family Maintenance",
+  },
   { id: 43, name: "Staff Reimbursement", value: "Staff Reimbursement" },
+  { id: 42, name: "Staff Salary", value: "Staff Salary" },
   {
     id: 44,
     name: "Subsidiaries of Product or Production",
     value: "Subsidiaries of Product or Production",
   },
   { id: 45, name: "Supplier Credit", value: "Supplier Credit" },
-  {
-    id: 46,
-    name: "Staff Family Maintenance",
-    value: "Staff Family Maintenance",
-  },
   { id: 47, name: "Taxes", value: "Taxes" },
   {
     id: 48,
@@ -789,6 +789,9 @@ export const hearAboutUs = [
     name: "Word of Mouth (work/colleague)",
     value: "Word of Mouth (work/colleague)",
   },
+  { name: "You contacted us", value: "You contacted us" },
+  { name: "Coldcall", value: "Coldcall" },
+  { name: "Others", value: "Others" },
 ];
 
 export const annualIncome = [
@@ -801,11 +804,11 @@ export const annualIncome = [
 ];
 
 export const sendingCurrencies = [
-  { code: "USD", name: "US dollar" },
   {
     code: "SGD",
     name: "Singapore dollar",
   },
+  { code: "USD", name: "US dollar" },
 ];
 
 export const receivingCurrencies = [

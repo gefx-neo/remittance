@@ -67,22 +67,6 @@ const selectCurrency = (item) => {
 const handleClose = () => {
   emit("closeDropdown");
 };
-
-const dropdownMenuRef = ref(null);
-
-const handleClickOutside = (event) => {
-  if (dropdownMenuRef.value && !dropdownMenuRef.value.contains(event.target)) {
-    handleClose();
-  }
-};
-
-onMounted(() => {
-  document.addEventListener("click", handleClickOutside);
-});
-
-onUnmounted(() => {
-  document.removeEventListener("click", handleClickOutside);
-});
 </script>
 
 <style scoped>

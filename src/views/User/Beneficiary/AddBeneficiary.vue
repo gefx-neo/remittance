@@ -158,13 +158,12 @@ const handleSubmit = async () => {
 
     if (response.status === 1) {
       alertStore.alert("success", "You have added a new beneficiary");
-      // Redirect back to the original route if specified
-      if (redirectParams.value) {
-        const { redirectTo } = redirectParams.value;
-        if (redirectTo === "addtransaction") {
-          router.push({ path: "/transaction/addtransaction" });
-          return;
-        }
+      // Always clean up session flag no matter what
+      sessionStorage.removeItem("firstTimeFromAddBeneficiary");
+
+      if (redirectParams.value?.redirectTo === "addtransaction") {
+        router.push({ path: "/transaction/addtransaction" });
+        return;
       }
 
       // Default fallback redirection
@@ -190,12 +189,9 @@ const prevStep = () => {
 onMounted(() => {
   stepStore.setSteps(["Particulars", "Bank", "Payment"]);
   stepStore.setCurrentStep(1);
-});
 
-onMounted(() => {
-  const { from, redirectTo } = router.currentRoute.value.query;
-  if (from && redirectTo) {
-    redirectParams.value = { from, redirectTo };
+  if (sessionStorage.getItem("firstTimeFromAddBeneficiary") === "true") {
+    redirectParams.value = { redirectTo: "addtransaction" };
   }
 });
 

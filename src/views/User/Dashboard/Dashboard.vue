@@ -173,6 +173,17 @@
               "
             />
           </Tooltip>
+          <Tooltip
+            class="text"
+            text="Click the country flag to change your base currency"
+            customClass="sm-tooltip"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+              <path
+                d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM216 336l24 0 0-64-24 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l48 0c13.3 0 24 10.7 24 24l0 88 8 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-80 0c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"
+              />
+            </svg>
+          </Tooltip>
         </div>
 
         <div v-if="isLiveRateLoading">
@@ -407,10 +418,10 @@ const { errors, validateForm, validateSendingAmount, validateReceivingAmount } =
   useValidation();
 
 const form = reactive({
-  sendingAmount: 0,
-  sendingCurrency: sendingCurrencies[1].code,
-  receivingAmount: 0,
-  receivingCurrency: receivingCurrencies[0].code,
+  sendingAmount: transactionStore.sendingAmount,
+  sendingCurrency: transactionStore.sendingCurrency,
+  receivingAmount: transactionStore.receivingCurrency,
+  receivingCurrency: transactionStore.receivingCurrency,
 });
 
 const profileDetails = reactive({});
@@ -418,23 +429,23 @@ const profileDetails = reactive({});
 const transactions = ref([]);
 const rates = ref([]);
 const previousRates = ref({});
-const baseCurrency = ref("SGD");
 
-const updateSendingAmount = async (amount) => {
+const updateSendingAmount = (amount) => {
   const formattedAmount = parseFloat(amount);
 
   if (form.sendingAmount === formattedAmount) return;
 
   form.sendingAmount = formattedAmount;
+  transactionStore.sendingAmount = formattedAmount;
 };
 
 const updateSendingCurrency = async (currency) => {
   if (form.sendingCurrency === currency) return;
 
   form.sendingCurrency = currency;
-  const target = form.receivingCurrency;
+  transactionStore.sendingCurrency = currency;
 
-  transactionStore.baseCurrency = currency;
+  const target = form.receivingCurrency;
 
   isExchangeRateLoading.value = true;
   try {
@@ -448,6 +459,8 @@ const updateReceivingCurrency = async (currency) => {
   if (form.receivingCurrency === currency) return;
 
   form.receivingCurrency = currency;
+  transactionStore.receivingCurrency = currency;
+
   const base = form.sendingCurrency;
 
   isExchangeRateLoading.value = true;
@@ -565,16 +578,13 @@ onMounted(async () => {
 
   rateStore.resetStore();
 
-  const base = baseCurrency.value;
-  const target = form.receivingCurrency;
-
   // Launch all three, but track each individually
   const transactionRatePromise = transactionStore
-    .getParticularRate(base, target)
+    .getParticularRate(form.sendingCurrency, form.receivingCurrency)
     .finally(() => (isExchangeRateLoading.value = false));
 
   const rateStoreRatePromise = rateStore
-    .getParticularRate(base)
+    .getParticularRate(rateStore.baseCurrency)
     .finally(() => (isLiveRateLoading.value = false));
 
   const transactionListPromise = transactionStore
@@ -596,6 +606,7 @@ onMounted(async () => {
     ]);
 
     // After all: subscribe to updates
+    transactionStore.subscribeToSingleRateUpdates();
     rateStore.subscribeToSingleRateUpdates();
   } catch (error) {
     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
@@ -694,6 +705,7 @@ const endAnimation = () => {
 };
 
 onUnmounted(() => {
+  transactionStore.cleanupSocketListeners();
   rateStore.cleanupSocketListeners();
 });
 </script>

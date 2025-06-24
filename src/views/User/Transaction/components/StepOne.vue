@@ -33,7 +33,7 @@
           :options="availablePaymentTypes"
           :error="errors.paymentType"
           :tooltip="true"
-          :isLongTooltip="true"
+          tooltipCustomClass="long-tooltip"
           tooltipText="1. No preference: The best payment type for the transaction will be recommended <br/> 2. Local Payment: Domestic payment with lower fees. <br/> 3. Swift SHA (Shared): Sender and beneficiary split bank charges. <br/> 4. Swift BEN (Beneficiary): Beneficiary pays all bank charges. <br/> 5. Swift OUR (US): Sender pays all bank charges, beneficiary gets full amount.
 "
         />
@@ -205,7 +205,13 @@ onMounted(async () => {
     }
   }
 
-  if (!localStorage.getItem("transaction") || !transactionStore.memoId) {
+  if (!localStorage.getItem("transaction")) {
+    shouldAllowLock.value = false;
+    await transactionStore.getParticularRate(
+      localForm.sendingCurrency,
+      localForm.receivingCurrency
+    );
+    shouldAllowLock.value = true;
     await performFullLock();
   }
 });
@@ -349,7 +355,7 @@ const availablePaymentTypes = computed(() => {
 
 const handleCancel = () => {
   router.push({ path: "/dashboard" });
-  transactionStore.resetStore();
+  transactionStore.resetStoreForDashboard();
 };
 </script>
 

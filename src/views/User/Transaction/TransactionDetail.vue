@@ -273,6 +273,7 @@ const handleAcknowledgement = async () => {
     const response = await transactionStore.sendAcknowledgement(form);
 
     if (response.status === 1) {
+      await transactionStore.getTransactionDetail(memoId);
     }
   } catch (error) {
     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);

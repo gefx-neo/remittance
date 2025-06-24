@@ -143,6 +143,26 @@
   animation: scaleFade 0.4s ease-in-out;
 }
 
+.currency .tabs .tooltip.text {
+  min-width: var(--size-16);
+  max-width: var(--size-16);
+  min-height: var(--size-16);
+  max-height: var(--size-16);
+  right: var(--size-4);
+  left: unset;
+  opacity: 1;
+  bottom: 0;
+  transform: unset;
+}
+
+.currency .tabs .tooltip.text svg {
+  min-width: var(--size-16);
+  max-width: var(--size-16);
+  min-height: var(--size-16);
+  max-height: var(--size-16);
+  fill: var(--grey);
+}
+
 /* Animation State Style */
 .tooltip.active.animating :deep(.item) {
   transition: unset;

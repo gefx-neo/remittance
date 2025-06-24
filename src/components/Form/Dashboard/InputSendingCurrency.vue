@@ -87,11 +87,11 @@ onMounted(() => {
   if (!props.modelCurrency) {
     emit("update:modelCurrency", selectedCurrency.value);
   }
-  document.addEventListener("click", handleClickOutside);
+  document.addEventListener("mousedown", handleClickOutside);
 });
 
 onBeforeUnmount(() => {
-  document.removeEventListener("click", handleClickOutside);
+  document.removeEventListener("mousedown", handleClickOutside);
 });
 </script>
 
