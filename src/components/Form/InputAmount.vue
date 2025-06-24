@@ -31,6 +31,7 @@
             />
           </button>
           <CurrencyDropdown
+            v-if="isDropdownOpen"
             :isDropdownOpen="isDropdownOpen"
             :selectedCurrency="selectedCurrency"
             :currencies="currencies"

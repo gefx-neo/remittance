@@ -14,6 +14,7 @@
           <font-awesome-icon :icon="['fa', 'chevron-down']" />
         </button>
         <CurrencyDropdown
+          v-if="isDropdownOpen"
           :isDropdownOpen="isDropdownOpen"
           :selectedCurrency="selectedCurrency"
           :currencies="receivingCurrencies"

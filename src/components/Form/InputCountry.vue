@@ -14,6 +14,7 @@
             <font-awesome-icon :icon="['fa', 'chevron-down']" />
           </button>
           <CountryDropdown
+            v-if="isDropdownOpen"
             :isDropdownOpen="isDropdownOpen"
             :selectedCountry="selectedCountry"
             :countries="countries"

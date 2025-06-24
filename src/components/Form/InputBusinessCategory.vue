@@ -13,6 +13,7 @@
             <font-awesome-icon :icon="['fa', 'chevron-down']" />
           </button>
           <BusinessCategoryDropdown
+            v-if="isDropdownOpen"
             :isDropdownOpen="isDropdownOpen"
             :selectedCategory="selectedCategory"
             :businessCategories="businessCategories"
