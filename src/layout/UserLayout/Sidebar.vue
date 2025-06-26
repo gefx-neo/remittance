@@ -156,8 +156,8 @@ router.afterEach(() => {
   align-items: center;
   gap: var(--size-12);
   padding: var(--size-dropdown-item);
-
   color: var(--cool-blue);
+  border-radius: var(--border-circle);
   text-decoration: none;
 }
 

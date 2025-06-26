@@ -159,7 +159,7 @@ export const individualValidation = (
     label: "Given name",
     rules: [validationService.isRequired],
   },
-  ...(naturalEmploymentType === "employed" && {
+  ...(naturalEmploymentType === "Employed" && {
     employerName: {
       value: individualForm?.employerName || "",
       label: "Name of employer",
@@ -177,7 +177,7 @@ export const individualValidation = (
     },
   }),
 
-  ...(naturalEmploymentType === "selfEmployed" && {
+  ...(naturalEmploymentType === "Self Employed" && {
     businessName: {
       value: individualForm?.businessName || "",
       label: "Name of business",

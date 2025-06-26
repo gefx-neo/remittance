@@ -286,10 +286,10 @@ export const useTransactionStore = defineStore("transaction", {
         const response = await fetch(url);
         const data = await response.json();
 
-        if (!data?.memoId || typeof data?.status !== "number") {
-          alertStore.alert("error", "Failed to lock transaction.");
-          return null;
-        }
+        // if (!data?.memoId || typeof data?.status !== "number") {
+        //   alertStore.alert("error", "Failed to lock transaction.");
+        //   return null;
+        // }
 
         this.memoId = data.memoId;
 

@@ -52,9 +52,9 @@ onUnmounted(() => {
 
 <style scoped>
 .timer-item {
-  position: fixed;
-  bottom: var(--size-24);
-  right: var(--size-24);
+  position: absolute;
+  bottom: 0;
+  right: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;

@@ -64,6 +64,8 @@ import {
   entityTypes,
   fundSource,
   purposeOfIntendedTransactions,
+  purposeOfIntendedTransactionsForBusiness,
+  purposeOfIntendedTransactionsForIndividual,
   titles,
   hearAboutUs,
   annualIncome,
@@ -126,7 +128,8 @@ const corporateForm = reactive({
   // agentAddress: "", // Exclude here because condition to submit
   purposeAccRel: "",
   fundSource: fundSource[0].value,
-  purposeOfIntendedTransactions: purposeOfIntendedTransactions[0].value,
+  purposeOfIntendedTransactions:
+    purposeOfIntendedTransactionsForBusiness[0].value,
   hearAboutUs: hearAboutUs[0].value,
   beneficiaryInvolvement: "0",
   beneficiaryFamilyInvolvement: "0",
@@ -156,18 +159,19 @@ const individualForm = reactive({
   title: titles[0].value,
   surname: profileDetails.surname,
   givenName: profileDetails.givenName,
-  naturalEmploymentType: "employed",
+  naturalEmploymentType: "Employed",
   fundSource: fundSource[0].value,
-  purposeOfIntendedTransactions: purposeOfIntendedTransactions[0].value,
+  purposeOfIntendedTransactions:
+    purposeOfIntendedTransactionsForIndividual[0].value,
   hearAboutUs: hearAboutUs[0].value,
   annualIncome: annualIncome[0].value,
-  beneficiaryInvolvement: "0",
-  beneficiaryFamilyInvolvement: "0",
-  beneficiaryConnectionInvolvement: "0",
+  beneficiaryInvolvement: "No",
+  beneficiaryFamilyInvolvement: "No",
+  beneficiaryConnectionInvolvement: "No",
   docIC: null,
   docSelfie: null,
   docCard: null,
-  docKYC: null,
+  // docKYC: null,
 });
 
 // Centralized customer type selection
@@ -192,54 +196,109 @@ const handleSubmit = async () => {
   };
 
   // Helper function to append and upload each file individually
-  const appendAndUploadFile = async (file, folderName) => {
-    const randomString = generateRandomString(5); // Generate a random string of 5 characters
-    const newFileName = `${file.name
-      .split(".")
-      .slice(0, -1)
-      .join(".")}_${randomString}.${file.name.split(".").pop()}`;
+  const appendAndUploadFile = async (file, folderName, newFileName) => {
+    console.log(
+      `[UPLOAD] Uploading file: ${newFileName} to folder: ${folderName}`
+    );
 
     const formData = new FormData();
-    formData.append("file", file, newFileName); // Add file with new name
-    formData.append("folder", folderName); // Add folder name as text
+    formData.append("file", file, newFileName);
+    formData.append("folder", folderName);
 
-    // Log the time before the upload starts
-    const fileStartTime = new Date();
-
-    // Upload the file
     await profileStore.uploadFiles(formData);
 
-    // Log the time after the upload finishes
-    const fileEndTime = new Date();
+    // console.log(`[UPLOAD] Finished uploading: ${newFileName}`);
   };
 
-  // Helper function to gather all file upload promises and return file names
+  // // Helper function to gather all file upload promises and return file names
   const appendFilesWithFolder = (files, folderName) => {
     const uploadPromises = [];
     const fileNames = [];
 
     if (Array.isArray(files)) {
       files.forEach((file) => {
-        uploadPromises.push(appendAndUploadFile(file, folderName));
-        const randomString = generateRandomString(5); // Generate a random string of 5 characters
+        const randomString = generateRandomString(5);
         const newFileName = `${file.name
           .split(".")
           .slice(0, -1)
           .join(".")}_${randomString}.${file.name.split(".").pop()}`;
-        fileNames.push(newFileName); // Collect new file names
+
+        console.log(
+          `[FILE NAME] Generated file name for submission: ${newFileName}`
+        );
+
+        uploadPromises.push(appendAndUploadFile(file, folderName, newFileName));
+        fileNames.push(newFileName);
       });
     } else if (files) {
-      uploadPromises.push(appendAndUploadFile(files[0], folderName)); // Single file upload
-      const randomString = generateRandomString(5); // Generate a random string of 5 characters
+      const randomString = generateRandomString(5);
       const newFileName = `${files[0].name
         .split(".")
         .slice(0, -1)
         .join(".")}_${randomString}.${files[0].name.split(".").pop()}`;
-      fileNames.push(newFileName); // Collect new file name
+
+      // console.log(
+      //   `[FILE NAME] Generated file name for submission: ${newFileName}`
+      // );
+
+      uploadPromises.push(
+        appendAndUploadFile(files[0], folderName, newFileName)
+      );
+      fileNames.push(newFileName);
     }
 
     return { uploadPromises, fileNames };
   };
+
+  // Helper function to append and upload each file individually
+  // const appendAndUploadFile = async (file, folderName) => {
+  //   const randomString = generateRandomString(5); // Generate a random string of 5 characters
+  //   const newFileName = `${file.name
+  //     .split(".")
+  //     .slice(0, -1)
+  //     .join(".")}_${randomString}.${file.name.split(".").pop()}`;
+
+  //   const formData = new FormData();
+  //   formData.append("file", file, newFileName); // Add file with new name
+  //   formData.append("folder", folderName); // Add folder name as text
+
+  //   // Log the time before the upload starts
+  //   const fileStartTime = new Date();
+
+  //   // Upload the file
+  //   await profileStore.uploadFiles(formData);
+
+  //   // Log the time after the upload finishes
+  //   const fileEndTime = new Date();
+  // };
+
+  // // Helper function to gather all file upload promises and return file names
+  // const appendFilesWithFolder = (files, folderName) => {
+  //   const uploadPromises = [];
+  //   const fileNames = [];
+
+  //   if (Array.isArray(files)) {
+  //     files.forEach((file) => {
+  //       uploadPromises.push(appendAndUploadFile(file, folderName));
+  //       const randomString = generateRandomString(5); // Generate a random string of 5 characters
+  //       const newFileName = `${file.name
+  //         .split(".")
+  //         .slice(0, -1)
+  //         .join(".")}_${randomString}.${file.name.split(".").pop()}`;
+  //       fileNames.push(newFileName); // Collect new file names
+  //     });
+  //   } else if (files) {
+  //     uploadPromises.push(appendAndUploadFile(files[0], folderName)); // Single file upload
+  //     const randomString = generateRandomString(5); // Generate a random string of 5 characters
+  //     const newFileName = `${files[0].name
+  //       .split(".")
+  //       .slice(0, -1)
+  //       .join(".")}_${randomString}.${files[0].name.split(".").pop()}`;
+  //     fileNames.push(newFileName); // Collect new file name
+  //   }
+
+  //   return { uploadPromises, fileNames };
+  // };
 
   let allUploadPromises = [];
   let fileNames = {};
@@ -252,7 +311,7 @@ const handleSubmit = async () => {
     );
     const photoID = appendFilesWithFolder(
       corporateForm.docPhotoID,
-      "BusinessAcra"
+      "CompanySelfieWorkingPass"
     );
     const selfie = appendFilesWithFolder(
       corporateForm.docSelfie,
@@ -299,20 +358,20 @@ const handleSubmit = async () => {
       individualForm.docCard,
       "BusinessNameCard"
     );
-    const kyc = appendFilesWithFolder(individualForm.docKYC, "KYCForm");
+    // const kyc = appendFilesWithFolder(individualForm.docKYC, "KYCForm");
 
     allUploadPromises = [
       ...ic.uploadPromises,
       ...selfie.uploadPromises,
       ...card.uploadPromises,
-      ...kyc.uploadPromises,
+      // ...kyc.uploadPromises,
     ];
 
     fileNames = {
       docIC: ic.fileNames.join(","),
       docSelfie: selfie.fileNames.join(","),
       docCard: card.fileNames.join(","),
-      docKYC: kyc.fileNames.join(","),
+      // docKYC: kyc.fileNames.join(","),
     };
 
     // **Handle agent-related files if `isAgent` is 'Yes'**
@@ -411,6 +470,7 @@ const handleCancel = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-height: calc(100vh - 162px);
 }
 
 .profile {

@@ -2,17 +2,14 @@ import { createRouter, createWebHashHistory } from "vue-router";
 import GuestLayout from "../layout/GuestLayout/GuestLayout.vue";
 import UserLayout from "../layout/UserLayout/UserLayout.vue";
 import ProcessLayout from "../layout/ProcessLayout/ProcessLayout.vue";
-import AdminLayout from "../layout/AdminLayout/AdminLayout.vue";
 import ErrorLayout from "../layout/ErrorLayout/ErrorLayout.vue";
 import Login from "../views/Guest/Login.vue";
-import AdminLogin from "../views/Guest/AdminLogin.vue";
 import {
   useStore,
   useAuthStore,
   useProfileStore,
   useAlertStore,
 } from "../stores/index.js";
-import { useAdminAuthStore } from "../stores/admin/adminAuthStore.js";
 import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
 import { ref, watch } from "vue";
 
@@ -36,11 +33,6 @@ const routes = [
         path: "forgotpassword",
         name: "forgotpassword",
         component: () => import("../views/Guest/ForgotPassword.vue"),
-      },
-      {
-        path: "admin",
-        name: "admin-login",
-        component: AdminLogin,
       },
     ],
   },
@@ -159,40 +151,6 @@ const routes = [
         component: () =>
           import("../views/User/Profile/AccountVerification.vue"),
         meta: { requiresAuth: true },
-      },
-    ],
-  },
-  {
-    path: "/admin",
-    component: AdminLayout,
-    children: [
-      {
-        path: "remittance",
-        children: [
-          {
-            path: "customermanagement",
-            name: "admin-remittance-customermanagement",
-            component: () =>
-              import("../views/Admin/Remittance/CustomerManagement.vue"),
-          },
-          {
-            path: "transactionmanagement",
-            name: "admin-remittance-transactionmanagement",
-            component: () =>
-              import("../views/Admin/Remittance/TransactionManagement.vue"),
-          },
-          {
-            path: "beneficiarymanagement",
-            name: "admin-remittance-beneficiarymanagement",
-            component: () =>
-              import("../views/Admin/Remittance/BeneficiaryManagement.vue"),
-          },
-          {
-            path: "auditlog",
-            name: "admin-remittance-auditlog",
-            component: () => import("../views/Admin/Remittance/AuditLog.vue"),
-          },
-        ],
       },
     ],
   },

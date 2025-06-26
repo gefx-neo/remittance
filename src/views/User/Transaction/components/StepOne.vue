@@ -311,7 +311,7 @@ const performFullLock = async (direction = "sending") => {
         paymentType,
       });
     } else {
-      alertStore.alert("error", "Failed to lock transaction.");
+      // alertStore.alert("error", "Failed to lock transaction.");
     }
   } catch (err) {
     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);

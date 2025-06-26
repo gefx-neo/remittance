@@ -28,17 +28,17 @@ const props = defineProps({
   id: String,
   content: String,
   error: String,
-  modelValue: String, // '0' or '1'
+  modelValue: String, // Expecting 'Yes' or 'No'
 });
 
 const emit = defineEmits(["update:modelValue"]);
 
 // Local state as a boolean
-const checked = ref(props.modelValue === "1"); // Initialize based on '0' or '1'
+const checked = ref(props.modelValue === "Yes");
 
-// Emit '1' for true and '0' for false
+// Emit 'Yes' for true, 'No' for false
 const emitChange = () => {
-  const newValue = checked.value ? "1" : "0"; // Convert to '1'/'0'
+  const newValue = checked.value ? "Yes" : "No";
   emit("update:modelValue", newValue); // Emit the new value
 };
 
@@ -46,7 +46,7 @@ const emitChange = () => {
 watch(
   () => props.modelValue,
   (newVal) => {
-    checked.value = newVal === "1"; // Convert '1'/'0' to true/false
+    checked.value = newVal === "Yes";
   }
 );
 </script>

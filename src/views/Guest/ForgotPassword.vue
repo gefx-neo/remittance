@@ -264,7 +264,7 @@ onBeforeRouteLeave((to, from, next) => {
   flex-direction: column;
   align-items: center;
   gap: var(--size-24);
-  min-height: calc(100vh - 140px);
+  min-height: calc(100vh - 138px);
   padding-top: var(--size-80);
 }
 
@@ -381,6 +381,7 @@ form .remark .btn-timer:disabled {
 }
 
 .footer a {
+  background: none;
   color: var(--grey) !important;
   font-weight: var(--semi-bold);
   text-decoration: underline;

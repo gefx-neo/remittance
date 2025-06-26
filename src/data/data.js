@@ -718,14 +718,113 @@ export const purposeOfIntendedTransactions = [
   { id: 52, name: "Others", value: "Others" },
 ];
 
+// Use for individualForm.purposeOfIntendedTransaction in AccountVerification StepTwo
+export const purposeOfIntendedTransactionsForIndividual = [
+  { id: 1, name: "Immigration", value: "Immigration" },
+  {
+    id: 2,
+    name: "Overseas Mortgage And Rental",
+    value: "Overseas Mortgage And Rental",
+  },
+  { id: 3, name: "Family Or Friends", value: "Family Or Friends" },
+  { id: 4, name: "Sending Money home", value: "Sending Money home" },
+];
+
+// Use for corporateForm.purposeOfIntendedTransaction in AccountVerification StepTwo
+export const purposeOfIntendedTransactionsForBusiness = [
+  { id: 1, name: "Accounting Services", value: "Accounting Services" },
+  { id: 2, name: "Administrative Expenses", value: "Administrative Expenses" },
+  { id: 3, name: "Charity", value: "Charity" },
+  { id: 4, name: "Computer Services", value: "Computer Services" },
+  { id: 5, name: "Construction Services", value: "Construction Services" },
+  {
+    id: 6,
+    name: "Corporate Stock and Shares",
+    value: "Corporate Stock and Shares",
+  },
+  { id: 7, name: "Crude Materials", value: "Crude Materials" },
+  {
+    id: 8,
+    name: "Education Services and Related",
+    value: "Education Services and Related",
+  },
+  { id: 9, name: "Equity Capital", value: "Equity Capital" },
+  { id: 10, name: "Equipment", value: "Equipment" },
+  { id: 11, name: "Financial Instruments", value: "Financial Instruments" },
+  { id: 12, name: "Financial Services", value: "Financial Services" },
+  { id: 13, name: "Food and Live Animals", value: "Food and Live Animals" },
+  { id: 14, name: "Freight", value: "Freight" },
+  { id: 15, name: "Goods and Services", value: "Goods and Services" },
+  {
+    id: 16,
+    name: "Goods for Processing/manufacturing Services",
+    value: "Goods for Processing/manufacturing Services",
+  },
+  { id: 17, name: "Gift", value: "Gift" },
+  { id: 18, name: "Health Services", value: "Health Services" },
+  { id: 19, name: "Real Estate", value: "Real Estate" },
+  { id: 20, name: "Recreational Services", value: "Recreational Services" },
+  { id: 21, name: "Rental", value: "Rental" },
+  { id: 22, name: "Information Services", value: "Information Services" },
+  { id: 23, name: "Insurance", value: "Insurance" },
+  { id: 24, name: "Interest", value: "Interest" },
+  { id: 25, name: "Investment", value: "Investment" },
+  { id: 26, name: "Investment Income", value: "Investment Income" },
+  { id: 27, name: "Legal Services", value: "Legal Services" },
+  { id: 28, name: "Loans", value: "Loans" },
+  {
+    id: 29,
+    name: "License Fees to Reproduce and Distribute Intellectual Property",
+    value: "License Fees to Reproduce and Distribute Intellectual Property",
+  },
+  { id: 30, name: "Machinery", value: "Machinery" },
+  { id: 31, name: "Manufactured Goods", value: "Manufactured Goods" },
+  {
+    id: 32,
+    name: "Mineral Fuels, Lubricants and Related Material",
+    value: "Mineral Fuels, Lubricants and Related Material",
+  },
+  { id: 33, name: "Other Business Services", value: "Other Business Services" },
+  { id: 34, name: "Other Personal Services", value: "Other Personal Services" },
+  { id: 35, name: "Pension", value: "Pension" },
+  {
+    id: 36,
+    name: "Research and Development Services",
+    value: "Research and Development Services",
+  },
+  { id: 37, name: "Social Contributions", value: "Social Contributions" },
+  { id: 38, name: "Staff Salary", value: "Staff Salary" },
+  { id: 39, name: "Staff Reimbursement", value: "Staff Reimbursement" },
+  {
+    id: 40,
+    name: "Subsidiaries of Product or Production",
+    value: "Subsidiaries of Product or Production",
+  },
+  { id: 41, name: "Supplier Credit", value: "Supplier Credit" },
+  {
+    id: 42,
+    name: "Staff family maintenance",
+    value: "Staff family maintenance",
+  },
+  { id: 43, name: "Taxes", value: "Taxes" },
+  {
+    id: 44,
+    name: "Telecommunication Services",
+    value: "Telecommunication Services",
+  },
+  { id: 45, name: "Trade Related Services", value: "Trade Related Services" },
+  { id: 46, name: "Transportation Services", value: "Transportation Services" },
+  { id: 47, name: "Transfer To Own Account", value: "Transfer To Own Account" },
+];
+
 export const employmentTypes = [
   {
     name: "Employed",
-    value: "employed",
+    value: "Employed",
   },
   {
-    name: "Self employed",
-    value: "selfEmployed",
+    name: "Self Employed",
+    value: "Self Employed",
   },
 ];
 
@@ -1271,20 +1370,20 @@ export const businessCategories = [
   },
 ];
 
-export const paymentTypesForTransaction = [
-  { name: "No preference", value: "sha" },
-  { name: "Local Payment", value: "localpayment" },
-  { name: "Swift SHA", value: "sha" },
-  { name: "Swift BEN", value: "ben" },
-  { name: "Swift OUR", value: "our" },
-];
-
 export const paymentTypes = [
   { name: "No preference", value: "No preference" },
   { name: "Local Payment", value: "Local Payment" },
   { name: "Swift SHA", value: "Swift SHA" },
   { name: "Swift BEN", value: "Swift BEN" },
   { name: "Swift OUR", value: "Swift OUR" },
+];
+
+export const paymentTypesForTransaction = [
+  { name: "No preference", value: "sha" },
+  { name: "Local Payment", value: "localpayment" },
+  { name: "Swift SHA", value: "sha" },
+  { name: "Swift BEN", value: "ben" },
+  { name: "Swift OUR", value: "our" },
 ];
 
 export const standardFees = {

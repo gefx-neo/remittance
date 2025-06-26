@@ -286,7 +286,7 @@
       />
 
       <Input
-        v-if="individualForm.naturalEmploymentType === 'employed'"
+        v-if="individualForm.naturalEmploymentType === 'Employed'"
         label="Name of employer"
         id="employerName"
         v-model="individualForm.employerName"
@@ -294,7 +294,7 @@
       />
 
       <Input
-        v-if="individualForm.naturalEmploymentType === 'employed'"
+        v-if="individualForm.naturalEmploymentType === 'Employed'"
         label="Job title"
         id="jobTitle"
         v-model="individualForm.employerJobTitle"
@@ -302,7 +302,7 @@
       />
 
       <Input
-        v-if="individualForm.naturalEmploymentType === 'employed'"
+        v-if="individualForm.naturalEmploymentType === 'Employed'"
         label="Registered address of employer"
         id="employerAddress"
         v-model="individualForm.employerAddress"
@@ -310,7 +310,7 @@
       />
 
       <Input
-        v-if="individualForm.naturalEmploymentType === 'selfEmployed'"
+        v-if="individualForm.naturalEmploymentType === 'Self Employed'"
         label="Name of business"
         id="businessName"
         v-model="individualForm.businessName"
@@ -318,7 +318,7 @@
       />
 
       <Input
-        v-if="individualForm.naturalEmploymentType === 'selfEmployed'"
+        v-if="individualForm.naturalEmploymentType === 'Self Employed'"
         label="Business registration no."
         id="businessRegistrationNo"
         v-model="individualForm.businessRegistrationNo"
@@ -326,7 +326,7 @@
       />
 
       <Input
-        v-if="individualForm.naturalEmploymentType === 'selfEmployed'"
+        v-if="individualForm.naturalEmploymentType === 'Self Employed'"
         label="Registered business address"
         id="businessAddress"
         v-model="individualForm.businessAddress"
@@ -334,7 +334,7 @@
       />
 
       <Input
-        v-if="individualForm.naturalEmploymentType === 'selfEmployed'"
+        v-if="individualForm.naturalEmploymentType === 'Self Employed'"
         label="Principal place of business"
         id="businessPlace"
         v-model="individualForm.businessPlace"
@@ -428,12 +428,12 @@ watch(
 watch(
   () => props.individualForm.naturalEmploymentType,
   (newVal) => {
-    if (newVal === "employed") {
+    if (newVal === "Employed") {
       delete errors.businessName;
       delete errors.businessRegistrationNo;
       delete errors.businessAddress;
       delete errors.businessPlace;
-    } else if (newVal === "selfEmployed") {
+    } else if (newVal === "Self Employed") {
       delete errors.employerName;
       delete errors.employerJobTitle;
       delete errors.employerAddress;
@@ -454,16 +454,16 @@ const handleNext = () => {
       ? corporateValidation(form)
       : individualValidation(form, form.naturalEmploymentType);
 
-  // If employment type is "employed", remove self-employed fields
-  if (form.naturalEmploymentType === "employed") {
+  // If employment type is "Employed", remove self-employed fields
+  if (form.naturalEmploymentType === "Employed") {
     delete form.businessName;
     delete form.businessRegistrationNo;
     delete form.businessAddress;
     delete form.businessPlace;
   }
 
-  // If employment type is "selfEmployed", remove employed fields
-  if (form.naturalEmploymentType === "selfEmployed") {
+  // If employment type is "Self Employed", remove employed fields
+  if (form.naturalEmploymentType === "Self Employed") {
     delete form.employerName;
     delete form.employerJobTitle;
     delete form.employerAddress;

@@ -112,7 +112,7 @@
         label="Purpose of intended transactions"
         id="purposeOfIntendedTransactions"
         v-model="corporateForm.purposeOfIntendedTransactions"
-        :options="purposeOfIntendedTransactions"
+        :options="purposeOfIntendedTransactionsForBusiness"
       />
 
       <Select
@@ -238,7 +238,7 @@
         label="Purpose of intended transactions"
         id="purposeOfIntendedTransactions"
         v-model="individualForm.purposeOfIntendedTransactions"
-        :options="purposeOfIntendedTransactions"
+        :options="purposeOfIntendedTransactionsForIndividual"
       />
 
       <Select
@@ -307,6 +307,8 @@ import { useValidation } from "@/composables/useValidation";
 import {
   fundSource,
   purposeOfIntendedTransactions,
+  purposeOfIntendedTransactionsForIndividual,
+  purposeOfIntendedTransactionsForBusiness,
   agentCorporateCustomerType,
   hearAboutUs,
   annualIncome,
