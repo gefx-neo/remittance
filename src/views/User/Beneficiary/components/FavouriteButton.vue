@@ -18,7 +18,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { useBeneficiaryStore } from "@/stores/beneficiaryStore";
 import { useAlertStore, useAuthStore } from "@/stores/index.js";
 import { DEFAULT_ERROR_MESSAGE } from "@/services/apiService";
@@ -33,6 +33,7 @@ const props = defineProps({
     required: true,
   },
 });
+const emit = defineEmits(["update-list"]);
 
 const authStore = useAuthStore();
 const beneficiaryStore = useBeneficiaryStore();
@@ -43,11 +44,20 @@ const tooltipContent = ref(
   isFavourite.value ? "Remove favourite" : "Add favourite"
 );
 
+// Watch for external prop changes after parent list refresh
+watch(
+  () => props.isFav,
+  (newVal) => {
+    isFavourite.value = newVal;
+    tooltipContent.value = newVal ? "Remove favourite" : "Add favourite";
+  }
+);
+
 const handleToggle = async () => {
   const username = authStore.username;
 
   const form = {
-    beneId: Number(props.beneficiaryId), // Ensure ID is a number
+    beneId: Number(props.beneficiaryId),
     status: isFavourite.value ? 0 : 1,
     username: username,
   };
@@ -56,12 +66,8 @@ const handleToggle = async () => {
     const response = await beneficiaryStore.updateFavourite(form);
 
     if (response.status === 1) {
-      isFavourite.value = !isFavourite.value;
-      tooltipContent.value = isFavourite.value
-        ? "Remove favourite"
-        : "Add favourite";
       alertStore.alert("success", "You have updated the beneficiary status");
-      window.location.reload();
+      emit("update-list");
     }
   } catch (error) {
     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);

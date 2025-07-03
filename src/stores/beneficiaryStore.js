@@ -118,7 +118,6 @@ export const useBeneficiaryStore = defineStore("beneficiary", {
       const authStore = useAuthStore();
       const store = useStore();
       const alertStore = useAlertStore();
-      store.isLoading = true;
       try {
         const response = await apiService.putRequest(
           "/bene/updateFavourite",
@@ -138,7 +137,6 @@ export const useBeneficiaryStore = defineStore("beneficiary", {
         alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
         throw error;
       } finally {
-        store.isLoading = false;
       }
     },
     async deleteBeneficiary(id) {

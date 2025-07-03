@@ -28,6 +28,7 @@
           @nextStep="nextStep"
           @prevStep="prevStep"
           :beneficiaries="beneficiaries"
+          @refresh="handleRefreshBeneficiaries"
         />
 
         <StepThree
@@ -172,7 +173,7 @@ const handleSubmit = async () => {
     const transactionForm = {
       username: form.value.username,
       beneficiaryId: Number(selectedBeneficiary?.id),
-      memoId: transactionStore.memoId,
+      MemoID: transactionStore.memoId,
       contactNo:
         selectedBeneficiary?.accountType === "1"
           ? selectedBeneficiary?.companyContactNo
@@ -220,9 +221,7 @@ onMounted(async () => {
     const query = router.currentRoute.value.query;
 
     if (!beneficiaries.value.length) {
-      const response = await beneficiaryStore.getBeneficiaryList();
-      beneficiaries.value = response.beneficiaries || [];
-      beneficiaries.value.sort((a, b) => b.isFav - a.isFav);
+      await fetchBeneficiaryList();
     }
 
     if (query.beneId) {
@@ -273,6 +272,17 @@ onMounted(() => {
     stepStore.setCurrentStep(1);
   });
 });
+
+const handleRefreshBeneficiaries = async () => {
+  stepStore.setCurrentStep(2);
+  await fetchBeneficiaryList();
+};
+
+const fetchBeneficiaryList = async () => {
+  const response = await beneficiaryStore.getBeneficiaryList();
+  beneficiaries.value = response.beneficiaries || [];
+  beneficiaries.value.sort((a, b) => b.isFav - a.isFav);
+};
 
 const handleCancel = () => {
   router.push({ path: "/dashboard" });

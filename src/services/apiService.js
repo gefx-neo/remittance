@@ -6,11 +6,11 @@ import { useEnvironment } from "@/composables/useEnvironment";
 export const DEFAULT_ERROR_MESSAGE =
   "Please try again or contact our support team.";
 
-const { apiBaseUrl, corsOrigin } = useEnvironment(); // Get environment variables
+const { apiRemittanceBaseUrl, corsOrigin } = useEnvironment(); // Get environment variables
 
 // Set the default base URL for all axios requests
 const axiosInstance = axios.create({
-  baseURL: apiBaseUrl, // Use the dynamically selected API URL
+  baseURL: apiRemittanceBaseUrl, // Use the dynamically selected API URL
   headers: {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": corsOrigin, // Use the correct CORS origin

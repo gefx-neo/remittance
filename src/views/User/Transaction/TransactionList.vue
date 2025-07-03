@@ -75,7 +75,7 @@
             </div>
             <div class="second-column">
               <div class="first-row">
-                {{ formatNumber(transaction.payAmount + transaction.fee) }}
+                {{ formatNumber(transaction.payAmount) }}
                 {{ transaction.payCurrency }}
               </div>
               <div class="second-row">
@@ -204,10 +204,14 @@ onMounted(async () => {
   if (profileDetails.userStatus !== 3) {
     return;
   }
+  await fetchTransactionList();
+});
+
+const fetchTransactionList = async () => {
   const response = await transactionStore.getTransactionList();
   transactions.value = response.trxns || [];
   transactions.value.sort((a, b) => new Date(b.date) - new Date(a.date));
-});
+};
 
 const filteredTransactions = computed(() => {
   const query = searchQuery.value.toLowerCase();
@@ -239,9 +243,7 @@ const handleReminder = async (memoId) => {
     if (response.status === 1) {
       alertStore.alert("success", "We have received your reminder.");
 
-      const response = await transactionStore.getTransactionList();
-      transactions.value = response.trxns || [];
-      transactions.value.sort((a, b) => new Date(b.date) - new Date(a.date));
+      await fetchTransactionList();
     } else {
       alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
     }

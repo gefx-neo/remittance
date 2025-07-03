@@ -116,7 +116,7 @@
               </div>
               <div class="second-column">
                 <div class="first-row">
-                  {{ formatNumber(transaction.payAmount + transaction.fee) }}
+                  {{ formatNumber(transaction.payAmount) }}
                   {{ transaction.payCurrency }}
                 </div>
                 <div class="second-row">
@@ -414,8 +414,13 @@ const store = useStore();
 const authStore = useAuthStore();
 const alertStore = useAlertStore();
 const profileStore = useProfileStore();
-const { errors, validateForm, validateSendingAmount, validateReceivingAmount } =
-  useValidation();
+const {
+  errors,
+  clearErrors,
+  validateForm,
+  validateSendingAmount,
+  validateReceivingAmount,
+} = useValidation();
 
 const form = reactive({
   sendingAmount: transactionStore.sendingAmount,
@@ -472,27 +477,31 @@ const updateReceivingCurrency = async (currency) => {
 };
 
 const handleSubmit = async () => {
+  clearErrors();
   form.sendingAmount = parseFloat(form.sendingAmount);
 
-  validateSendingAmount(
-    form.sendingAmount,
-    form.sendingCurrency,
-    currencySchema,
-    "sending"
-  );
+  // validateSendingAmount(
+  //   form.sendingAmount,
+  //   form.sendingCurrency,
+  //   currencySchema,
+  //   "sending"
+  // );
 
-  if (errors.sendingAmount) {
-    alertStore.alert("error", errors.sendingAmount);
-    return;
-  }
+  // if (errors.sendingAmount) {
+  //   alertStore.alert("error", errors.sendingAmount);
+  //   return;
+  // }
 
-  const schema = formValidation(form);
-  const isValid = validateForm(form, schema);
+  // const schema = formValidation(form);
+  // const isValid = validateForm(form, schema);
 
-  if (!isValid) {
-    alertStore.alert("error", "Please fill in valid amounts.");
-    return;
-  }
+  // if (!isValid) {
+  //   alertStore.alert(
+  //     "error",
+  //     "Please enter a valid amount above the minimum transaction limit."
+  //   );
+  //   return;
+  // }
 
   try {
     const result = await transactionStore.getLockedTransaction(
@@ -507,6 +516,19 @@ const handleSubmit = async () => {
     form.receivingAmount = parseFloat(
       (form.sendingAmount * result.rate).toFixed(2)
     );
+
+    // ✅ Validate receivingAmount after assigning it
+    validateReceivingAmount(
+      form.receivingAmount,
+      form.receivingCurrency,
+      currencySchema,
+      "receiving"
+    );
+
+    if (errors.receivingAmount) {
+      alertStore.alert("error", errors.receivingAmount);
+      return;
+    }
 
     transactionStore.setTransactionData({
       sendingAmount: form.sendingAmount,

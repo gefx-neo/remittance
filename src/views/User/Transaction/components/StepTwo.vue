@@ -65,8 +65,7 @@
                 <FavouriteButton
                   :beneficiaryId="beneficiary.id"
                   :isFav="!!beneficiary.isFav"
-                  @update-list="refreshPage"
-                  @click.stop
+                  @update-list="refreshList"
                 />
                 <div class="detail">
                   <span class="icon-round">
@@ -109,8 +108,7 @@
                 <FavouriteButton
                   :beneficiaryId="beneficiary.id"
                   :isFav="!!beneficiary.isFav"
-                  @update-list="refreshPage"
-                  @click.stop
+                  @update-list="refreshList"
                 />
                 <div class="detail">
                   <span class="icon-round">
@@ -153,8 +151,7 @@
                 <FavouriteButton
                   :beneficiaryId="beneficiary.id"
                   :isFav="!!beneficiary.isFav"
-                  @update-list="refreshPage"
-                  @click.stop
+                  @update-list="refreshList"
                 />
                 <div class="detail">
                   <span class="icon-round">
@@ -197,8 +194,7 @@
                 <FavouriteButton
                   :beneficiaryId="beneficiary.id"
                   :isFav="!!beneficiary.isFav"
-                  @update-list="refreshPage"
-                  @click.stop
+                  @update-list="refreshList"
                 />
                 <div class="detail">
                   <span class="icon-round">
@@ -241,8 +237,7 @@
                 <FavouriteButton
                   :beneficiaryId="beneficiary.id"
                   :isFav="!!beneficiary.isFav"
-                  @update-list="refreshPage"
-                  @click.stop
+                  @update-list="refreshList"
                 />
                 <div class="detail">
                   <span class="icon-round">
@@ -320,6 +315,7 @@ const emit = defineEmits([
   "nextStep",
   "prevStep",
   "beneficiaryChanged",
+  "refresh",
 ]);
 
 const searchQuery = ref("");
@@ -464,8 +460,8 @@ const handleBack = () => {
   // router.push({ path: "/dashboard" });
 };
 
-const refreshPage = () => {
-  window.location.reload();
+const refreshList = () => {
+  emit("refresh");
 };
 
 const navigateToAddBeneficiary = () => {

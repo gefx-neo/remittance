@@ -24,6 +24,7 @@
               <FavouriteButton
                 :beneficiaryId="beneficiaryDetail.id || route.params.id"
                 :isFav="!!beneficiaryDetail.isFav"
+                @update-list="fetchBeneficiaryDetail"
               />
             </span>
           </div>
@@ -364,24 +365,31 @@ const handleSubmit = async () => {
 onMounted(async () => {
   try {
     // Fetch beneficiary details
-    const response = await beneficiaryStore.getBeneficiaryDetail(id);
-    if (response?.beneDetails) {
-      beneficiaryDetail.value = response.beneDetails;
-    }
+    await fetchBeneficiaryDetail();
 
-    // Fetch transaction list
-    const transactionsResponse = await transactionStore.getTransactionList();
-    if (transactionsResponse?.trxns) {
-      // Filter transactions by the beneficiary ID
-      transactions.value = transactionsResponse.trxns.filter(
-        (transaction) => transaction.beneficiaryId === parseInt(id)
-      );
-      transactions.value.sort((a, b) => new Date(b.date) - new Date(a.date));
-    }
+    // Fetch transaction details
+    await fetchTransactionDetail();
   } catch (error) {
     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
   }
 });
+
+const fetchBeneficiaryDetail = async () => {
+  const response = await beneficiaryStore.getBeneficiaryDetail(id);
+  if (response?.beneDetails) {
+    beneficiaryDetail.value = response.beneDetails;
+  }
+};
+
+const fetchTransactionDetail = async () => {
+  const transactionsResponse = await transactionStore.getTransactionList();
+  if (transactionsResponse?.trxns) {
+    transactions.value = transactionsResponse.trxns.filter(
+      (transaction) => transaction.beneficiaryId === parseInt(id)
+    );
+    transactions.value.sort((a, b) => new Date(b.date) - new Date(a.date));
+  }
+};
 
 const redirectToTransaction = () => {
   const { currency } = beneficiaryDetail.value;

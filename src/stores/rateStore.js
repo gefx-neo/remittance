@@ -21,6 +21,7 @@ export const useRateStore = defineStore("rate", {
       const alertStore = useAlertStore();
       const authStore = useAuthStore();
       const { apiRateBaseUrl } = useEnvironment();
+
       try {
         const allowedCurrencies = getAllowedCurrencies(base);
         const result = [];
@@ -30,15 +31,19 @@ export const useRateStore = defineStore("rate", {
             authStore.username
           )}&token=${encodeURIComponent(authStore.token)}`;
 
+          // const headers = {};
+
+          // const response = await fetch(url, { headers });
           const response = await fetch(url);
+
           const data = await response.json();
 
           result.push({
             currency: to,
-            rate: parseFloat(data.rate), // already adjusted by backend
+            rate: parseFloat(data.rate),
           });
 
-          // 🔔 Subscribe to one-to-one real-time updates
+          // Emit socket with origin only if backend logic uses it
           socket.emit("changeBase", {
             base,
             to,
@@ -56,7 +61,6 @@ export const useRateStore = defineStore("rate", {
 
         this.baseCurrency = base;
         this.rates = result;
-        // console.log(this.rates);
 
         return {
           status: 1,

@@ -60,6 +60,7 @@
                 <FavouriteButton
                   :beneficiaryId="beneficiary.id"
                   :isFav="!!beneficiary.isFav"
+                  @update-list="fetchBeneficiaryList"
                   @click.stop
                 />
               </div>
@@ -98,6 +99,7 @@
                 <FavouriteButton
                   :beneficiaryId="beneficiary.id"
                   :isFav="!!beneficiary.isFav"
+                  @update-list="fetchBeneficiaryList"
                   @click.stop
                 />
               </div>
@@ -138,6 +140,7 @@
                 <FavouriteButton
                   :beneficiaryId="beneficiary.id"
                   :isFav="!!beneficiary.isFav"
+                  @update-list="fetchBeneficiaryList"
                   @click.stop
                 />
               </div>
@@ -178,6 +181,7 @@
                 <FavouriteButton
                   :beneficiaryId="beneficiary.id"
                   :isFav="!!beneficiary.isFav"
+                  @update-list="fetchBeneficiaryList"
                   @click.stop
                 />
               </div>
@@ -218,6 +222,7 @@
                 <FavouriteButton
                   :beneficiaryId="beneficiary.id"
                   :isFav="!!beneficiary.isFav"
+                  @update-list="fetchBeneficiaryList"
                   @click.stop
                 />
               </div>
@@ -262,9 +267,7 @@ const beneficiaries = ref([]);
 const searchQuery = ref("");
 
 onMounted(async () => {
-  const response = await beneficiaryStore.getBeneficiaryList();
-  beneficiaries.value = response.beneficiaries || [];
-  beneficiaries.value.sort((a, b) => b.isFav - a.isFav);
+  await fetchBeneficiaryList();
 });
 
 const filteredBeneficiaries = computed(() => {
@@ -311,6 +314,12 @@ const filteredSwiftOURPaymentBeneficiaries = computed(() =>
     beneficiary.paymentType.includes("Swift OUR")
   )
 );
+
+const fetchBeneficiaryList = async () => {
+  const response = await beneficiaryStore.getBeneficiaryList();
+  beneficiaries.value = response.beneficiaries || [];
+  beneficiaries.value.sort((a, b) => b.isFav - a.isFav);
+};
 
 const navigateToBeneficiaryDetail = (beneficiary) => {
   router.push({
