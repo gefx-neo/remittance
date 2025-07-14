@@ -7,7 +7,11 @@
     </div>
 
     <!-- Step 1: Reset Password Form -->
-    <form v-if="step === 1" @submit.prevent="handleChangePassword">
+    <div
+      class="form"
+      v-if="step === 1"
+      @keydown.enter.prevent="handleChangePassword"
+    >
       <fieldset :disabled="store.isLoading">
         <div class="form-group">
           <label for="login">E-mail address</label>
@@ -16,12 +20,21 @@
             errors.username
           }}</span>
         </div>
-        <ButtonAPI class="btn-red standard-button"> Next </ButtonAPI>
+        <ButtonAPI
+          class="btn-red standard-button"
+          @click="handleChangePassword"
+        >
+          Next
+        </ButtonAPI>
       </fieldset>
-    </form>
+    </div>
 
     <!-- Step 2: Set New Password Form -->
-    <form v-if="step === 2" @submit.prevent="handleSetNewPassword">
+    <div
+      class="form"
+      v-if="step === 2"
+      @keydown.enter.prevent="handleSetNewPassword"
+    >
       <fieldset :disabled="store.isLoading">
         <div class="remark">
           We have sent the temporary passcode to your email. Did not receive?
@@ -90,7 +103,12 @@
           </div>
         </div>
         <div class="button-group">
-          <ButtonAPI class="btn-red standard-button"> Submit </ButtonAPI>
+          <ButtonAPI
+            class="btn-red standard-button"
+            @click="handleSetNewPassword"
+          >
+            Submit
+          </ButtonAPI>
           <button
             type="button"
             class="btn-back standard-button"
@@ -100,7 +118,7 @@
           </button>
         </div>
       </fieldset>
-    </form>
+    </div>
 
     <div v-show="forgotPasswordStore.error" class="error">
       {{ forgotPasswordStore.error }}
@@ -220,8 +238,6 @@ const handleSetNewPassword = async () => {
 
     if (response.status === 1) {
       store.openModal();
-    } else {
-      alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
     }
   } catch (error) {
     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
@@ -283,20 +299,20 @@ onBeforeRouteLeave((to, from, next) => {
   cursor: pointer;
 }
 
-form {
+.form {
   width: 100%;
   max-width: 400px;
   gap: var(--size-24);
 }
 
-form .remark {
+.form .remark {
   background: var(--lighter-grey);
   padding: var(--size-12);
   border-radius: var(--border-md);
   margin-bottom: var(--size-12);
 }
 
-form .remark .btn-timer {
+.form .remark .btn-timer {
   background: none;
   color: var(--black);
   font-weight: var(--semi-bold);
@@ -305,7 +321,7 @@ form .remark .btn-timer {
   display: unset;
 }
 
-form .remark .btn-timer:disabled {
+.form .remark .btn-timer:disabled {
   background: none !important;
   color: var(--grey) !important;
   font-weight: var(--semi-bold);

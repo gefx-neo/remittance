@@ -1,5 +1,6 @@
 <template>
   <button
+    :type="props.type"
     :class="['btn-api', props.class, { 'is-loading': isButtonLoading }]"
     :disabled="isButtonLoading || props.disabled"
     @click="handleClick"
@@ -26,6 +27,7 @@ import { computed } from "vue";
 import { useStore } from "@/stores/store";
 
 const props = defineProps({
+  type: { type: String, default: "button" },
   disabled: {
     type: Boolean,
     default: false,

@@ -564,6 +564,8 @@ const updateRate = async (selectedBase) => {
     socket.emit("changeBase", {
       base: selectedBase,
       source: "rateStore",
+      username: authStore.username,
+      token: authStore.token,
     });
 
     const rateResponse = await rateStore.getParticularRate(selectedBase);

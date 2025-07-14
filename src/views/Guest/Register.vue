@@ -154,8 +154,6 @@ const handleRegister = async () => {
 
     if (response.status === 1) {
       store.openModal();
-    } else {
-      alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
     }
   } catch (error) {
     alertStore.alert("error", DEFAULT_ERROR_MESSAGE);
